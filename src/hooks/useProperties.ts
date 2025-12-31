@@ -58,6 +58,7 @@ export function useProperties() {
           bathrooms: formData.bathrooms || 0,
           parking_spots: formData.parking_spots || 0,
           description: formData.description || null,
+          photo_url: formData.photo_url || null,
         })
         .select()
         .single();
@@ -107,6 +108,7 @@ export function useProperties() {
           bathrooms: formData.bathrooms || 0,
           parking_spots: formData.parking_spots || 0,
           description: formData.description || null,
+          photo_url: formData.photo_url || null,
         })
         .eq('id', id)
         .select()

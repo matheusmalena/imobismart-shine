@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Property, PropertyFormData, PropertyType, PropertyStatus, PropertyPerformance, PROPERTY_TYPE_LABELS, PROPERTY_STATUS_LABELS, PROPERTY_PERFORMANCE_LABELS } from '@/types/property';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
+import { PhotoUpload } from './PhotoUpload';
+import { usePhotoUpload } from '@/hooks/usePhotoUpload';
 
 interface PropertyFormProps {
   open: boolean;
@@ -42,45 +44,77 @@ const defaultFormData: PropertyFormData = {
   bathrooms: 0,
   parking_spots: 0,
   description: '',
+  photo_url: null,
 };
 
 export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading }: PropertyFormProps) {
-  const [formData, setFormData] = useState<PropertyFormData>(
-    property ? {
-      name: property.name,
-      property_type: property.property_type,
-      status: property.status,
-      performance: property.performance || 'media',
-      address_street: property.address_street || '',
-      address_number: property.address_number || '',
-      address_complement: property.address_complement || '',
-      address_neighborhood: property.address_neighborhood || '',
-      address_city: property.address_city || '',
-      address_state: property.address_state || '',
-      address_zip: property.address_zip || '',
-      property_value: Number(property.property_value) || 0,
-      monthly_revenue: Number(property.monthly_revenue) || 0,
-      occupancy_rate: Number(property.occupancy_rate) || 0,
-      acquisition_date: property.acquisition_date || '',
-      condominium_fee: Number(property.condominium_fee) || 0,
-      iptu_fee: Number(property.iptu_fee) || 0,
-      maintenance_fee: Number(property.maintenance_fee) || 0,
-      other_costs: Number(property.other_costs) || 0,
-      area_sqm: Number(property.area_sqm) || 0,
-      bedrooms: property.bedrooms || 0,
-      bathrooms: property.bathrooms || 0,
-      parking_spots: property.parking_spots || 0,
-      description: property.description || '',
-    } : defaultFormData
-  );
+  const { uploadPhoto, isUploading } = usePhotoUpload();
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  
+  const [formData, setFormData] = useState<PropertyFormData>(defaultFormData);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (property) {
+      setFormData({
+        name: property.name,
+        property_type: property.property_type,
+        status: property.status,
+        performance: property.performance || 'media',
+        address_street: property.address_street || '',
+        address_number: property.address_number || '',
+        address_complement: property.address_complement || '',
+        address_neighborhood: property.address_neighborhood || '',
+        address_city: property.address_city || '',
+        address_state: property.address_state || '',
+        address_zip: property.address_zip || '',
+        property_value: Number(property.property_value) || 0,
+        monthly_revenue: Number(property.monthly_revenue) || 0,
+        occupancy_rate: Number(property.occupancy_rate) || 0,
+        acquisition_date: property.acquisition_date || '',
+        condominium_fee: Number(property.condominium_fee) || 0,
+        iptu_fee: Number(property.iptu_fee) || 0,
+        maintenance_fee: Number(property.maintenance_fee) || 0,
+        other_costs: Number(property.other_costs) || 0,
+        area_sqm: Number(property.area_sqm) || 0,
+        bedrooms: property.bedrooms || 0,
+        bathrooms: property.bathrooms || 0,
+        parking_spots: property.parking_spots || 0,
+        description: property.description || '',
+        photo_url: property.photo_url || null,
+      });
+    } else {
+      setFormData(defaultFormData);
+    }
+    setPendingFile(null);
+  }, [property, open]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    let photoUrl = formData.photo_url;
+    
+    // Upload new photo if selected
+    if (pendingFile) {
+      const uploadedUrl = await uploadPhoto(pendingFile);
+      if (uploadedUrl) {
+        photoUrl = uploadedUrl;
+      }
+    }
+    
+    onSubmit({ ...formData, photo_url: photoUrl });
   };
 
   const updateField = <K extends keyof PropertyFormData>(field: K, value: PropertyFormData[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handlePhotoChange = (url: string | null) => {
+    setFormData(prev => ({ ...prev, photo_url: url }));
+    if (!url) setPendingFile(null);
+  };
+
+  const handleFileSelect = (file: File) => {
+    setPendingFile(file);
   };
 
   return (
@@ -102,6 +136,14 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
             </TabsList>
 
             <TabsContent value="basic" className="space-y-4 mt-4">
+              {/* Photo Upload */}
+              <PhotoUpload
+                currentPhotoUrl={formData.photo_url}
+                onPhotoChange={handlePhotoChange}
+                onFileSelect={handleFileSelect}
+                isUploading={isUploading}
+              />
+
               <div className="space-y-2">
                 <Label htmlFor="name">Nome do Imóvel *</Label>
                 <Input
@@ -416,11 +458,11 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? (
+            <Button type="submit" disabled={isLoading || isUploading}>
+              {isLoading || isUploading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Salvando...
+                  {isUploading ? 'Enviando foto...' : 'Salvando...'}
                 </>
               ) : (
                 property ? 'Salvar Alterações' : 'Criar Imóvel'
