@@ -86,6 +86,7 @@ export interface PropertyFormData {
   bathrooms: number;
   parking_spots: number;
   description: string;
+  photo_url?: string | null;
 }
 
 export const PROPERTY_TYPE_LABELS: Record<PropertyType, string> = {
