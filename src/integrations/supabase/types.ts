@@ -196,14 +196,82 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          plan: Database["public"]["Enums"]["subscription_plan"]
+          started_at: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          started_at?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          started_at?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "admin" | "user"
       document_category: "matricula" | "iptu" | "contrato" | "laudo" | "outro"
       property_performance: "alta" | "media" | "baixa"
       property_status: "alugado" | "vago" | "em_reforma" | "a_venda"
@@ -216,6 +284,8 @@ export type Database = {
         | "sala"
         | "loja"
         | "outro"
+      subscription_plan: "starter" | "pro" | "enterprise"
+      subscription_status: "active" | "inactive" | "cancelled" | "trial"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -343,6 +413,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "user"],
       document_category: ["matricula", "iptu", "contrato", "laudo", "outro"],
       property_performance: ["alta", "media", "baixa"],
       property_status: ["alugado", "vago", "em_reforma", "a_venda"],
@@ -356,6 +427,8 @@ export const Constants = {
         "loja",
         "outro",
       ],
+      subscription_plan: ["starter", "pro", "enterprise"],
+      subscription_status: ["active", "inactive", "cancelled", "trial"],
     },
   },
 } as const
