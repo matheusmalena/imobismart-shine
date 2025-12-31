@@ -1,6 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -20,6 +21,7 @@ import {
   X,
   User,
   ChevronDown,
+  Crown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -33,10 +35,15 @@ const navigation = [
   { name: 'Documentos', href: '/documents', icon: FileText },
 ];
 
+const adminNavigation = [
+  { name: 'Clientes', href: '/admin/clients', icon: Crown },
+];
+
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { isAdmin } = useUserRole();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -77,7 +84,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-1">
+          <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href;
               return (
@@ -97,6 +104,36 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </Link>
               );
             })}
+
+            {/* Admin section */}
+            {isAdmin && (
+              <>
+                <div className="pt-4 pb-2">
+                  <p className="px-4 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
+                    Admin
+                  </p>
+                </div>
+                {adminNavigation.map((item) => {
+                  const isActive = location.pathname === item.href;
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={cn(
+                        "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                        isActive
+                          ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
+                          : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      )}
+                      onClick={() => setSidebarOpen(false)}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      {item.name}
+                    </Link>
+                  );
+                })}
+              </>
+            )}
           </nav>
 
           {/* User section */}
