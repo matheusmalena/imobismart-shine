@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useUserRole } from '@/hooks/useUserRole';
+import { PlanComparison } from '@/components/settings/PlanComparison';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,9 +24,17 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { User, Mail, Crown, Calendar, CreditCard, AlertTriangle, Shield } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { User, Mail, Crown, Calendar, CreditCard, AlertTriangle, Shield, ArrowUpRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 const PLAN_LABELS: Record<string, string> = {
   starter: 'Starter',
@@ -58,10 +67,11 @@ export default function Settings() {
   const { user, loading: authLoading } = useAuth();
   const { profile, isLoading: profileLoading, updateProfile } = useProfile();
   const { subscription, isLoading: subscriptionLoading, cancelSubscription } = useSubscription();
-  const { role, isLoading: roleLoading } = useUserRole();
+  const { role, isAdmin, isLoading: roleLoading } = useUserRole();
   
   const [fullName, setFullName] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [showPlanDialog, setShowPlanDialog] = useState(false);
 
   const isLoading = authLoading || profileLoading || subscriptionLoading || roleLoading;
 
@@ -77,6 +87,12 @@ export default function Settings() {
 
   const handleCancelSubscription = async () => {
     await cancelSubscription.mutateAsync();
+  };
+
+  const handleSelectPlan = (plan: 'starter' | 'pro' | 'enterprise') => {
+    // In a real app, this would redirect to a payment flow
+    toast.info(`Para alterar para o plano ${PLAN_LABELS[plan]}, entre em contato com nosso suporte.`);
+    setShowPlanDialog(false);
   };
 
   if (isLoading) {
@@ -154,17 +170,20 @@ export default function Settings() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label className="text-muted-foreground flex items-center gap-2">
-                  <Shield className="h-4 w-4" />
-                  Tipo de Conta
-                </Label>
-                <div className="px-3 py-2 bg-muted rounded-lg">
-                  <Badge variant="outline" className="capitalize">
-                    {role === 'admin' ? 'Administrador' : 'Usuário'}
-                  </Badge>
+              {/* Show account type only for admins */}
+              {isAdmin && (
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    Tipo de Conta
+                  </Label>
+                  <div className="px-3 py-2 bg-muted rounded-lg">
+                    <Badge variant="outline" className="capitalize">
+                      Administrador
+                    </Badge>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="space-y-2">
                 <Label className="text-muted-foreground flex items-center gap-2">
@@ -234,6 +253,15 @@ export default function Settings() {
                       {PLAN_DESCRIPTIONS[subscription.plan]}
                     </p>
                   </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowPlanDialog(true)}
+                    className="flex items-center gap-1"
+                  >
+                    <ArrowUpRight className="h-4 w-4" />
+                    Alterar Plano
+                  </Button>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -291,10 +319,13 @@ export default function Settings() {
                 )}
 
                 {subscription.status === 'cancelled' && (
-                  <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg flex items-center justify-between">
                     <p className="text-sm text-destructive">
-                      Sua assinatura foi cancelada. Entre em contato para reativar.
+                      Sua assinatura foi cancelada.
                     </p>
+                    <Button size="sm" onClick={() => setShowPlanDialog(true)}>
+                      Reativar Plano
+                    </Button>
                   </div>
                 )}
               </>
@@ -305,6 +336,22 @@ export default function Settings() {
             )}
           </CardContent>
         </Card>
+
+        {/* Plan Comparison Dialog */}
+        <Dialog open={showPlanDialog} onOpenChange={setShowPlanDialog}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Escolha seu Plano</DialogTitle>
+              <DialogDescription>
+                Compare os planos e escolha o melhor para você
+              </DialogDescription>
+            </DialogHeader>
+            <PlanComparison
+              currentPlan={subscription?.plan || 'starter'}
+              onSelectPlan={handleSelectPlan}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useAdminClients, ClientData } from '@/hooks/useAdminClients';
+import { EditSubscriptionDialog } from '@/components/admin/EditSubscriptionDialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -175,6 +176,7 @@ export default function AdminClients() {
                       <TableHead>Status</TableHead>
                       <TableHead>Imóveis</TableHead>
                       <TableHead>Criado em</TableHead>
+                      <TableHead className="w-[70px]">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -207,6 +209,9 @@ export default function AdminClients() {
                           <span className="text-muted-foreground">
                             {format(new Date(client.created_at), "dd MMM yyyy", { locale: ptBR })}
                           </span>
+                        </TableCell>
+                        <TableCell>
+                          <EditSubscriptionDialog client={client} />
                         </TableCell>
                       </TableRow>
                     ))}
