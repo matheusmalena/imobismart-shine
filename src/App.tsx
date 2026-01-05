@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Properties from "./pages/Properties";
 import Documents from "./pages/Documents";
+import Settings from "./pages/Settings";
 import AdminClients from "./pages/admin/Clients";
 import NotFound from "./pages/NotFound";
 
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/properties" element={<Properties />} />
             <Route path="/documents" element={<Documents />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/admin/clients" element={<AdminClients />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

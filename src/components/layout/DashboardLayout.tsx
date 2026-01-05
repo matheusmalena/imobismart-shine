@@ -33,6 +33,7 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Imóveis', href: '/properties', icon: Home },
   { name: 'Documentos', href: '/documents', icon: FileText },
+  { name: 'Configurações', href: '/settings', icon: Settings },
 ];
 
 const adminNavigation = [
