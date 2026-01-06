@@ -33,6 +33,7 @@ export default function Properties() {
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null);
   
@@ -85,8 +86,13 @@ export default function Properties() {
   }, [properties, showArchived, searchQuery, typeFilter, statusFilter, performanceFilter, sortBy]);
 
   const handleEdit = (property: Property) => {
+    setSelectedProperty(null);
     setEditingProperty(property);
     setFormOpen(true);
+  };
+
+  const handleViewDetails = (property: Property) => {
+    setSelectedProperty(property);
   };
 
   const handleDuplicate = (property: Property) => {
@@ -154,9 +160,23 @@ export default function Properties() {
   const activeCount = properties.filter(p => !p.is_archived).length;
   const archivedCount = properties.filter(p => p.is_archived).length;
 
+  // Show property details if selected
+  if (selectedProperty) {
+    return (
+      <DashboardLayout>
+        <PropertyDetails 
+          property={selectedProperty} 
+          onEdit={handleEdit}
+          onClose={() => setSelectedProperty(null)}
+        />
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
-      <div className="space-y-6 animate-fade-in">
+      <PageTransition>
+        <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -286,6 +306,7 @@ export default function Properties() {
               <PropertyCard
                 key={property.id}
                 property={property}
+                onClick={() => handleViewDetails(property)}
                 onEdit={handleEdit}
                 onDuplicate={handleDuplicate}
                 onArchive={handleArchive}
@@ -316,6 +337,7 @@ export default function Properties() {
           isLoading={deleteProperty.isPending}
         />
       </div>
+      </PageTransition>
     </DashboardLayout>
   );
 }

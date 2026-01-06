@@ -28,13 +28,14 @@ import { cn } from '@/lib/utils';
 
 interface PropertyCardProps {
   property: Property;
+  onClick?: () => void;
   onEdit: (property: Property) => void;
   onDuplicate: (property: Property) => void;
   onArchive: (property: Property) => void;
   onDelete: (property: Property) => void;
 }
 
-export function PropertyCard({ property, onEdit, onDuplicate, onArchive, onDelete }: PropertyCardProps) {
+export function PropertyCard({ property, onClick, onEdit, onDuplicate, onArchive, onDelete }: PropertyCardProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -82,10 +83,13 @@ export function PropertyCard({ property, onEdit, onDuplicate, onArchive, onDelet
   ].filter(Boolean).join(', ');
 
   return (
-    <div className={cn(
-      "bg-card rounded-xl shadow-card border border-border/50 overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 group",
-      property.is_archived && "opacity-60"
-    )}>
+    <div 
+      className={cn(
+        "bg-card rounded-xl shadow-card border border-border/50 overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 group cursor-pointer",
+        property.is_archived && "opacity-60"
+      )}
+      onClick={onClick}
+    >
       {/* Image */}
       <div className="relative h-48 bg-gradient-to-br from-primary/20 to-primary/5">
         {property.photo_url ? (
@@ -104,7 +108,7 @@ export function PropertyCard({ property, onEdit, onDuplicate, onArchive, onDelet
             {PROPERTY_STATUS_LABELS[property.status]}
           </Badge>
         </div>
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-3 right-3" onClick={(e) => e.stopPropagation()}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
