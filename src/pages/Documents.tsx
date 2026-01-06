@@ -19,7 +19,7 @@ export default function Documents() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { properties, activeProperties, isLoading: propertiesLoading } = useProperties();
-  const { documents, isLoading: documentsLoading, isUploading, uploadDocument, deleteDocument, downloadDocument, viewDocument: getDocumentSignedUrl } = useDocuments();
+  const { documents, isLoading: documentsLoading, isUploading, uploadDocument, deleteDocument, downloadDocument, viewDocument: getDocumentSignedUrl, getThumbnailUrl } = useDocuments();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [propertyFilter, setPropertyFilter] = useState<string>('all');
@@ -178,7 +178,7 @@ export default function Documents() {
                         Adicionar
                       </Button>
                     </div>
-                    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                       {propertyDocs.map((doc) => (
                         <DocumentCard
                           key={doc.id}
@@ -186,6 +186,7 @@ export default function Documents() {
                           onView={setViewDocumentData}
                           onDownload={downloadDocument}
                           onDelete={setDeleteDoc}
+                          getThumbnailUrl={getThumbnailUrl}
                         />
                       ))}
                     </div>
