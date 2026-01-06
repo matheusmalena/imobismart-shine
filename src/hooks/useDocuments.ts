@@ -199,6 +199,10 @@ export function useDocuments(propertyId?: string) {
     return await getSignedUrl(document.file_url);
   };
 
+  const getThumbnailUrl = async (fileUrl: string): Promise<string | null> => {
+    return await getSignedUrl(fileUrl);
+  };
+
   return {
     documents,
     isLoading,
@@ -207,5 +211,6 @@ export function useDocuments(propertyId?: string) {
     deleteDocument,
     downloadDocument,
     viewDocument,
+    getThumbnailUrl,
   };
 }

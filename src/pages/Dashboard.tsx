@@ -74,24 +74,24 @@ export default function Dashboard() {
         </div>
 
         {/* Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
           <MetricCard
-            title="Total de Imóveis"
+            title="Imóveis"
             value={metrics.totalProperties}
             icon={<Building2 className="h-5 w-5 text-primary" />}
           />
           <MetricCard
-            title="Receita Mensal"
+            title="Receita"
             value={formatCurrency(metrics.totalRevenue)}
             icon={<DollarSign className="h-5 w-5 text-primary" />}
           />
           <MetricCard
-            title="Custos Mensais"
+            title="Custos"
             value={formatCurrency(metrics.totalCosts)}
             icon={<Wallet className="h-5 w-5 text-primary" />}
           />
           <MetricCard
-            title="Lucro Líquido"
+            title="Lucro"
             value={formatCurrency(metrics.netProfit)}
             icon={<TrendingUp className="h-5 w-5 text-primary" />}
             trend={metrics.netProfit !== 0 ? {
@@ -100,13 +100,13 @@ export default function Dashboard() {
             } : undefined}
           />
           <MetricCard
-            title="ROI Médio"
+            title="ROI"
             value={`${metrics.avgROI.toFixed(1)}%`}
             subtitle="ao ano"
             icon={<Percent className="h-5 w-5 text-primary" />}
           />
           <MetricCard
-            title="Ocupação Média"
+            title="Ocupação"
             value={`${metrics.avgOccupancy.toFixed(0)}%`}
             icon={<Activity className="h-5 w-5 text-primary" />}
           />
