@@ -11,14 +11,13 @@ import {
   ArrowRight,
   Check,
   Zap,
-  Users,
   TrendingUp,
   Play,
-  X,
   DollarSign,
   Percent,
   Activity,
 } from 'lucide-react';
+import logo from '@/assets/logo.png';
 
 export default function Index() {
   const navigate = useNavigate();
@@ -100,12 +99,7 @@ export default function Index() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primary/10">
-              <Building2 className="h-6 w-6 text-primary" />
-            </div>
-            <span className="text-xl font-bold text-foreground">ImobiSmart</span>
-          </div>
+          <img src={logo} alt="ImobiSmart" className="h-10 w-auto" />
           <div className="flex items-center gap-4">
             <Link to="/auth">
               <Button variant="ghost">Entrar</Button>
@@ -368,12 +362,7 @@ export default function Index() {
       <footer className="py-12 px-4 border-t border-border">
         <div className="container mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-primary/10">
-                <Building2 className="h-5 w-5 text-primary" />
-              </div>
-              <span className="text-lg font-bold text-foreground">ImobiSmart</span>
-            </div>
+            <img src={logo} alt="ImobiSmart" className="h-8 w-auto" />
             <p className="text-sm text-muted-foreground">
               © 2024 ImobiSmart. Todos os direitos reservados.
             </p>
