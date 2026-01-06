@@ -1,38 +1,49 @@
-import { useState } from 'react';
-import { Upload, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Upload, Loader2, Building2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DOCUMENT_CATEGORY_LABELS, type DocumentCategory } from '@/types/property';
+import { DOCUMENT_CATEGORY_LABELS, type DocumentCategory, type Property } from '@/types/property';
 
 interface DocumentUploadDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  propertyId: string;
-  propertyName: string;
-  onUpload: (file: File, name: string, category: DocumentCategory) => Promise<boolean>;
+  properties: Property[];
+  initialPropertyId?: string;
+  onUpload: (file: File, propertyId: string, name: string, category: DocumentCategory) => Promise<boolean>;
   isUploading: boolean;
 }
 
 export function DocumentUploadDialog({
   open,
   onOpenChange,
-  propertyId,
-  propertyName,
+  properties,
+  initialPropertyId,
   onUpload,
   isUploading,
 }: DocumentUploadDialogProps) {
   const [file, setFile] = useState<File | null>(null);
   const [name, setName] = useState('');
   const [category, setCategory] = useState<DocumentCategory>('outro');
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
+
+  useEffect(() => {
+    if (open) {
+      if (initialPropertyId) {
+        setSelectedPropertyId(initialPropertyId);
+      } else if (properties.length > 0) {
+        setSelectedPropertyId(properties[0].id);
+      }
+    }
+  }, [open, initialPropertyId, properties]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return;
+    if (!file || !selectedPropertyId) return;
 
-    const success = await onUpload(file, name || file.name, category);
+    const success = await onUpload(file, selectedPropertyId, name || file.name, category);
     if (success) {
       setFile(null);
       setName('');
@@ -51,6 +62,8 @@ export function DocumentUploadDialog({
     }
   };
 
+  const selectedProperty = properties.find(p => p.id === selectedPropertyId);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -58,8 +71,21 @@ export function DocumentUploadDialog({
           <DialogTitle>Upload de Documento</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="text-sm text-muted-foreground">
-            Imóvel: <span className="font-medium text-foreground">{propertyName}</span>
+          <div className="space-y-2">
+            <Label htmlFor="property">Imóvel</Label>
+            <Select value={selectedPropertyId} onValueChange={setSelectedPropertyId}>
+              <SelectTrigger>
+                <Building2 className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Selecione um imóvel" />
+              </SelectTrigger>
+              <SelectContent>
+                {properties.map((property) => (
+                  <SelectItem key={property.id} value={property.id}>
+                    {property.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -110,7 +136,7 @@ export function DocumentUploadDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={!file || isUploading}>
+            <Button type="submit" disabled={!file || !selectedPropertyId || isUploading}>
               {isUploading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

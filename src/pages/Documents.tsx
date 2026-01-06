@@ -19,7 +19,7 @@ export default function Documents() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { properties, activeProperties, isLoading: propertiesLoading } = useProperties();
-  const { documents, isLoading: documentsLoading, isUploading, uploadDocument, deleteDocument, downloadDocument } = useDocuments();
+  const { documents, isLoading: documentsLoading, isUploading, uploadDocument, deleteDocument, downloadDocument, viewDocument: getDocumentSignedUrl } = useDocuments();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [propertyFilter, setPropertyFilter] = useState<string>('all');
@@ -27,7 +27,7 @@ export default function Documents() {
   
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
-  const [viewDocument, setViewDocument] = useState<PropertyDocument | null>(null);
+  const [viewDocumentData, setViewDocumentData] = useState<PropertyDocument | null>(null);
   const [deleteDoc, setDeleteDoc] = useState<PropertyDocument | null>(null);
 
   useEffect(() => {
@@ -59,8 +59,8 @@ export default function Documents() {
     setUploadDialogOpen(true);
   };
 
-  const handleUpload = async (file: File, name: string, category: DocumentCategory) => {
-    return await uploadDocument(file, selectedPropertyId, name, category);
+  const handleUpload = async (file: File, propertyId: string, name: string, category: DocumentCategory) => {
+    return await uploadDocument(file, propertyId, name, category);
   };
 
   const handleDeleteConfirm = () => {
@@ -183,7 +183,7 @@ export default function Documents() {
                         <DocumentCard
                           key={doc.id}
                           document={doc}
-                          onView={setViewDocument}
+                          onView={setViewDocumentData}
                           onDownload={downloadDocument}
                           onDelete={setDeleteDoc}
                         />
@@ -220,18 +220,19 @@ export default function Documents() {
       <DocumentUploadDialog
         open={uploadDialogOpen}
         onOpenChange={setUploadDialogOpen}
-        propertyId={selectedPropertyId}
-        propertyName={getPropertyName(selectedPropertyId)}
+        properties={activeProperties}
+        initialPropertyId={selectedPropertyId}
         onUpload={handleUpload}
         isUploading={isUploading}
       />
 
       {/* View Dialog */}
       <DocumentViewDialog
-        document={viewDocument}
-        open={!!viewDocument}
-        onOpenChange={(open) => !open && setViewDocument(null)}
+        document={viewDocumentData}
+        open={!!viewDocumentData}
+        onOpenChange={(open) => !open && setViewDocumentData(null)}
         onDownload={downloadDocument}
+        getSignedUrl={getDocumentSignedUrl}
       />
 
       {/* Delete Dialog */}

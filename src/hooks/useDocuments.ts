@@ -33,6 +33,30 @@ export function useDocuments(propertyId?: string) {
     enabled: !!user,
   });
 
+  const getFilePath = (fileUrl: string): string | null => {
+    const urlParts = fileUrl.split('/property-documents/');
+    if (urlParts.length >= 2) {
+      return urlParts[1];
+    }
+    return null;
+  };
+
+  const getSignedUrl = async (fileUrl: string): Promise<string | null> => {
+    const filePath = getFilePath(fileUrl);
+    if (!filePath) return null;
+
+    const { data, error } = await supabase.storage
+      .from('property-documents')
+      .createSignedUrl(filePath, 3600); // 1 hour expiry
+
+    if (error) {
+      console.error('Error creating signed URL:', error);
+      return null;
+    }
+
+    return data.signedUrl;
+  };
+
   const uploadDocument = async (
     file: File,
     propertyId: string,
@@ -70,16 +94,15 @@ export function useDocuments(propertyId?: string) {
 
       if (uploadError) throw uploadError;
 
-      const { data: urlData } = supabase.storage
-        .from('property-documents')
-        .getPublicUrl(fileName);
+      // Store the path pattern for later retrieval (not the public URL since bucket is private)
+      const baseUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/property-documents/${fileName}`;
 
       const { error: dbError } = await supabase.from('documents').insert({
         user_id: user.id,
         property_id: propertyId,
         name,
         category,
-        file_url: urlData.publicUrl,
+        file_url: baseUrl,
         file_type: file.type,
         file_size: file.size,
       });
@@ -108,10 +131,8 @@ export function useDocuments(propertyId?: string) {
 
   const deleteDocument = useMutation({
     mutationFn: async (document: PropertyDocument) => {
-      // Extract file path from URL
-      const urlParts = document.file_url.split('/property-documents/');
-      if (urlParts.length >= 2) {
-        const filePath = urlParts[1];
+      const filePath = getFilePath(document.file_url);
+      if (filePath) {
         await supabase.storage.from('property-documents').remove([filePath]);
       }
 
@@ -140,12 +161,27 @@ export function useDocuments(propertyId?: string) {
 
   const downloadDocument = async (document: PropertyDocument) => {
     try {
-      const response = await fetch(document.file_url);
+      const signedUrl = await getSignedUrl(document.file_url);
+      if (!signedUrl) {
+        throw new Error('Não foi possível gerar o link de download');
+      }
+
+      const response = await fetch(signedUrl);
+      if (!response.ok) throw new Error('Falha ao baixar arquivo');
+      
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = window.document.createElement('a');
       a.href = url;
-      a.download = document.name + (document.file_type ? `.${document.file_type.split('/')[1]}` : '');
+      
+      // Get extension from file_type or URL
+      let ext = '';
+      if (document.file_type) {
+        const parts = document.file_type.split('/');
+        ext = parts[1] || '';
+      }
+      a.download = ext ? `${document.name}.${ext}` : document.name;
+      
       window.document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -159,6 +195,10 @@ export function useDocuments(propertyId?: string) {
     }
   };
 
+  const viewDocument = async (document: PropertyDocument): Promise<string | null> => {
+    return await getSignedUrl(document.file_url);
+  };
+
   return {
     documents,
     isLoading,
@@ -166,5 +206,6 @@ export function useDocuments(propertyId?: string) {
     uploadDocument,
     deleteDocument,
     downloadDocument,
+    viewDocument,
   };
 }
