@@ -24,6 +24,7 @@ import {
   Crown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -183,6 +184,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <Menu className="h-5 w-5" />
           </button>
           <div className="flex-1" />
+          <ThemeToggle />
         </header>
 
         {/* Page content */}

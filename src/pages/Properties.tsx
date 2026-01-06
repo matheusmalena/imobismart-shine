@@ -8,6 +8,8 @@ import { PropertyCard } from '@/components/properties/PropertyCard';
 import { PropertyForm } from '@/components/properties/PropertyForm';
 import { EmptyState } from '@/components/properties/EmptyState';
 import { DeleteConfirmDialog } from '@/components/properties/DeleteConfirmDialog';
+import { PropertyDetails } from '@/pages/PropertyDetails';
+import { PageTransition } from '@/components/PageTransition';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
