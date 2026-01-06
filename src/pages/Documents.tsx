@@ -1,21 +1,34 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProperties } from '@/hooks/useProperties';
+import { useDocuments } from '@/hooks/useDocuments';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DocumentCard } from '@/components/documents/DocumentCard';
+import { DocumentUploadDialog } from '@/components/documents/DocumentUploadDialog';
+import { DocumentViewDialog } from '@/components/documents/DocumentViewDialog';
+import { DeleteDocumentDialog } from '@/components/documents/DeleteDocumentDialog';
 import { FileText, Search, Upload, Building2 } from 'lucide-react';
+import type { PropertyDocument, DocumentCategory } from '@/types/property';
 
 export default function Documents() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { activeProperties, isLoading } = useProperties();
+  const { properties, activeProperties, isLoading: propertiesLoading } = useProperties();
+  const { documents, isLoading: documentsLoading, isUploading, uploadDocument, deleteDocument, downloadDocument } = useDocuments();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [propertyFilter, setPropertyFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
+  const [viewDocument, setViewDocument] = useState<PropertyDocument | null>(null);
+  const [deleteDoc, setDeleteDoc] = useState<PropertyDocument | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -23,7 +36,41 @@ export default function Documents() {
     }
   }, [user, authLoading, navigate]);
 
-  if (authLoading || isLoading) {
+  const filteredDocuments = useMemo(() => {
+    return documents.filter((doc) => {
+      if (propertyFilter !== 'all' && doc.property_id !== propertyFilter) return false;
+      if (categoryFilter !== 'all' && doc.category !== categoryFilter) return false;
+      if (searchQuery && !doc.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      return true;
+    });
+  }, [documents, propertyFilter, categoryFilter, searchQuery]);
+
+  const getPropertyName = (propertyId: string) => {
+    const property = properties.find((p) => p.id === propertyId);
+    return property?.name || 'Imóvel desconhecido';
+  };
+
+  const handleUploadClick = (propertyId?: string) => {
+    if (propertyId) {
+      setSelectedPropertyId(propertyId);
+    } else if (activeProperties.length > 0) {
+      setSelectedPropertyId(activeProperties[0].id);
+    }
+    setUploadDialogOpen(true);
+  };
+
+  const handleUpload = async (file: File, name: string, category: DocumentCategory) => {
+    return await uploadDocument(file, selectedPropertyId, name, category);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteDoc) {
+      deleteDocument.mutate(deleteDoc);
+      setDeleteDoc(null);
+    }
+  };
+
+  if (authLoading || propertiesLoading) {
     return (
       <DashboardLayout>
         <div className="space-y-6">
@@ -33,6 +80,8 @@ export default function Documents() {
       </DashboardLayout>
     );
   }
+
+  const hasProperties = activeProperties.length > 0;
 
   return (
     <DashboardLayout>
@@ -45,7 +94,11 @@ export default function Documents() {
               Gerencie os documentos dos seus imóveis
             </p>
           </div>
-          <Button className="gap-2">
+          <Button
+            className="gap-2"
+            onClick={() => handleUploadClick()}
+            disabled={!hasProperties}
+          >
             <Upload className="h-4 w-4" />
             Upload de Documento
           </Button>
@@ -70,33 +123,124 @@ export default function Documents() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os imóveis</SelectItem>
-                {activeProperties.map((property) => (
+                {properties.map((property) => (
                   <SelectItem key={property.id} value={property.id}>
                     {property.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas categorias</SelectItem>
+                <SelectItem value="matricula">Matrícula</SelectItem>
+                <SelectItem value="iptu">IPTU</SelectItem>
+                <SelectItem value="contrato">Contrato</SelectItem>
+                <SelectItem value="laudo">Laudo</SelectItem>
+                <SelectItem value="outro">Outro</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
-        {/* Empty State */}
-        <div className="bg-card rounded-xl p-12 shadow-card border border-border/50 flex flex-col items-center justify-center">
-          <div className="p-6 rounded-full bg-primary/10 mb-6">
-            <FileText className="h-12 w-12 text-primary" />
+        {/* Documents List */}
+        {documentsLoading ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-28 rounded-xl" />
+            ))}
           </div>
-          <h3 className="text-xl font-semibold text-foreground mb-2">
-            Nenhum documento encontrado
-          </h3>
-          <p className="text-muted-foreground text-center max-w-md mb-6">
-            Faça upload de documentos como matrículas, contratos, laudos e comprovantes de IPTU para manter tudo organizado.
-          </p>
-          <Button className="gap-2">
-            <Upload className="h-4 w-4" />
-            Upload de Documento
-          </Button>
-        </div>
+        ) : filteredDocuments.length > 0 ? (
+          <div className="space-y-6">
+            {/* Group by property */}
+            {properties
+              .filter((p) => propertyFilter === 'all' || p.id === propertyFilter)
+              .map((property) => {
+                const propertyDocs = filteredDocuments.filter((d) => d.property_id === property.id);
+                if (propertyDocs.length === 0) return null;
+
+                return (
+                  <div key={property.id} className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-lg flex items-center gap-2">
+                        <Building2 className="h-5 w-5 text-muted-foreground" />
+                        {property.name}
+                      </h3>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleUploadClick(property.id)}
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Adicionar
+                      </Button>
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                      {propertyDocs.map((doc) => (
+                        <DocumentCard
+                          key={doc.id}
+                          document={doc}
+                          onView={setViewDocument}
+                          onDownload={downloadDocument}
+                          onDelete={setDeleteDoc}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        ) : (
+          <div className="bg-card rounded-xl p-12 shadow-card border border-border/50 flex flex-col items-center justify-center">
+            <div className="p-6 rounded-full bg-primary/10 mb-6">
+              <FileText className="h-12 w-12 text-primary" />
+            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-2">
+              {!hasProperties ? 'Cadastre um imóvel primeiro' : 'Nenhum documento encontrado'}
+            </h3>
+            <p className="text-muted-foreground text-center max-w-md mb-6">
+              {!hasProperties
+                ? 'Para adicionar documentos, você precisa primeiro cadastrar um imóvel.'
+                : 'Faça upload de documentos como matrículas, contratos, laudos e comprovantes de IPTU para manter tudo organizado.'}
+            </p>
+            {hasProperties && (
+              <Button className="gap-2" onClick={() => handleUploadClick()}>
+                <Upload className="h-4 w-4" />
+                Upload de Documento
+              </Button>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* Upload Dialog */}
+      <DocumentUploadDialog
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        propertyId={selectedPropertyId}
+        propertyName={getPropertyName(selectedPropertyId)}
+        onUpload={handleUpload}
+        isUploading={isUploading}
+      />
+
+      {/* View Dialog */}
+      <DocumentViewDialog
+        document={viewDocument}
+        open={!!viewDocument}
+        onOpenChange={(open) => !open && setViewDocument(null)}
+        onDownload={downloadDocument}
+      />
+
+      {/* Delete Dialog */}
+      <DeleteDocumentDialog
+        document={deleteDoc}
+        open={!!deleteDoc}
+        onOpenChange={(open) => !open && setDeleteDoc(null)}
+        onConfirm={handleDeleteConfirm}
+      />
     </DashboardLayout>
   );
 }
