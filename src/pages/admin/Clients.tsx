@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -8,7 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Building2, Crown, AlertCircle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Users, Building2, Crown, AlertCircle, Search, Filter, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -47,6 +49,9 @@ export default function AdminClients() {
   const navigate = useNavigate();
   const { isAdmin, isLoading: roleLoading } = useUserRole();
   const { clients, isLoading: clientsLoading } = useAdminClients();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [planFilter, setPlanFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   useEffect(() => {
     if (!roleLoading && !isAdmin) {
@@ -68,146 +73,222 @@ export default function AdminClients() {
     return null;
   }
 
+  // Filter clients
+  const filteredClients = clients.filter(client => {
+    const matchesSearch = 
+      (client.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
+      (client.email?.toLowerCase().includes(searchTerm.toLowerCase()) || false);
+    const matchesPlan = planFilter === 'all' || client.plan === planFilter;
+    const matchesStatus = statusFilter === 'all' || client.subscription_status === statusFilter;
+    return matchesSearch && matchesPlan && matchesStatus;
+  });
+
   const totalClients = clients.length;
   const activeClients = clients.filter(c => c.subscription_status === 'active').length;
   const proClients = clients.filter(c => c.plan === 'pro' || c.plan === 'enterprise').length;
   const totalProperties = clients.reduce((sum, c) => sum + c.properties_count, 0);
+  const trialClients = clients.filter(c => c.subscription_status === 'trial').length;
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 animate-fade-in">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-primary/10">
-            <Crown className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Painel Admin</h1>
-            <p className="text-muted-foreground">Gerencie clientes e assinaturas</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-primary/10">
+              <Crown className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Painel Admin</h1>
+              <p className="text-muted-foreground text-sm">Gerencie clientes e assinaturas da plataforma</p>
+            </div>
           </div>
         </div>
 
         {/* Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total de Clientes</p>
-                  <p className="text-2xl font-bold text-foreground">{totalClients}</p>
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+          <Card className="bg-card border-border/50">
+            <CardContent className="p-4 sm:pt-6">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Total Clientes</p>
+                  <p className="text-xl sm:text-2xl font-bold text-foreground">{totalClients}</p>
                 </div>
-                <div className="p-3 rounded-xl bg-primary/10">
-                  <Users className="h-5 w-5 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Assinaturas Ativas</p>
-                  <p className="text-2xl font-bold text-success">{activeClients}</p>
-                </div>
-                <div className="p-3 rounded-xl bg-success/10">
-                  <Users className="h-5 w-5 text-success" />
+                <div className="p-2 sm:p-3 rounded-xl bg-primary/10 shrink-0">
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Clientes Pro/Enterprise</p>
-                  <p className="text-2xl font-bold text-info">{proClients}</p>
+          <Card className="bg-card border-border/50">
+            <CardContent className="p-4 sm:pt-6">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Ativos</p>
+                  <p className="text-xl sm:text-2xl font-bold text-success">{activeClients}</p>
                 </div>
-                <div className="p-3 rounded-xl bg-info/10">
-                  <Crown className="h-5 w-5 text-info" />
+                <div className="p-2 sm:p-3 rounded-xl bg-success/10 shrink-0">
+                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-success" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total de Imóveis</p>
-                  <p className="text-2xl font-bold text-foreground">{totalProperties}</p>
+          <Card className="bg-card border-border/50">
+            <CardContent className="p-4 sm:pt-6">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Em Trial</p>
+                  <p className="text-xl sm:text-2xl font-bold text-warning">{trialClients}</p>
                 </div>
-                <div className="p-3 rounded-xl bg-accent/10">
-                  <Building2 className="h-5 w-5 text-accent-foreground" />
+                <div className="p-2 sm:p-3 rounded-xl bg-warning/10 shrink-0">
+                  <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-warning" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-border/50">
+            <CardContent className="p-4 sm:pt-6">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Pro/Enterprise</p>
+                  <p className="text-xl sm:text-2xl font-bold text-info">{proClients}</p>
+                </div>
+                <div className="p-2 sm:p-3 rounded-xl bg-info/10 shrink-0">
+                  <Crown className="h-4 w-4 sm:h-5 sm:w-5 text-info" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-border/50 col-span-2 lg:col-span-1">
+            <CardContent className="p-4 sm:pt-6">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Total Imóveis</p>
+                  <p className="text-xl sm:text-2xl font-bold text-foreground">{totalProperties}</p>
+                </div>
+                <div className="p-2 sm:p-3 rounded-xl bg-accent shrink-0">
+                  <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-accent-foreground" />
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
+        {/* Filters */}
+        <Card className="border-border/50">
+          <CardContent className="p-4">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por nome ou email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Select value={planFilter} onValueChange={setPlanFilter}>
+                  <SelectTrigger className="w-full sm:w-[140px]">
+                    <Filter className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="Plano" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos Planos</SelectItem>
+                    <SelectItem value="starter">Starter</SelectItem>
+                    <SelectItem value="pro">Pro</SelectItem>
+                    <SelectItem value="enterprise">Enterprise</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-[140px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos Status</SelectItem>
+                    <SelectItem value="active">Ativo</SelectItem>
+                    <SelectItem value="inactive">Inativo</SelectItem>
+                    <SelectItem value="trial">Trial</SelectItem>
+                    <SelectItem value="cancelled">Cancelado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Clients Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Clientes</CardTitle>
+        <Card className="border-border/50">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Clientes ({filteredClients.length})</CardTitle>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {clientsLoading ? (
-              <div className="space-y-3">
+              <div className="p-4 space-y-3">
                 {[...Array(5)].map((_, i) => (
                   <Skeleton key={i} className="h-14 w-full" />
                 ))}
               </div>
-            ) : clients.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
+            ) : filteredClients.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center px-4">
                 <AlertCircle className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                <h3 className="font-medium text-foreground mb-1">Nenhum cliente encontrado</h3>
+                <h3 className="font-medium text-foreground mb-1">
+                  {clients.length === 0 ? 'Nenhum cliente encontrado' : 'Nenhum resultado'}
+                </h3>
                 <p className="text-sm text-muted-foreground">
-                  Os clientes aparecerão aqui quando se cadastrarem.
+                  {clients.length === 0 
+                    ? 'Os clientes aparecerão aqui quando se cadastrarem.'
+                    : 'Tente ajustar os filtros de busca.'}
                 </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Plano</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Imóveis</TableHead>
-                      <TableHead>Criado em</TableHead>
-                      <TableHead className="w-[70px]">Ações</TableHead>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="font-semibold">Cliente</TableHead>
+                      <TableHead className="font-semibold">Plano</TableHead>
+                      <TableHead className="font-semibold">Status</TableHead>
+                      <TableHead className="font-semibold text-center">Imóveis</TableHead>
+                      <TableHead className="font-semibold hidden sm:table-cell">Criado em</TableHead>
+                      <TableHead className="font-semibold w-[60px]">Editar</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {clients.map((client) => (
-                      <TableRow key={client.id}>
+                    {filteredClients.map((client) => (
+                      <TableRow key={client.id} className="group">
                         <TableCell>
-                          <div>
-                            <p className="font-medium text-foreground">
+                          <div className="min-w-0">
+                            <p className="font-medium text-foreground truncate max-w-[200px]">
                               {client.full_name || 'Sem nome'}
                             </p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xs sm:text-sm text-muted-foreground truncate max-w-[200px]">
                               {client.email || 'Sem email'}
                             </p>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={cn("border", getPlanColor(client.plan))}>
+                          <Badge variant="outline" className={cn("border text-xs", getPlanColor(client.plan))}>
                             {PLAN_LABELS[client.plan]}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={cn("border", getStatusColor(client.subscription_status))}>
+                          <Badge variant="outline" className={cn("border text-xs", getStatusColor(client.subscription_status))}>
                             {STATUS_LABELS[client.subscription_status]}
                           </Badge>
                         </TableCell>
-                        <TableCell>
-                          <span className="font-medium">{client.properties_count}</span>
+                        <TableCell className="text-center">
+                          <span className="font-semibold text-foreground">{client.properties_count}</span>
                         </TableCell>
-                        <TableCell>
-                          <span className="text-muted-foreground">
-                            {format(new Date(client.created_at), "dd MMM yyyy", { locale: ptBR })}
+                        <TableCell className="hidden sm:table-cell">
+                          <span className="text-sm text-muted-foreground">
+                            {format(new Date(client.created_at), "dd/MM/yyyy", { locale: ptBR })}
                           </span>
                         </TableCell>
                         <TableCell>
