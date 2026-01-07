@@ -10,7 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, Building2, Crown, AlertCircle, Search, Filter, TrendingUp } from 'lucide-react';
+import { Users, Building2, Crown, AlertCircle, Search, Filter, TrendingUp, Eye } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -257,7 +258,7 @@ export default function AdminClients() {
                       <TableHead className="font-semibold">Status</TableHead>
                       <TableHead className="font-semibold text-center">Imóveis</TableHead>
                       <TableHead className="font-semibold hidden sm:table-cell">Criado em</TableHead>
-                      <TableHead className="font-semibold w-[60px]">Editar</TableHead>
+                      <TableHead className="font-semibold text-center">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -292,7 +293,17 @@ export default function AdminClients() {
                           </span>
                         </TableCell>
                         <TableCell>
-                          <EditSubscriptionDialog client={client} />
+                          <div className="flex items-center justify-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => navigate(`/admin/clients/${client.user_id}`)}
+                              title="Ver detalhes"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <EditSubscriptionDialog client={client} />
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

@@ -12,6 +12,7 @@ import Properties from "./pages/Properties";
 import Documents from "./pages/Documents";
 import Settings from "./pages/Settings";
 import AdminClients from "./pages/admin/Clients";
+import AdminClientDetails from "./pages/admin/ClientDetails";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/documents" element={<Documents />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/admin/clients" element={<AdminClients />} />
+              <Route path="/admin/clients/:userId" element={<AdminClientDetails />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
