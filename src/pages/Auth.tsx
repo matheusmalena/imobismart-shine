@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Building2, Eye, EyeOff, Loader2, Mail, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Mail, Lock, User } from 'lucide-react';
+import logo from '@/assets/logo.png';
 import { z } from 'zod';
 
 const loginSchema = z.object({
@@ -135,10 +136,7 @@ export default function Auth() {
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 gradient-hero p-12 flex-col justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-primary-foreground/10 backdrop-blur-sm">
-            <Building2 className="h-8 w-8 text-primary-foreground" />
-          </div>
-          <span className="text-2xl font-bold text-primary-foreground">ImobiSmart</span>
+          <img src={logo} alt="ImobiSmart" className="h-12 w-auto" />
         </div>
         
         <div className="space-y-6">
@@ -169,11 +167,8 @@ export default function Auth() {
       {/* Right side - Auth forms */}
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-md space-y-6">
-          <div className="lg:hidden flex items-center gap-3 justify-center mb-8">
-            <div className="p-2 rounded-xl bg-primary/10">
-              <Building2 className="h-8 w-8 text-primary" />
-            </div>
-            <span className="text-2xl font-bold text-foreground">ImobiSmart</span>
+          <div className="lg:hidden flex items-center justify-center mb-8">
+            <img src={logo} alt="ImobiSmart" className="h-12 w-auto" />
           </div>
 
           <Card className="border-0 shadow-xl">
