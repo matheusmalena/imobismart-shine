@@ -1,6 +1,6 @@
 import { Moon, Sun } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/ThemeProvider";
+import { motion } from "framer-motion";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -14,18 +14,24 @@ export function ThemeToggle() {
   const isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   return (
-    <Button 
-      variant="ghost" 
-      size="icon" 
-      className="h-9 w-9 transition-all duration-300"
+    <button 
+      className="h-9 w-9 flex items-center justify-center rounded-md transition-colors"
       onClick={toggleTheme}
+      aria-label="Alternar tema"
     >
-      {isDark ? (
-        <Sun className="h-4 w-4 transition-transform duration-300" />
-      ) : (
-        <Moon className="h-4 w-4 transition-transform duration-300" />
-      )}
-      <span className="sr-only">Alternar tema</span>
-    </Button>
+      <motion.div
+        key={isDark ? "sun" : "moon"}
+        initial={{ rotate: -90, opacity: 0 }}
+        animate={{ rotate: 0, opacity: 1 }}
+        exit={{ rotate: 90, opacity: 0 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+      >
+        {isDark ? (
+          <Sun className="h-5 w-5 text-foreground" />
+        ) : (
+          <Moon className="h-5 w-5 text-foreground" />
+        )}
+      </motion.div>
+    </button>
   );
 }
