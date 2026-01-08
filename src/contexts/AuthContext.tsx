@@ -57,7 +57,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Erro no signOut:', error);
+        // Se a sessão não existe no servidor, forçar limpeza local
+        if (error.message?.includes('session_not_found')) {
+          await supabase.auth.signOut({ scope: 'local' });
+        }
+      }
+    } catch (error) {
+      console.error('Erro inesperado no signOut:', error);
+    } finally {
+      // Sempre limpar o estado local
+      setUser(null);
+      setSession(null);
+    }
   };
 
   return (
