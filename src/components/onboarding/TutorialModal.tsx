@@ -9,6 +9,7 @@ import {
   ArrowRight,
   ArrowLeft,
   Check,
+  MousePointer,
 } from 'lucide-react';
 
 const TUTORIAL_KEY = 'imobismart-tutorial-completed';
@@ -18,48 +19,58 @@ interface TutorialSlide {
   title: string;
   description: string;
   tips: string[];
+  screenshot: string;
+  highlightArea?: string;
 }
 
 const slides: TutorialSlide[] = [
   {
-    icon: <BarChart3 className="h-12 w-12" />,
+    icon: <BarChart3 className="h-8 w-8" />,
     title: 'Bem-vindo ao ImobiSmart!',
-    description: 'Sua plataforma inteligente de gestão imobiliária. Vamos fazer um tour rápido para você aproveitar ao máximo.',
+    description: 'Sua plataforma inteligente de gestão imobiliária. Veja como usar cada recurso.',
     tips: [
-      'Dashboard com métricas em tempo real',
-      'Visualize receitas, custos e ROI',
+      'O Dashboard mostra todas suas métricas',
+      'Visualize receitas, custos e ROI em tempo real',
       'Acompanhe a performance de cada imóvel',
     ],
+    screenshot: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=450&fit=crop',
+    highlightArea: 'dashboard',
   },
   {
-    icon: <Building2 className="h-12 w-12" />,
+    icon: <Building2 className="h-8 w-8" />,
     title: 'Cadastre seus Imóveis',
-    description: 'Adicione seus imóveis com todas as informações importantes: endereço, tipo, valor, custos e receitas.',
+    description: 'Clique em "Imóveis" no menu lateral e depois em "Novo Imóvel" para adicionar.',
     tips: [
-      'Clique em "Novo Imóvel" para adicionar',
-      'Preencha os dados de localização e valores',
-      'Adicione fotos para identificar facilmente',
+      'Acesse o menu "Imóveis" na barra lateral',
+      'Clique no botão verde "Novo Imóvel"',
+      'Preencha os dados: nome, endereço, valores',
     ],
+    screenshot: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=450&fit=crop',
+    highlightArea: 'properties',
   },
   {
-    icon: <FileText className="h-12 w-12" />,
-    title: 'Organize Documentos',
-    description: 'Armazene contratos, matrículas, IPTUs e laudos de forma organizada por imóvel e categoria.',
+    icon: <FileText className="h-8 w-8" />,
+    title: 'Organize seus Documentos',
+    description: 'Armazene contratos, matrículas e laudos organizados por imóvel.',
     tips: [
-      'Acesse a seção "Documentos" no menu',
-      'Faça upload de PDFs e imagens',
-      'Categorize por tipo de documento',
+      'Vá em "Documentos" no menu lateral',
+      'Clique em "Novo Documento" para fazer upload',
+      'Escolha o imóvel e a categoria do documento',
     ],
+    screenshot: 'https://images.unsplash.com/photo-1568234928966-359c35dd8327?w=800&h=450&fit=crop',
+    highlightArea: 'documents',
   },
   {
-    icon: <Settings className="h-12 w-12" />,
-    title: 'Pronto para começar!',
-    description: 'Você está preparado para gerenciar seus imóveis de forma inteligente. Explore a plataforma!',
+    icon: <Settings className="h-8 w-8" />,
+    title: 'Configure sua Conta',
+    description: 'Personalize seu perfil e gerencie sua assinatura nas configurações.',
     tips: [
-      'Acesse as Configurações para seu perfil',
-      'Use o modo escuro se preferir',
-      'Faça upgrade para desbloquear mais recursos',
+      'Acesse "Configurações" para editar seu perfil',
+      'Altere entre tema claro e escuro',
+      'Veja seu plano atual e faça upgrade',
     ],
+    screenshot: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=450&fit=crop',
+    highlightArea: 'settings',
   },
 ];
 
@@ -70,7 +81,6 @@ export function TutorialModal() {
   useEffect(() => {
     const completed = localStorage.getItem(TUTORIAL_KEY);
     if (!completed) {
-      // Small delay to ensure smooth page load
       const timer = setTimeout(() => setOpen(true), 500);
       return () => clearTimeout(timer);
     }
@@ -103,39 +113,62 @@ export function TutorialModal() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-lg p-0 overflow-hidden">
-        {/* Header with gradient */}
-        <div className="gradient-hero p-8 text-center">
-          <div className="inline-flex items-center justify-center p-4 rounded-2xl bg-white/10 backdrop-blur-sm text-white mb-4">
+      <DialogContent className="max-w-2xl p-0 overflow-hidden">
+        {/* Screenshot Area */}
+        <div className="relative">
+          <img 
+            src={slide.screenshot} 
+            alt={slide.title}
+            className="w-full h-48 object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+          
+          {/* Step indicator */}
+          <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium">
+            {currentSlide + 1} de {slides.length}
+          </div>
+          
+          {/* Icon */}
+          <div className="absolute bottom-4 left-6 p-3 rounded-xl bg-primary text-primary-foreground shadow-lg">
             {slide.icon}
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">{slide.title}</h2>
-          <p className="text-white/80 text-sm">{slide.description}</p>
         </div>
 
         {/* Content */}
         <div className="p-6 space-y-4">
-          <ul className="space-y-3">
-            {slide.tips.map((tip, idx) => (
-              <li key={idx} className="flex items-start gap-3">
-                <div className="p-1 rounded-full bg-primary/10 mt-0.5">
-                  <Check className="h-3 w-3 text-primary" />
-                </div>
-                <span className="text-sm text-muted-foreground">{tip}</span>
-              </li>
-            ))}
-          </ul>
+          <div>
+            <h2 className="text-xl font-bold text-foreground mb-2">{slide.title}</h2>
+            <p className="text-muted-foreground">{slide.description}</p>
+          </div>
+
+          {/* Tips with pointer icon */}
+          <div className="bg-muted/50 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <MousePointer className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">Como fazer:</span>
+            </div>
+            <ul className="space-y-2">
+              {slide.tips.map((tip, idx) => (
+                <li key={idx} className="flex items-start gap-3">
+                  <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold mt-0.5">
+                    {idx + 1}
+                  </div>
+                  <span className="text-sm text-muted-foreground">{tip}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
 
           {/* Progress dots */}
-          <div className="flex justify-center gap-2 py-4">
+          <div className="flex justify-center gap-2 py-2">
             {slides.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentSlide(idx)}
-                className={`w-2 h-2 rounded-full transition-all ${
+                className={`h-2 rounded-full transition-all ${
                   idx === currentSlide 
-                    ? 'bg-primary w-6' 
-                    : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                    ? 'bg-primary w-8' 
+                    : 'bg-muted-foreground/30 w-2 hover:bg-muted-foreground/50'
                 }`}
               />
             ))}
@@ -166,7 +199,7 @@ export function TutorialModal() {
                   </>
                 ) : (
                   <>
-                    Começar
+                    Começar a usar
                     <Check className="h-4 w-4 ml-1" />
                   </>
                 )}
