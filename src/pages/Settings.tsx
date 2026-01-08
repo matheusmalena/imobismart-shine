@@ -37,15 +37,27 @@ import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 
 const PLAN_LABELS: Record<string, string> = {
-  starter: 'Starter',
+  starter: 'Gratuito',
   pro: 'Pro',
-  enterprise: 'Enterprise',
+  enterprise: 'Plus',
 };
 
 const PLAN_DESCRIPTIONS: Record<string, string> = {
-  starter: 'Ideal para quem está começando. Até 5 imóveis.',
-  pro: 'Para investidores em crescimento. Até 20 imóveis.',
-  enterprise: 'Para grandes carteiras. Imóveis ilimitados.',
+  starter: 'Perfeito para começar. Até 2 imóveis.',
+  pro: 'Para investidores sérios. Até 25 imóveis.',
+  enterprise: 'Para grandes portfólios. Imóveis ilimitados.',
+};
+
+// Map database plan to UI plan for PlanComparison component
+const mapPlanToUI = (plan: string): 'starter' | 'pro' | 'plus' => {
+  if (plan === 'enterprise') return 'plus';
+  return plan as 'starter' | 'pro' | 'plus';
+};
+
+// Map UI plan back to database plan
+const mapPlanToDB = (plan: 'starter' | 'pro' | 'plus'): 'starter' | 'pro' | 'enterprise' => {
+  if (plan === 'plus') return 'enterprise';
+  return plan as 'starter' | 'pro' | 'enterprise';
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -89,9 +101,10 @@ export default function Settings() {
     await cancelSubscription.mutateAsync();
   };
 
-  const handleSelectPlan = (plan: 'starter' | 'pro' | 'enterprise') => {
+  const handleSelectPlan = (plan: 'starter' | 'pro' | 'plus') => {
+    const dbPlan = mapPlanToDB(plan);
     // In a real app, this would redirect to a payment flow
-    toast.info(`Para alterar para o plano ${PLAN_LABELS[plan]}, entre em contato com nosso suporte.`);
+    toast.info(`Para alterar para o plano ${PLAN_LABELS[dbPlan]}, entre em contato com nosso suporte.`);
     setShowPlanDialog(false);
   };
 
@@ -347,7 +360,7 @@ export default function Settings() {
               </DialogDescription>
             </DialogHeader>
             <PlanComparison
-              currentPlan={subscription?.plan || 'starter'}
+              currentPlan={mapPlanToUI(subscription?.plan || 'starter')}
               onSelectPlan={handleSelectPlan}
             />
           </DialogContent>
