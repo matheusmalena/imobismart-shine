@@ -31,7 +31,7 @@ const signupSchema = z.object({
 
 export default function Auth() {
   const navigate = useNavigate();
-  const { user, signIn, signUp, loading } = useAuth();
+  const { user, signIn, signUp, loading, mfaPending, setMfaPending } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -48,10 +48,11 @@ export default function Auth() {
   const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
 
   useEffect(() => {
-    if (user) {
+    // Only redirect if user is logged in AND MFA is not pending
+    if (user && !mfaPending && !showMFA) {
       navigate('/dashboard');
     }
-  }, [user, navigate]);
+  }, [user, mfaPending, showMFA, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +68,7 @@ export default function Auth() {
     }
 
     setIsLoading(true);
-    const { error } = await signIn(loginEmail, loginPassword);
+    const { error, requiresMFA } = await signIn(loginEmail, loginPassword);
     setIsLoading(false);
 
     if (error) {
@@ -81,18 +82,9 @@ export default function Auth() {
       return;
     }
 
-    // Check if user has MFA enabled
-    const { data: factors } = await supabase.auth.mfa.listFactors();
-    const hasVerifiedFactor = factors?.totp?.some(f => f.status === 'verified');
-    
-    if (hasVerifiedFactor) {
-      // Check current assurance level
-      const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-      if (aalData?.currentLevel === 'aal1' && aalData?.nextLevel === 'aal2') {
-        // User needs to verify MFA
-        setShowMFA(true);
-        return;
-      }
+    if (requiresMFA) {
+      setShowMFA(true);
+      return;
     }
 
     toast({
@@ -104,6 +96,7 @@ export default function Auth() {
 
   const handleMFASuccess = () => {
     setShowMFA(false);
+    setMfaPending(false);
     toast({
       title: 'Bem-vindo!',
       description: 'Login realizado com sucesso.',
@@ -114,6 +107,7 @@ export default function Auth() {
   const handleMFACancel = async () => {
     await supabase.auth.signOut();
     setShowMFA(false);
+    setMfaPending(false);
   };
 
   const handleSignUp = async (e: React.FormEvent) => {

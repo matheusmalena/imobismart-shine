@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Property, PROPERTY_TYPE_LABELS, PROPERTY_STATUS_LABELS, PROPERTY_PERFORMANCE_LABELS } from "@/types/property";
+import { Property, PROPERTY_TYPE_LABELS, PROPERTY_STATUS_LABELS } from "@/types/property";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -409,29 +409,6 @@ export function PropertyDetails({ property, onEdit, onClose }: PropertyDetailsPr
                 </CardContent>
               </Card>
 
-              <Card className="md:col-span-2">
-                <CardHeader>
-                  <CardTitle className="text-lg">Performance</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-4">
-                    <div className={cn("p-4 rounded-xl", getPerformanceColor(property.performance), "bg-current/10")}>
-                      {getPerformanceIcon(property.performance)}
-                    </div>
-                    <div>
-                      <p className={cn("text-xl font-bold", getPerformanceColor(property.performance))}>
-                        {property.performance ? PROPERTY_PERFORMANCE_LABELS[property.performance] : "Não definida"}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {property.performance === "alta" && "Este imóvel está performando acima da média"}
-                        {property.performance === "media" && "Este imóvel está performando na média"}
-                        {property.performance === "baixa" && "Este imóvel está performando abaixo da média"}
-                        {!property.performance && "Performance ainda não avaliada"}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           </TabsContent>
         </Tabs>

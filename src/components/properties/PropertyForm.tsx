@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Property, PropertyFormData, PropertyType, PropertyStatus, PropertyPerformance, PROPERTY_TYPE_LABELS, PROPERTY_STATUS_LABELS, PROPERTY_PERFORMANCE_LABELS } from '@/types/property';
+import { Property, PropertyFormData, PropertyType, PropertyStatus, PROPERTY_TYPE_LABELS, PROPERTY_STATUS_LABELS } from '@/types/property';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -108,6 +108,15 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleCEPChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+    if (value.length > 8) value = value.slice(0, 8); // Max 8 digits
+    if (value.length > 5) {
+      value = value.slice(0, 5) + '-' + value.slice(5);
+    }
+    updateField('address_zip', value);
+  };
+
   const handlePhotoChange = (url: string | null) => {
     setFormData(prev => ({ ...prev, photo_url: url }));
     if (!url) setPendingFile(null);
@@ -155,7 +164,7 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Tipo</Label>
                   <Select
@@ -184,23 +193,6 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                     </SelectTrigger>
                     <SelectContent>
                       {Object.entries(PROPERTY_STATUS_LABELS).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>{label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Performance</Label>
-                  <Select
-                    value={formData.performance}
-                    onValueChange={(value) => updateField('performance', value as PropertyPerformance)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(PROPERTY_PERFORMANCE_LABELS).map(([value, label]) => (
                         <SelectItem key={value} value={value}>{label}</SelectItem>
                       ))}
                     </SelectContent>
@@ -288,8 +280,9 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                   <Input
                     id="zip"
                     value={formData.address_zip}
-                    onChange={(e) => updateField('address_zip', e.target.value)}
+                    onChange={handleCEPChange}
                     placeholder="00000-000"
+                    maxLength={9}
                   />
                 </div>
               </div>
