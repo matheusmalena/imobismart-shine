@@ -155,7 +155,8 @@ export const TutorialModal = forwardRef<TutorialModalRef, TutorialModalProps>(
           {/* Screenshot Area */}
           <div className="relative">
             <img 
-              src={slide.screenshot} 
+              key={`${currentSlide}-${slide.screenshot}`}
+              src={`${slide.screenshot}${slide.screenshot.includes('?') ? '&' : '?'}t=${currentSlide}`}
               alt={slide.title}
               className="w-full h-48 object-cover"
             />
