@@ -30,11 +30,12 @@ export default function Documents() {
   const [viewDocumentData, setViewDocumentData] = useState<PropertyDocument | null>(null);
   const [deleteDoc, setDeleteDoc] = useState<PropertyDocument | null>(null);
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/auth');
-    }
-  }, [user, authLoading, navigate]);
+  // TEMPORÁRIO: Desabilitado para screenshots
+  // useEffect(() => {
+  //   if (!authLoading && !user) {
+  //     navigate('/auth');
+  //   }
+  // }, [user, authLoading, navigate]);
 
   const filteredDocuments = useMemo(() => {
     return documents.filter((doc) => {

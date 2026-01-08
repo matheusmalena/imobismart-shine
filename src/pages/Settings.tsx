@@ -122,10 +122,11 @@ export default function Settings() {
     );
   }
 
-  if (!user) {
-    navigate('/auth');
-    return null;
-  }
+  // TEMPORÁRIO: Desabilitado para screenshots
+  // if (!user) {
+  //   navigate('/auth');
+  //   return null;
+  // }
 
   return (
     <DashboardLayout>
