@@ -102,7 +102,7 @@ export default function Properties() {
   };
 
   const handleDuplicate = (property: Property) => {
-    duplicateProperty.mutate(property);
+    duplicateProperty.mutate({ property, canAdd: canAddProperty });
   };
 
   const handleArchive = (property: Property) => {
