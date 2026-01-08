@@ -26,15 +26,39 @@ export function useProperties() {
     enabled: !!user,
   });
 
+  // Check if property name already exists for this user
+  const checkNameExists = async (name: string, excludeId?: string): Promise<boolean> => {
+    if (!user) return false;
+    
+    let query = supabase
+      .from('properties')
+      .select('id')
+      .eq('user_id', user.id)
+      .ilike('name', name);
+    
+    if (excludeId) {
+      query = query.neq('id', excludeId);
+    }
+    
+    const { data } = await query;
+    return (data?.length ?? 0) > 0;
+  };
+
   const createProperty = useMutation({
     mutationFn: async (formData: PropertyFormData) => {
       if (!user) throw new Error('Usuário não autenticado');
+
+      // Check for duplicate name
+      const nameExists = await checkNameExists(formData.name.trim());
+      if (nameExists) {
+        throw new Error('Já existe um imóvel com este nome');
+      }
 
       const { data, error } = await supabase
         .from('properties')
         .insert({
           user_id: user.id,
-          name: formData.name,
+          name: formData.name.trim(),
           property_type: formData.property_type,
           status: formData.status,
           performance: formData.performance,
@@ -81,10 +105,16 @@ export function useProperties() {
 
   const updateProperty = useMutation({
     mutationFn: async ({ id, ...formData }: PropertyFormData & { id: string }) => {
+      // Check for duplicate name (excluding current property)
+      const nameExists = await checkNameExists(formData.name.trim(), id);
+      if (nameExists) {
+        throw new Error('Já existe um imóvel com este nome');
+      }
+
       const { data, error } = await supabase
         .from('properties')
         .update({
-          name: formData.name,
+          name: formData.name.trim(),
           property_type: formData.property_type,
           status: formData.status,
           performance: formData.performance,
@@ -177,14 +207,27 @@ export function useProperties() {
   });
 
   const duplicateProperty = useMutation({
-    mutationFn: async (property: Property) => {
+    mutationFn: async ({ property, canAdd }: { property: Property; canAdd: boolean }) => {
       if (!user) throw new Error('Usuário não autenticado');
+
+      // Check property limit
+      if (!canAdd) {
+        throw new Error('Limite de imóveis atingido. Faça upgrade do seu plano para adicionar mais imóveis.');
+      }
+
+      // Generate unique name for copy
+      let copyName = `${property.name} (Cópia)`;
+      let copyNumber = 1;
+      while (await checkNameExists(copyName)) {
+        copyNumber++;
+        copyName = `${property.name} (Cópia ${copyNumber})`;
+      }
 
       const { data, error } = await supabase
         .from('properties')
         .insert({
           user_id: user.id,
-          name: `${property.name} (Cópia)`,
+          name: copyName,
           property_type: property.property_type,
           status: property.status,
           performance: property.performance,
