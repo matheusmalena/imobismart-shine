@@ -56,8 +56,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Tutorial Modal */}
-      <TutorialModal />
+      {/* Tutorial Modal - TEMPORÁRIO: autoShow desabilitado para screenshots */}
+      <TutorialModal autoShow={false} />
 
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (

@@ -122,11 +122,15 @@ export default function Settings() {
     );
   }
 
-  // TEMPORÁRIO: Desabilitado para screenshots
-  // if (!user) {
-  //   navigate('/auth');
-  //   return null;
-  // }
+  // TEMPORÁRIO: Desabilitado para screenshots - usar dados mock
+  const mockUser = user || { email: 'usuario@exemplo.com' };
+  const mockProfile = profile || { full_name: 'João da Silva', created_at: '2024-06-15' };
+  const mockSubscription = subscription || { 
+    plan: 'pro' as const, 
+    status: 'active' as const, 
+    started_at: '2024-06-15',
+    expires_at: '2025-06-15'
+  };
 
   return (
     <DashboardLayout>
@@ -160,7 +164,7 @@ export default function Settings() {
                   Email
                 </Label>
                 <div className="px-3 py-2 bg-muted rounded-lg text-foreground">
-                  {user.email}
+                  {mockUser.email}
                 </div>
               </div>
               
@@ -177,7 +181,7 @@ export default function Settings() {
                   />
                 ) : (
                   <div className="px-3 py-2 bg-muted rounded-lg text-foreground">
-                    {profile?.full_name || 'Não informado'}
+                    {mockProfile?.full_name || 'Não informado'}
                   </div>
                 )}
               </div>
@@ -205,8 +209,8 @@ export default function Settings() {
                   Membro desde
                 </Label>
                 <div className="px-3 py-2 bg-muted rounded-lg text-foreground">
-                  {profile?.created_at 
-                    ? format(new Date(profile.created_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })
+                  {mockProfile?.created_at 
+                    ? format(new Date(mockProfile.created_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })
                     : 'Não disponível'}
                 </div>
               </div>
@@ -250,21 +254,21 @@ export default function Settings() {
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            {subscription ? (
+            {mockSubscription ? (
               <>
                 <div className="flex items-start justify-between p-4 bg-muted/50 rounded-xl border">
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
                       <Crown className="h-5 w-5 text-primary" />
                       <span className="text-lg font-semibold">
-                        Plano {PLAN_LABELS[subscription.plan]}
+                        Plano {PLAN_LABELS[mockSubscription.plan]}
                       </span>
-                      <Badge className={STATUS_COLORS[subscription.status]}>
-                        {STATUS_LABELS[subscription.status]}
+                      <Badge className={STATUS_COLORS[mockSubscription.status]}>
+                        {STATUS_LABELS[mockSubscription.status]}
                       </Badge>
                     </div>
                     <p className="text-muted-foreground text-sm">
-                      {PLAN_DESCRIPTIONS[subscription.plan]}
+                      {PLAN_DESCRIPTIONS[mockSubscription.plan]}
                     </p>
                   </div>
                   <Button
@@ -282,15 +286,15 @@ export default function Settings() {
                   <div className="space-y-2">
                     <Label className="text-muted-foreground">Início da Assinatura</Label>
                     <div className="px-3 py-2 bg-muted rounded-lg text-foreground">
-                      {format(new Date(subscription.started_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                      {format(new Date(mockSubscription.started_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
                     </div>
                   </div>
                   
                   <div className="space-y-2">
                     <Label className="text-muted-foreground">Próxima Renovação</Label>
                     <div className="px-3 py-2 bg-muted rounded-lg text-foreground">
-                      {subscription.expires_at 
-                        ? format(new Date(subscription.expires_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })
+                      {mockSubscription.expires_at 
+                        ? format(new Date(mockSubscription.expires_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })
                         : 'Sem data de expiração'}
                     </div>
                   </div>
@@ -298,7 +302,7 @@ export default function Settings() {
 
                 <Separator />
 
-                {subscription.status !== 'cancelled' && (
+                {mockSubscription.status !== 'cancelled' && (
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <AlertTriangle className="h-4 w-4" />
@@ -315,7 +319,7 @@ export default function Settings() {
                           <AlertDialogTitle>Cancelar Assinatura</AlertDialogTitle>
                           <AlertDialogDescription>
                             Tem certeza que deseja cancelar sua assinatura? Você perderá acesso às 
-                            funcionalidades premium do plano {PLAN_LABELS[subscription.plan]}.
+                            funcionalidades premium do plano {PLAN_LABELS[mockSubscription.plan]}.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -332,7 +336,7 @@ export default function Settings() {
                   </div>
                 )}
 
-                {subscription.status === 'cancelled' && (
+                {mockSubscription.status === 'cancelled' && (
                   <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg flex items-center justify-between">
                     <p className="text-sm text-destructive">
                       Sua assinatura foi cancelada.
@@ -361,7 +365,7 @@ export default function Settings() {
               </DialogDescription>
             </DialogHeader>
             <PlanComparison
-              currentPlan={mapPlanToUI(subscription?.plan || 'starter')}
+              currentPlan={mapPlanToUI(mockSubscription?.plan || 'starter')}
               onSelectPlan={handleSelectPlan}
             />
           </DialogContent>
