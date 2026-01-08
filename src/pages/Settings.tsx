@@ -7,6 +7,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useUserRole } from '@/hooks/useUserRole';
 import { PlanComparison } from '@/components/settings/PlanComparison';
 import { TwoFactorSetup } from '@/components/settings/TwoFactorSetup';
+import { ProfilePhotoUpload } from '@/components/settings/ProfilePhotoUpload';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,7 +33,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { User, Mail, Crown, Calendar, CreditCard, AlertTriangle, Shield, ArrowUpRight, Lock } from 'lucide-react';
+import { User, Mail, Crown, Calendar, CreditCard, AlertTriangle, Shield, ArrowUpRight, Lock, Camera } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -158,6 +159,17 @@ export default function Settings() {
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Profile Photo */}
+            <div className="space-y-2">
+              <Label className="text-muted-foreground flex items-center gap-2">
+                <Camera className="h-4 w-4" />
+                Foto de Perfil
+              </Label>
+              <ProfilePhotoUpload />
+            </div>
+
+            <Separator />
+
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label className="text-muted-foreground flex items-center gap-2">
