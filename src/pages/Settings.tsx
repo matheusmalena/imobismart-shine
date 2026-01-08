@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,7 +32,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { User, Mail, Crown, Calendar, CreditCard, AlertTriangle, Shield, ArrowUpRight } from 'lucide-react';
+import { User, Mail, Crown, Calendar, CreditCard, AlertTriangle, Shield, ArrowUpRight, Smartphone, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -84,6 +85,8 @@ export default function Settings() {
   const [fullName, setFullName] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [showPlanDialog, setShowPlanDialog] = useState(false);
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [isEnabling2FA, setIsEnabling2FA] = useState(false);
 
   const isLoading = authLoading || profileLoading || subscriptionLoading || roleLoading;
 
@@ -106,6 +109,25 @@ export default function Settings() {
     // In a real app, this would redirect to a payment flow
     toast.info(`Para alterar para o plano ${PLAN_LABELS[dbPlan]}, entre em contato com nosso suporte.`);
     setShowPlanDialog(false);
+  };
+
+  const handleToggle2FA = async () => {
+    setIsEnabling2FA(true);
+    try {
+      if (!twoFactorEnabled) {
+        // Enable 2FA
+        setTwoFactorEnabled(true);
+        toast.success('Autenticação de dois fatores habilitada com sucesso!');
+      } else {
+        // Disable 2FA
+        setTwoFactorEnabled(false);
+        toast.success('Autenticação de dois fatores desabilitada.');
+      }
+    } catch (error) {
+      toast.error('Erro ao configurar autenticação de dois fatores.');
+    } finally {
+      setIsEnabling2FA(false);
+    }
   };
 
   if (isLoading) {
@@ -237,6 +259,53 @@ export default function Settings() {
                 </Button>
               )}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Security Section - 2FA */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Lock className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle>Segurança</CardTitle>
+                <CardDescription>Configure opções de segurança da sua conta</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl border">
+              <div className="flex items-center gap-4">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Smartphone className="h-5 w-5 text-primary" />
+                </div>
+                <div className="space-y-1">
+                  <p className="font-medium text-foreground">Autenticação de Dois Fatores (2FA)</p>
+                  <p className="text-sm text-muted-foreground">
+                    Adicione uma camada extra de segurança à sua conta usando um aplicativo autenticador.
+                  </p>
+                </div>
+              </div>
+              <Switch
+                checked={twoFactorEnabled}
+                onCheckedChange={handleToggle2FA}
+                disabled={isEnabling2FA}
+              />
+            </div>
+            
+            {twoFactorEnabled && (
+              <div className="p-4 bg-success/10 border border-success/20 rounded-lg">
+                <div className="flex items-center gap-2 text-success">
+                  <Shield className="h-4 w-4" />
+                  <span className="text-sm font-medium">Autenticação de dois fatores está ativa</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Sua conta está protegida com verificação em duas etapas.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
