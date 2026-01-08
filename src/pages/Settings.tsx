@@ -37,6 +37,7 @@ import { User, Mail, Crown, Calendar, CreditCard, AlertTriangle, Shield, ArrowUp
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { formatPhone } from '@/utils/formatters';
 
 const PLAN_LABELS: Record<string, string> = {
   starter: 'Gratuito',
@@ -211,8 +212,9 @@ export default function Settings() {
                 {isEditing ? (
                   <Input
                     value={mobileNumber}
-                    onChange={(e) => setMobileNumber(e.target.value)}
+                    onChange={(e) => setMobileNumber(formatPhone(e.target.value))}
                     placeholder="(00) 00000-0000"
+                    maxLength={15}
                   />
                 ) : (
                   <div className="px-3 py-2 bg-muted rounded-lg text-foreground">

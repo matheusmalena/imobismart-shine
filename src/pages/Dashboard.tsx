@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProperties } from '@/hooks/useProperties';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useExportData } from '@/hooks/useExportData';
+import { useProfile } from '@/hooks/useProfile';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { RevenueChart } from '@/components/dashboard/RevenueChart';
@@ -40,10 +41,13 @@ export default function Dashboard() {
   const { activeProperties, isLoading, metrics } = useProperties();
   const { subscription } = useSubscription();
   const { exportToCSV } = useExportData();
+  const { profile } = useProfile();
 
   const plan = subscription?.plan || 'starter';
   const isPro = plan === 'pro' || plan === 'enterprise';
   const isEnterprise = plan === 'enterprise';
+  
+  const firstName = profile?.full_name?.split(' ')[0] || 'Investidor';
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -106,15 +110,17 @@ export default function Dashboard() {
       <div className="space-y-8 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-3">
+          <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+              <h1 className="text-3xl font-bold text-foreground">
+                Olá, {firstName}!
+              </h1>
               <Badge variant={isPro ? 'default' : 'secondary'} className="gap-1">
                 <Crown className="h-3 w-3" />
                 {getPlanLabel()}
               </Badge>
             </div>
-            <p className="text-muted-foreground mt-1 hidden sm:block">
+            <p className="text-muted-foreground">
               Visão geral dos seus investimentos imobiliários
             </p>
           </div>
