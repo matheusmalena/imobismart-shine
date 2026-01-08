@@ -5,7 +5,7 @@ import { Check, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Plan {
-  id: 'starter' | 'pro' | 'enterprise';
+  id: 'starter' | 'pro' | 'plus';
   name: string;
   description: string;
   price: string;
@@ -16,56 +16,54 @@ interface Plan {
 const PLANS: Plan[] = [
   {
     id: 'starter',
-    name: 'Starter',
-    description: 'Ideal para quem está começando',
-    price: 'R$ 29/mês',
+    name: 'Gratuito',
+    description: 'Perfeito para começar',
+    price: 'R$ 0/mês',
     features: [
-      'Até 5 imóveis',
+      'Até 2 imóveis cadastrados',
       'Dashboard básico',
-      'Relatórios mensais',
+      'Upload de documentos (100MB)',
       'Suporte por email',
     ],
   },
   {
     id: 'pro',
     name: 'Pro',
-    description: 'Para investidores em crescimento',
-    price: 'R$ 79/mês',
+    description: 'Para investidores sérios',
+    price: 'R$ 49/mês',
     highlighted: true,
     features: [
-      'Até 20 imóveis',
-      'Dashboard avançado',
-      'Relatórios semanais',
-      'Gestão de documentos',
+      'Até 25 imóveis cadastrados',
+      'Dashboard avançado com IA',
+      'Upload ilimitado de documentos',
+      'Relatórios automáticos',
+      'Análise preditiva de mercado',
       'Suporte prioritário',
-      'Alertas de vencimento',
     ],
   },
   {
-    id: 'enterprise',
-    name: 'Enterprise',
-    description: 'Para grandes carteiras',
-    price: 'R$ 199/mês',
+    id: 'plus',
+    name: 'Plus',
+    description: 'Para grandes portfólios',
+    price: 'R$ 99/mês',
     features: [
       'Imóveis ilimitados',
-      'Dashboard completo',
-      'Relatórios em tempo real',
-      'Gestão de documentos',
+      'Todos os recursos Pro',
+      'Relatórios personalizados',
+      'Exportação de dados',
+      'Suporte prioritário 24/7',
       'API de integração',
-      'Suporte dedicado 24/7',
-      'Múltiplos usuários',
-      'Backup automático',
     ],
   },
 ];
 
 interface PlanComparisonProps {
-  currentPlan: 'starter' | 'pro' | 'enterprise';
-  onSelectPlan?: (plan: 'starter' | 'pro' | 'enterprise') => void;
+  currentPlan: 'starter' | 'pro' | 'plus';
+  onSelectPlan?: (plan: 'starter' | 'pro' | 'plus') => void;
 }
 
 export function PlanComparison({ currentPlan, onSelectPlan }: PlanComparisonProps) {
-  const planOrder = { starter: 0, pro: 1, enterprise: 2 };
+  const planOrder = { starter: 0, pro: 1, plus: 2 };
 
   return (
     <div className="grid gap-4 md:grid-cols-3">
