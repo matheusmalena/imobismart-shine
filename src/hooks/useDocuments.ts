@@ -11,89 +11,26 @@ export function useDocuments(propertyId?: string) {
   const queryClient = useQueryClient();
   const [isUploading, setIsUploading] = useState(false);
 
-  // TEMPORÁRIO: Mock data para screenshots
-  const mockDocuments: PropertyDocument[] = [
-    {
-      id: 'doc1',
-      user_id: 'mock',
-      property_id: '1',
-      name: 'Contrato de Locação',
-      category: 'contrato',
-      file_url: 'https://example.com/contrato.pdf',
-      file_type: 'application/pdf',
-      file_size: 245000,
-      created_at: '2024-01-15',
-      updated_at: '2024-01-15',
-    },
-    {
-      id: 'doc2',
-      user_id: 'mock',
-      property_id: '1',
-      name: 'Matrícula do Imóvel',
-      category: 'matricula',
-      file_url: 'https://example.com/matricula.pdf',
-      file_type: 'application/pdf',
-      file_size: 180000,
-      created_at: '2024-01-10',
-      updated_at: '2024-01-10',
-    },
-    {
-      id: 'doc3',
-      user_id: 'mock',
-      property_id: '2',
-      name: 'IPTU 2024',
-      category: 'iptu',
-      file_url: 'https://example.com/iptu.pdf',
-      file_type: 'application/pdf',
-      file_size: 120000,
-      created_at: '2024-02-01',
-      updated_at: '2024-02-01',
-    },
-    {
-      id: 'doc4',
-      user_id: 'mock',
-      property_id: '2',
-      name: 'Laudo de Vistoria',
-      category: 'laudo',
-      file_url: 'https://example.com/laudo.pdf',
-      file_type: 'application/pdf',
-      file_size: 350000,
-      created_at: '2023-12-20',
-      updated_at: '2023-12-20',
-    },
-    {
-      id: 'doc5',
-      user_id: 'mock',
-      property_id: '3',
-      name: 'Contrato Comercial',
-      category: 'contrato',
-      file_url: 'https://example.com/contrato2.pdf',
-      file_type: 'application/pdf',
-      file_size: 290000,
-      created_at: '2023-11-15',
-      updated_at: '2023-11-15',
-    },
-    {
-      id: 'doc6',
-      user_id: 'mock',
-      property_id: '5',
-      name: 'Contrato de Aluguel Loja',
-      category: 'contrato',
-      file_url: 'https://example.com/contrato3.pdf',
-      file_type: 'application/pdf',
-      file_size: 310000,
-      created_at: '2023-10-05',
-      updated_at: '2023-10-05',
-    },
-  ];
-
-  const { data: documents = mockDocuments, isLoading } = useQuery({
+  const { data: documents = [], isLoading } = useQuery({
     queryKey: ['documents', propertyId],
     queryFn: async () => {
-      // Retorna mock para screenshots
-      return mockDocuments;
+      if (!user) return [];
+
+      let query = supabase
+        .from('documents')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (propertyId) {
+        query = query.eq('property_id', propertyId);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as PropertyDocument[];
     },
-    enabled: true,
+    enabled: !!user,
   });
 
   const getFilePath = (fileUrl: string): string | null => {
