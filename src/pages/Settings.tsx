@@ -33,7 +33,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { User, Mail, Crown, Calendar, CreditCard, AlertTriangle, Shield, ArrowUpRight, Lock, Camera } from 'lucide-react';
+import { User, Mail, Crown, Calendar, CreditCard, AlertTriangle, Shield, ArrowUpRight, Lock, Camera, Phone } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -84,18 +84,20 @@ export default function Settings() {
   const { role, isAdmin, isLoading: roleLoading } = useUserRole();
   
   const [fullName, setFullName] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [showPlanDialog, setShowPlanDialog] = useState(false);
 
   const isLoading = authLoading || profileLoading || subscriptionLoading || roleLoading;
 
   const handleSaveProfile = async () => {
-    await updateProfile.mutateAsync({ full_name: fullName });
+    await updateProfile.mutateAsync({ full_name: fullName, mobile_number: mobileNumber });
     setIsEditing(false);
   };
 
   const handleStartEdit = () => {
     setFullName(profile?.full_name || '');
+    setMobileNumber(profile?.mobile_number || '');
     setIsEditing(true);
   };
 
@@ -201,20 +203,23 @@ export default function Settings() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              {/* Show account type only for admins */}
-              {isAdmin && (
-                <div className="space-y-2">
-                  <Label className="text-muted-foreground flex items-center gap-2">
-                    <Shield className="h-4 w-4" />
-                    Tipo de Conta
-                  </Label>
-                  <div className="px-3 py-2 bg-muted rounded-lg">
-                    <Badge variant="outline" className="capitalize">
-                      Administrador
-                    </Badge>
+              <div className="space-y-2">
+                <Label className="text-muted-foreground flex items-center gap-2">
+                  <Phone className="h-4 w-4" />
+                  Telefone
+                </Label>
+                {isEditing ? (
+                  <Input
+                    value={mobileNumber}
+                    onChange={(e) => setMobileNumber(e.target.value)}
+                    placeholder="(00) 00000-0000"
+                  />
+                ) : (
+                  <div className="px-3 py-2 bg-muted rounded-lg text-foreground">
+                    {profile?.mobile_number || 'Não informado'}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
 
               <div className="space-y-2">
                 <Label className="text-muted-foreground flex items-center gap-2">
@@ -228,6 +233,21 @@ export default function Settings() {
                 </div>
               </div>
             </div>
+
+            {/* Show account type only for admins */}
+            {isAdmin && (
+              <div className="space-y-2">
+                <Label className="text-muted-foreground flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  Tipo de Conta
+                </Label>
+                <div className="px-3 py-2 bg-muted rounded-lg">
+                  <Badge variant="outline" className="capitalize">
+                    Administrador
+                  </Badge>
+                </div>
+              </div>
+            )}
 
             <Separator />
 

@@ -2,7 +2,10 @@ import { ReactNode, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useProfile } from '@/hooks/useProfile';
+import { useSubscription } from '@/hooks/useSubscription';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +24,7 @@ import {
   User,
   ChevronDown,
   Crown,
+  ClipboardList,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -47,7 +51,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { isAdmin } = useUserRole();
+  const { profile } = useProfile();
+  const { subscription } = useSubscription();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const isEnterprise = subscription?.plan === 'enterprise';
+
+  const getInitials = () => {
+    if (profile?.full_name) {
+      return profile.full_name
+        .split(' ')
+        .map(n => n[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase();
+    }
+    return user?.email?.[0].toUpperCase() || 'U';
+  };
 
   const handleSignOut = async () => {
     try {
@@ -115,6 +135,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               );
             })}
 
+            {/* Reports - Plus only */}
+            {isEnterprise && (
+              <Link
+                to="/reports"
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                  location.pathname === '/reports'
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                )}
+                onClick={() => setSidebarOpen(false)}
+              >
+                <ClipboardList className="h-5 w-5" />
+                Relatórios
+              </Link>
+            )}
+
             {/* Admin section */}
             {isAdmin && (
               <>
@@ -151,12 +188,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-sidebar-accent transition-colors overflow-hidden">
-                  <div className="p-2 rounded-full bg-sidebar-primary/20 flex-shrink-0">
-                    <User className="h-4 w-4 text-sidebar-primary" />
-                  </div>
+                  <Avatar className="h-10 w-10 border border-sidebar-border flex-shrink-0">
+                    <AvatarImage src={profile?.avatar_url || undefined} alt="Foto de perfil" />
+                    <AvatarFallback className="text-sm bg-sidebar-primary/20 text-sidebar-primary">
+                      {getInitials()}
+                    </AvatarFallback>
+                  </Avatar>
                   <div className="flex-1 text-left min-w-0">
                     <div className="text-sm font-medium text-sidebar-foreground truncate">
-                      {user?.email?.split('@')[0]}
+                      {profile?.full_name || user?.email?.split('@')[0]}
                     </div>
                     <div className="text-xs text-sidebar-foreground/60 truncate" title={user?.email}>
                       {user?.email}

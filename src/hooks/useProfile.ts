@@ -9,12 +9,14 @@ export interface Profile {
   full_name: string | null;
   email: string | null;
   avatar_url: string | null;
+  mobile_number: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface ProfileUpdateData {
   full_name?: string;
+  mobile_number?: string;
 }
 
 export function useProfile() {

@@ -23,6 +23,13 @@ import {
   BarChart3,
   Home,
   Edit,
+  Waves,
+  Dumbbell,
+  Building,
+  Sofa,
+  Flame,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageTransition } from "@/components/PageTransition";
@@ -240,6 +247,37 @@ export function PropertyDetails({ property, onEdit, onClose }: PropertyDetailsPr
                       <p className="font-medium">{property.parking_spots || 0}</p>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Comodidades */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Comodidades</CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-3 sm:grid-cols-2">
+                  {[
+                    { label: 'Piscina', value: property.has_pool, icon: Waves },
+                    { label: 'Academia', value: property.has_gym, icon: Dumbbell },
+                    { label: 'Elevador', value: property.has_elevator, icon: Building },
+                    { label: 'Varanda', value: property.has_balcony, icon: Home },
+                    { label: 'Churrasqueira', value: property.has_barbecue, icon: Flame },
+                    { label: 'Mobiliado', value: property.is_furnished, icon: Sofa },
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${item.value ? 'bg-success/10' : 'bg-muted'}`}>
+                        <item.icon className={`h-4 w-4 ${item.value ? 'text-success' : 'text-muted-foreground'}`} />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm">{item.label}</span>
+                        {item.value ? (
+                          <CheckCircle className="h-4 w-4 text-success" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </CardContent>
               </Card>
 
