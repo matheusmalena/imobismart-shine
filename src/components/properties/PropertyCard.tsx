@@ -1,4 +1,4 @@
-import { Property, PROPERTY_TYPE_LABELS, PROPERTY_STATUS_LABELS, PROPERTY_PERFORMANCE_LABELS } from '@/types/property';
+import { Property, PROPERTY_TYPE_LABELS, PROPERTY_STATUS_LABELS } from '@/types/property';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,9 +19,6 @@ import {
   Bath,
   Car,
   Maximize,
-  TrendingUp,
-  TrendingDown,
-  Minus,
   Building2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -58,21 +55,6 @@ export function PropertyCard({ property, onClick, onEdit, onDuplicate, onArchive
     }
   };
 
-  const getPerformanceIcon = (performance: string | null) => {
-    switch (performance) {
-      case 'alta': return <TrendingUp className="h-3 w-3" />;
-      case 'baixa': return <TrendingDown className="h-3 w-3" />;
-      default: return <Minus className="h-3 w-3" />;
-    }
-  };
-
-  const getPerformanceColor = (performance: string | null) => {
-    switch (performance) {
-      case 'alta': return 'bg-success/10 text-success border-success/20';
-      case 'baixa': return 'bg-destructive/10 text-destructive border-destructive/20';
-      default: return 'bg-warning/10 text-warning border-warning/20';
-    }
-  };
 
   const fullAddress = [
     property.address_street,
@@ -148,15 +130,9 @@ export function PropertyCard({ property, onClick, onEdit, onDuplicate, onArchive
       {/* Content */}
       <div className="p-4 space-y-4">
         <div>
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold text-card-foreground text-lg truncate">
-              {property.name}
-            </h3>
-            <Badge variant="outline" className={cn("shrink-0 gap-1", getPerformanceColor(property.performance))}>
-              {getPerformanceIcon(property.performance)}
-              {property.performance ? PROPERTY_PERFORMANCE_LABELS[property.performance] : 'N/A'}
-            </Badge>
-          </div>
+          <h3 className="font-semibold text-card-foreground text-lg truncate">
+            {property.name}
+          </h3>
           <p className="text-sm text-muted-foreground mt-1">
             {PROPERTY_TYPE_LABELS[property.property_type]}
           </p>

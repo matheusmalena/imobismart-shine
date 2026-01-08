@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProperties } from '@/hooks/useProperties';
 import { usePropertyLimit } from '@/hooks/usePropertyLimit';
-import { Property, PropertyFormData, PROPERTY_TYPE_LABELS, PROPERTY_STATUS_LABELS, PROPERTY_PERFORMANCE_LABELS } from '@/types/property';
+import { Property, PropertyFormData, PROPERTY_TYPE_LABELS, PROPERTY_STATUS_LABELS } from '@/types/property';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { PropertyCard } from '@/components/properties/PropertyCard';
 import { PropertyForm } from '@/components/properties/PropertyForm';
@@ -46,7 +46,7 @@ export default function Properties() {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [performanceFilter, setPerformanceFilter] = useState<string>('all');
+  
   const [showArchived, setShowArchived] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<string>('created_at');
@@ -74,7 +74,6 @@ export default function Properties() {
       })
       .filter(p => typeFilter === 'all' || p.property_type === typeFilter)
       .filter(p => statusFilter === 'all' || p.status === statusFilter)
-      .filter(p => performanceFilter === 'all' || p.performance === performanceFilter)
       .sort((a, b) => {
         switch (sortBy) {
           case 'name':
@@ -89,7 +88,7 @@ export default function Properties() {
             return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         }
       });
-  }, [properties, showArchived, searchQuery, typeFilter, statusFilter, performanceFilter, sortBy]);
+  }, [properties, showArchived, searchQuery, typeFilter, statusFilter, sortBy]);
 
   const handleEdit = (property: Property) => {
     setSelectedProperty(null);
@@ -284,17 +283,6 @@ export default function Properties() {
               </SelectContent>
             </Select>
 
-            <Select value={performanceFilter} onValueChange={setPerformanceFilter}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Performance" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
-                {Object.entries(PROPERTY_PERFORMANCE_LABELS).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
 
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-[160px]">

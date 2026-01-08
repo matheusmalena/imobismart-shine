@@ -76,7 +76,7 @@ export default function Dashboard() {
         {/* Metrics Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <MetricCard
-            title="Imóveis"
+            title={metrics.totalProperties === 1 ? "Imóvel" : "Imóveis"}
             value={metrics.totalProperties}
             icon={<Building2 className="h-5 w-5 text-primary" />}
           />

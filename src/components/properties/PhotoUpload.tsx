@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Camera, Loader2, Trash2, Upload, Building2 } from 'lucide-react';
+import { Camera, Loader2, Trash2, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ImageCropDialog } from './ImageCropDialog';
 
 interface PhotoUploadProps {
   currentPhotoUrl?: string | null;
@@ -21,19 +22,37 @@ export function PhotoUpload({
 }: PhotoUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Create preview
+    // Create data URL for crop dialog
     const reader = new FileReader();
     reader.onload = () => {
-      setPreviewUrl(reader.result as string);
+      setImageToCrop(reader.result as string);
+      setCropDialogOpen(true);
     };
     reader.readAsDataURL(file);
+    
+    // Reset input so same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
+  const handleCropComplete = (croppedBlob: Blob) => {
+    // Create preview URL from cropped blob
+    const croppedUrl = URL.createObjectURL(croppedBlob);
+    setPreviewUrl(croppedUrl);
+    
+    // Convert blob to file and send to parent
+    const file = new File([croppedBlob], 'cropped-image.jpg', { type: 'image/jpeg' });
     onFileSelect(file);
+    
+    setImageToCrop(null);
   };
 
   const handleRemove = () => {
@@ -122,6 +141,15 @@ export function PhotoUpload({
           className="hidden"
         />
       </div>
+
+      {imageToCrop && (
+        <ImageCropDialog
+          open={cropDialogOpen}
+          onOpenChange={setCropDialogOpen}
+          imageSrc={imageToCrop}
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </div>
   );
 }

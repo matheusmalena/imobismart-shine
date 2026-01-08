@@ -1,6 +1,5 @@
-import { Property, PROPERTY_TYPE_LABELS, PROPERTY_PERFORMANCE_LABELS } from '@/types/property';
-import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Property, PROPERTY_TYPE_LABELS } from '@/types/property';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PropertyRankingProps {
@@ -30,26 +29,9 @@ export function PropertyRanking({ properties }: PropertyRankingProps) {
     .sort((a, b) => b.profit - a.profit)
     .slice(0, 5);
 
-  const getPerformanceIcon = (performance: string | null) => {
-    switch (performance) {
-      case 'alta':
-        return <TrendingUp className="h-4 w-4 text-success" />;
-      case 'baixa':
-        return <TrendingDown className="h-4 w-4 text-destructive" />;
-      default:
-        return <Minus className="h-4 w-4 text-warning" />;
-    }
-  };
-
-  const getPerformanceBadgeClass = (performance: string | null) => {
-    switch (performance) {
-      case 'alta':
-        return 'bg-success/10 text-success border-success/20';
-      case 'baixa':
-        return 'bg-destructive/10 text-destructive border-destructive/20';
-      default:
-        return 'bg-warning/10 text-warning border-warning/20';
-    }
+  const getProfitIcon = (profit: number) => {
+    if (profit > 0) return <TrendingUp className="h-4 w-4 text-success" />;
+    return <TrendingDown className="h-4 w-4 text-destructive" />;
   };
 
   if (rankedProperties.length === 0) {
@@ -87,21 +69,17 @@ export function PropertyRanking({ properties }: PropertyRankingProps) {
                 {PROPERTY_TYPE_LABELS[property.property_type]}
               </p>
             </div>
-            <Badge 
-              variant="outline" 
-              className={cn("gap-1", getPerformanceBadgeClass(property.performance))}
-            >
-              {getPerformanceIcon(property.performance)}
-              {property.performance ? PROPERTY_PERFORMANCE_LABELS[property.performance] : 'N/A'}
-            </Badge>
-            <div className="text-right">
-              <p className={cn(
-                "font-semibold",
-                property.profit >= 0 ? "text-success" : "text-destructive"
-              )}>
-                {formatCurrency(property.profit)}
-              </p>
-              <p className="text-xs text-muted-foreground">lucro/mês</p>
+            <div className="flex items-center gap-2">
+              {getProfitIcon(property.profit)}
+              <div className="text-right">
+                <p className={cn(
+                  "font-semibold",
+                  property.profit >= 0 ? "text-success" : "text-destructive"
+                )}>
+                  {formatCurrency(property.profit)}
+                </p>
+                <p className="text-xs text-muted-foreground">lucro/mês</p>
+              </div>
             </div>
           </div>
         ))}

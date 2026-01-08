@@ -2,11 +2,18 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+interface SignInResult {
+  error: Error | null;
+  requiresMFA?: boolean;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  mfaPending: boolean;
+  setMfaPending: (pending: boolean) => void;
+  signIn: (email: string, password: string) => Promise<SignInResult>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
@@ -17,10 +24,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mfaPending, setMfaPending] = useState(false);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
+        // Don't update user state if MFA is pending
+        if (mfaPending) return;
+        
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -34,11 +45,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [mfaPending]);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<SignInResult> => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error as Error | null };
+    
+    if (error) {
+      return { error: error as Error };
+    }
+
+    // Check if MFA is required
+    const { data: factors } = await supabase.auth.mfa.listFactors();
+    const hasVerifiedFactor = factors?.totp?.some(f => f.status === 'verified');
+    
+    if (hasVerifiedFactor) {
+      const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aalData?.currentLevel === 'aal1' && aalData?.nextLevel === 'aal2') {
+        // MFA verification required - set pending state to block user state update
+        setMfaPending(true);
+        return { error: null, requiresMFA: true };
+      }
+    }
+
+    return { error: null, requiresMFA: false };
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
@@ -61,7 +90,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('Erro no signOut:', error);
-        // Se a sessão não existe no servidor, forçar limpeza local
         if (error.message?.includes('session_not_found')) {
           await supabase.auth.signOut({ scope: 'local' });
         }
@@ -69,14 +97,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Erro inesperado no signOut:', error);
     } finally {
-      // Sempre limpar o estado local
       setUser(null);
       setSession(null);
+      setMfaPending(false);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, mfaPending, setMfaPending, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
