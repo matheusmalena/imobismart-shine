@@ -107,22 +107,28 @@ export default function Dashboard() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div>
+            <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-              <p className="text-muted-foreground mt-1">
-                Visão geral dos seus investimentos imobiliários
-              </p>
+              <Badge variant={isPro ? 'default' : 'secondary'} className="gap-1">
+                <Crown className="h-3 w-3" />
+                {getPlanLabel()}
+              </Badge>
             </div>
-            <Badge variant={isPro ? 'default' : 'secondary'} className="gap-1">
-              <Crown className="h-3 w-3" />
-              {getPlanLabel()}
-            </Badge>
+            <p className="text-muted-foreground mt-1 hidden sm:block">
+              Visão geral dos seus investimentos imobiliários
+            </p>
           </div>
           <div className="flex items-center gap-2">
-            {isEnterprise && (
+            {isPro && (
               <Button variant="outline" onClick={handleExportData} className="gap-2">
                 <Download className="h-4 w-4" />
                 Exportar
+              </Button>
+            )}
+            {isEnterprise && (
+              <Button variant="outline" onClick={() => navigate('/reports')} className="gap-2">
+                <FileText className="h-4 w-4" />
+                Relatórios
               </Button>
             )}
             <Button onClick={() => navigate('/properties')} className="gap-2">
@@ -132,8 +138,8 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Metrics Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {/* Metrics Grid - Always 3 columns on medium screens and up */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <MetricCard
             title={metrics.totalProperties === 1 ? "Imóvel" : "Imóveis"}
             value={metrics.totalProperties}
@@ -342,16 +348,9 @@ export default function Dashboard() {
                         <Download className="h-4 w-4 text-primary" />
                         <span className="text-sm">Exportar Dados</span>
                       </div>
-                      {isEnterprise ? (
-                        <Button size="sm" variant="outline" onClick={handleExportData} className="h-7 text-xs">
-                          Exportar CSV
-                        </Button>
-                      ) : (
-                        <Badge variant="outline" className="text-muted-foreground">
-                          <Lock className="h-3 w-3 mr-1" />
-                          Plus
-                        </Badge>
-                      )}
+                      <Button size="sm" variant="outline" onClick={handleExportData} className="h-7 text-xs">
+                        Exportar CSV
+                      </Button>
                     </div>
                     
                     <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
