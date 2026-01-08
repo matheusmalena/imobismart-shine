@@ -4,6 +4,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { LogoText } from '@/components/common/LogoText';
+import { TargetAudienceSection } from '@/components/landing/TargetAudienceSection';
+import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
 import { 
   Building2, 
   BarChart3, 
@@ -20,8 +23,10 @@ import {
   Sparkles,
   Brain,
   Crown,
+  Rocket,
+  Target,
+  Clock,
 } from 'lucide-react';
-import logo from '@/assets/logo-imobismart.png';
 
 export default function Index() {
   const navigate = useNavigate();
@@ -39,22 +44,22 @@ export default function Index() {
     {
       icon: <Building2 className="h-6 w-6" />,
       title: 'Gestão Centralizada',
-      description: 'Todos os seus imóveis em um único painel intuitivo. Visualize, edite e monitore em tempo real.',
+      description: 'Todos os seus imóveis em um único painel. Visualize, edite e monitore em tempo real com facilidade.',
     },
     {
       icon: <BarChart3 className="h-6 w-6" />,
-      title: 'Métricas Inteligentes',
-      description: 'ROI automático, receitas, custos e lucro líquido calculados instantaneamente.',
+      title: 'Métricas Automáticas',
+      description: 'ROI, receitas, custos e lucro líquido calculados instantaneamente. Sem planilhas complicadas.',
     },
     {
       icon: <FileText className="h-6 w-6" />,
-      title: 'Documentos na Nuvem',
-      description: 'Contratos, matrículas e laudos organizados por imóvel com acesso seguro.',
+      title: 'Documentos Seguros',
+      description: 'Contratos, matrículas e laudos organizados por imóvel. Acesse de qualquer lugar.',
     },
     {
       icon: <Brain className="h-6 w-6" />,
-      title: 'IA Integrada',
-      description: 'Análises preditivas e insights automáticos para decisões mais inteligentes.',
+      title: 'Inteligência Artificial',
+      description: 'Insights automáticos e análises preditivas para decisões mais inteligentes.',
     },
   ];
 
@@ -62,7 +67,7 @@ export default function Index() {
     'Dashboard com métricas em tempo real',
     'Ranking de performance por imóvel',
     'Cálculo automático de ROI e lucro',
-    'Upload de documentos por categoria',
+    'Upload de documentos organizados',
     'Relatórios inteligentes com IA',
     'Acesso de qualquer dispositivo',
   ];
@@ -73,7 +78,7 @@ export default function Index() {
       name: 'Gratuito',
       price: 'R$ 0',
       period: '/mês',
-      description: 'Perfeito para começar',
+      description: 'Ideal para começar',
       features: [
         'Até 2 imóveis cadastrados',
         'Dashboard básico',
@@ -155,11 +160,8 @@ export default function Index() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <img src={logo} alt="ImobiSmart" className="h-10 w-auto" />
-            <span className="font-bold text-xl hidden sm:block text-foreground">
-              ImobiSmart
-            </span>
+          <Link to="/">
+            <LogoText size="md" />
           </Link>
           <div className="flex items-center gap-2 sm:gap-4">
             <ThemeToggle />
@@ -178,21 +180,21 @@ export default function Index() {
         <div className="container mx-auto text-center max-w-4xl">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-8">
             <Sparkles className="h-4 w-4" />
-            Plataforma de gestão imobiliária com IA
+            A plataforma #1 de gestão imobiliária inteligente
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-foreground leading-tight mb-6">
-            Seu patrimônio imobiliário{' '}
-            <span className="gradient-text">sob controle total</span>
+            Transforme seu patrimônio em{' '}
+            <span className="gradient-text">lucro inteligente</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-            A plataforma mais inteligente para investidores, imobiliárias e proprietários. 
-            Controle financeiro preciso, documentos seguros e insights de IA para maximizar seus lucros.
+            Esqueça planilhas confusas. Tenha controle total dos seus imóveis com métricas automáticas, 
+            documentos organizados e insights de IA para maximizar seus rendimentos.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/auth">
               <Button size="lg" className="gap-2 w-full sm:w-auto">
-                Experimentar Grátis
-                <ArrowRight className="h-5 w-5" />
+                <Rocket className="h-5 w-5" />
+                Começar Gratuitamente
               </Button>
             </Link>
             <Button size="lg" variant="outline" className="gap-2" onClick={() => { setShowDemo(true); setDemoStep(0); }}>
@@ -308,21 +310,35 @@ export default function Index() {
               </div>
             </DialogContent>
           </Dialog>
-          <p className="text-sm text-muted-foreground mt-4">
-            ✨ Grátis para até 2 imóveis. Sem cartão de crédito.
-          </p>
+          <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-primary" />
+              Setup em 2 minutos
+            </div>
+            <div className="flex items-center gap-2">
+              <Shield className="h-4 w-4 text-primary" />
+              Dados 100% seguros
+            </div>
+            <div className="flex items-center gap-2">
+              <Target className="h-4 w-4 text-primary" />
+              Sem cartão de crédito
+            </div>
+          </div>
         </div>
       </section>
+
+      {/* Target Audience Section */}
+      <TargetAudienceSection />
 
       {/* Features */}
       <section className="py-20 px-4 bg-muted/30">
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Tecnologia que transforma sua gestão
+              Tudo que você precisa em um só lugar
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Ferramentas poderosas combinadas com inteligência artificial para maximizar o retorno dos seus investimentos.
+              Ferramentas poderosas para você parar de perder dinheiro com falta de controle.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -351,10 +367,10 @@ export default function Index() {
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Planos para cada necessidade
+              Planos que cabem no seu bolso
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Escolha o plano ideal para o tamanho do seu portfólio. Comece grátis e evolua conforme cresce.
+              Comece grátis e evolua conforme seu portfólio cresce. Sem surpresas.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
@@ -405,17 +421,20 @@ export default function Index() {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <TestimonialsSection />
+
       {/* Benefits */}
-      <section className="py-20 px-4 bg-muted/30">
+      <section className="py-20 px-4">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-                Decisões mais inteligentes, resultados maiores
+                Pare de perder dinheiro com falta de controle
               </h2>
               <p className="text-muted-foreground mb-8">
-                Com o ImobiSmart, você tem visibilidade total sobre a performance de cada imóvel. 
-                Identifique oportunidades, otimize custos e maximize seus retornos com dados em tempo real.
+                Muitos proprietários não sabem quanto realmente lucram. Com o ImobiSmart, você tem visibilidade total 
+                sobre cada centavo — receitas, custos, ROI e lucro líquido de cada imóvel.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {benefits.map((benefit, index) => (
@@ -430,7 +449,7 @@ export default function Index() {
               <div className="mt-8">
                 <Link to="/auth">
                   <Button size="lg" className="gap-2">
-                    Criar Conta Grátis
+                    Testar Gratuitamente
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
@@ -464,15 +483,15 @@ export default function Index() {
       <section className="py-20 px-4 gradient-hero">
         <div className="container mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-            Pronto para revolucionar sua gestão imobiliária?
+            Pronto para multiplicar seus resultados?
           </h2>
           <p className="text-white/80 max-w-xl mx-auto mb-8">
             Junte-se a milhares de investidores que já usam o ImobiSmart para 
-            multiplicar seus resultados com inteligência.
+            ter controle total sobre seu patrimônio imobiliário.
           </p>
           <Link to="/auth">
-            <Button size="lg" className="gap-2 bg-white text-foreground hover:bg-white/90">
-              Começar Agora — É Grátis
+            <Button size="lg" variant="secondary" className="gap-2">
+              Criar Minha Conta Grátis
               <ArrowRight className="h-5 w-5" />
             </Button>
           </Link>
@@ -483,14 +502,11 @@ export default function Index() {
       <footer className="py-12 px-4 border-t border-border">
         <div className="container mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <Link to="/" className="flex items-center gap-3">
-              <img src={logo} alt="ImobiSmart" className="h-8 w-auto" />
-              <span className="font-semibold text-foreground">
-                ImobiSmart
-              </span>
+            <Link to="/">
+              <LogoText size="sm" />
             </Link>
             <p className="text-sm text-muted-foreground">
-              © 2024 ImobiSmart. Todos os direitos reservados.
+              © {new Date().getFullYear()} ImobiSmart. Todos os direitos reservados.
             </p>
           </div>
         </div>

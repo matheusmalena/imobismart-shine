@@ -25,7 +25,7 @@ import {
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { TutorialModal } from '@/components/onboarding/TutorialModal';
-import logo from '@/assets/logo-imobismart.png';
+import { LogoText } from '@/components/common/LogoText';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -77,12 +77,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex h-16 items-center gap-3 px-6 border-b border-sidebar-border">
-            <Link to="/" className="flex items-center gap-3">
-              <img src={logo} alt="ImobiSmart" className="h-10 w-auto" />
-              <span className="font-bold text-sidebar-foreground">ImobiSmart</span>
+            <Link to="/" className="flex-1">
+              <LogoText size="md" />
             </Link>
             <button
-              className="ml-auto lg:hidden text-sidebar-foreground"
+              className="lg:hidden text-sidebar-foreground"
               onClick={() => setSidebarOpen(false)}
             >
               <X className="h-5 w-5" />
