@@ -33,7 +33,7 @@ const slides: TutorialSlide[] = [
       'Visualize receitas, custos e ROI em tempo real',
       'Acompanhe a performance de cada imóvel',
     ],
-    screenshot: '/images/tutorial-dashboard.png?v=1',
+    screenshot: '/images/tutorial-dashboard.png?v=2',
     highlightArea: 'dashboard',
   },
   {
@@ -45,7 +45,7 @@ const slides: TutorialSlide[] = [
       'Clique no botão verde "Novo Imóvel"',
       'Preencha os dados: nome, endereço, valores',
     ],
-    screenshot: '/images/tutorial-properties.png?v=1',
+    screenshot: '/images/tutorial-properties.png?v=2',
     highlightArea: 'properties',
   },
   {
@@ -57,7 +57,7 @@ const slides: TutorialSlide[] = [
       'Clique em "Novo Documento" para fazer upload',
       'Escolha o imóvel e a categoria do documento',
     ],
-    screenshot: '/images/tutorial-documents.png?v=1',
+    screenshot: '/images/tutorial-documents.png?v=2',
     highlightArea: 'documents',
   },
   {
@@ -69,7 +69,7 @@ const slides: TutorialSlide[] = [
       'Altere entre tema claro e escuro',
       'Veja seu plano atual e faça upgrade',
     ],
-    screenshot: '/images/tutorial-settings.png?v=1',
+    screenshot: '/images/tutorial-settings.png?v=2',
     highlightArea: 'settings',
   },
 ];
