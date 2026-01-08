@@ -302,7 +302,7 @@ export default function Settings() {
 
                 <Separator />
 
-                {mockSubscription.status !== 'cancelled' && (
+                {mockSubscription.status !== 'cancelled' && mockSubscription.plan !== 'starter' && (
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <AlertTriangle className="h-4 w-4" />

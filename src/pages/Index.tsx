@@ -18,7 +18,6 @@ import {
   TrendingUp,
   Play,
   Sparkles,
-  Brain,
   Crown,
   Rocket,
 } from "lucide-react";
@@ -52,9 +51,9 @@ export default function Index() {
       description: "Contratos, matrículas e laudos organizados por imóvel. Acesse de qualquer lugar.",
     },
     {
-      icon: <Brain className="h-6 w-6" />,
-      title: "Inteligência Artificial",
-      description: "Insights automáticos e análises preditivas para decisões mais inteligentes.",
+      icon: <Shield className="h-6 w-6" />,
+      title: "Segurança Total",
+      description: "Seus dados protegidos com criptografia. Backups automáticos e acesso controlado.",
     },
   ];
 
@@ -63,7 +62,7 @@ export default function Index() {
     "Ranking de performance por imóvel",
     "Cálculo automático de ROI e lucro",
     "Upload de documentos organizados",
-    "Relatórios inteligentes com IA",
+    "Relatórios detalhados",
     "Acesso de qualquer dispositivo",
   ];
 
@@ -86,10 +85,10 @@ export default function Index() {
       description: "Para investidores sérios",
       features: [
         "Até 25 imóveis cadastrados",
-        "Dashboard avançado com IA",
+        "Dashboard avançado",
         "Upload ilimitado de documentos",
         "Relatórios automáticos",
-        "Análise preditiva de mercado",
+        "Análise de mercado",
         "Suporte prioritário",
       ],
       cta: "Assinar Pro",

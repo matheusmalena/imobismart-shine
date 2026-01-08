@@ -77,9 +77,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex h-16 items-center gap-3 px-6 border-b border-sidebar-border">
-            <Link to="/" className="flex-1">
+            <div className="flex-1">
               <LogoText size="md" className="[&_span.logo-name]:text-sidebar-foreground" />
-            </Link>
+            </div>
             <button
               className="lg:hidden text-sidebar-foreground"
               onClick={() => setSidebarOpen(false)}
@@ -145,15 +145,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="p-4 border-t border-sidebar-border">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-sidebar-accent transition-colors">
-                  <div className="p-2 rounded-full bg-sidebar-primary/20">
+                <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-sidebar-accent transition-colors overflow-hidden">
+                  <div className="p-2 rounded-full bg-sidebar-primary/20 flex-shrink-0">
                     <User className="h-4 w-4 text-sidebar-primary" />
                   </div>
-                  <div className="flex-1 text-left">
+                  <div className="flex-1 text-left min-w-0">
                     <div className="text-sm font-medium text-sidebar-foreground truncate">
                       {user?.email?.split('@')[0]}
                     </div>
-                    <div className="text-xs text-sidebar-foreground/60 truncate">
+                    <div className="text-xs text-sidebar-foreground/60 truncate" title={user?.email}>
                       {user?.email}
                     </div>
                   </div>
