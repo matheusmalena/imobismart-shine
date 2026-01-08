@@ -1,6 +1,5 @@
 export type PropertyType = 'apartamento' | 'casa' | 'comercial' | 'terreno' | 'galpao' | 'sala' | 'loja' | 'outro';
 export type PropertyStatus = 'alugado' | 'vago' | 'em_reforma' | 'a_venda';
-export type PropertyPerformance = 'alta' | 'media' | 'baixa';
 export type DocumentCategory = 'matricula' | 'iptu' | 'contrato' | 'laudo' | 'outro';
 
 export interface Property {
@@ -9,7 +8,6 @@ export interface Property {
   name: string;
   property_type: PropertyType;
   status: PropertyStatus;
-  performance: PropertyPerformance | null;
   
   // Address
   address_street: string | null;
@@ -37,6 +35,15 @@ export interface Property {
   bedrooms: number;
   bathrooms: number;
   parking_spots: number;
+  suites: number;
+  has_pool: boolean;
+  has_gym: boolean;
+  has_elevator: boolean;
+  has_balcony: boolean;
+  has_barbecue: boolean;
+  is_furnished: boolean;
+  floor_number: number | null;
+  year_built: number | null;
   description: string | null;
   
   // Photo
@@ -65,7 +72,6 @@ export interface PropertyFormData {
   name: string;
   property_type: PropertyType;
   status: PropertyStatus;
-  performance: PropertyPerformance;
   address_street: string;
   address_number: string;
   address_complement: string;
@@ -85,6 +91,15 @@ export interface PropertyFormData {
   bedrooms: number;
   bathrooms: number;
   parking_spots: number;
+  suites: number;
+  has_pool: boolean;
+  has_gym: boolean;
+  has_elevator: boolean;
+  has_balcony: boolean;
+  has_barbecue: boolean;
+  is_furnished: boolean;
+  floor_number: number | null;
+  year_built: number | null;
   description: string;
   photo_url?: string | null;
 }
@@ -105,12 +120,6 @@ export const PROPERTY_STATUS_LABELS: Record<PropertyStatus, string> = {
   vago: 'Vago',
   em_reforma: 'Em Reforma',
   a_venda: 'À Venda',
-};
-
-export const PROPERTY_PERFORMANCE_LABELS: Record<PropertyPerformance, string> = {
-  alta: 'Alta',
-  media: 'Média',
-  baixa: 'Baixa',
 };
 
 export const DOCUMENT_CATEGORY_LABELS: Record<DocumentCategory, string> = {

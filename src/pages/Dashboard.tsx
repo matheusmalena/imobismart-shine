@@ -2,13 +2,17 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProperties } from '@/hooks/useProperties';
+import { useSubscription } from '@/hooks/useSubscription';
+import { useExportData } from '@/hooks/useExportData';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { RevenueChart } from '@/components/dashboard/RevenueChart';
 import { PropertyRanking } from '@/components/dashboard/PropertyRanking';
 import { OccupancyChart } from '@/components/dashboard/OccupancyChart';
+import { AdvancedDashboard } from '@/components/dashboard/AdvancedDashboard';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 import { 
   Building2, 
   DollarSign, 
@@ -17,12 +21,19 @@ import {
   Activity,
   Wallet,
   Plus,
+  Crown,
 } from 'lucide-react';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { activeProperties, isLoading, metrics } = useProperties();
+  const { subscription } = useSubscription();
+  const { exportToCSV } = useExportData();
+
+  const plan = subscription?.plan || 'starter';
+  const isPro = plan === 'pro' || plan === 'enterprise';
+  const isEnterprise = plan === 'enterprise';
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -56,16 +67,28 @@ export default function Dashboard() {
     }).format(value);
   };
 
+  const handleExportData = () => {
+    exportToCSV(activeProperties);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-8 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground mt-1">
-              Visão geral dos seus investimentos imobiliários
-            </p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+              <p className="text-muted-foreground mt-1">
+                Visão geral dos seus investimentos imobiliários
+              </p>
+            </div>
+            {isPro && (
+              <Badge variant="secondary" className="gap-1">
+                <Crown className="h-3 w-3" />
+                {plan === 'enterprise' ? 'Plus' : 'Pro'}
+              </Badge>
+            )}
           </div>
           <Button onClick={() => navigate('/properties')} className="gap-2">
             <Plus className="h-4 w-4" />
@@ -111,6 +134,15 @@ export default function Dashboard() {
             icon={<Activity className="h-5 w-5 text-primary" />}
           />
         </div>
+
+        {/* Advanced Dashboard for Pro/Plus */}
+        {isPro && (
+          <AdvancedDashboard 
+            properties={activeProperties} 
+            plan={plan as 'pro' | 'enterprise'}
+            onExportData={isEnterprise ? handleExportData : undefined}
+          />
+        )}
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

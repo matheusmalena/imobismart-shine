@@ -107,9 +107,16 @@ export type Database = {
           condominium_fee: number | null
           created_at: string
           description: string | null
+          floor_number: number | null
+          has_balcony: boolean | null
+          has_barbecue: boolean | null
+          has_elevator: boolean | null
+          has_gym: boolean | null
+          has_pool: boolean | null
           id: string
           iptu_fee: number | null
           is_archived: boolean | null
+          is_furnished: boolean | null
           maintenance_fee: number | null
           monthly_revenue: number | null
           name: string
@@ -123,8 +130,10 @@ export type Database = {
           property_type: Database["public"]["Enums"]["property_type"]
           property_value: number | null
           status: Database["public"]["Enums"]["property_status"]
+          suites: number | null
           updated_at: string
           user_id: string
+          year_built: number | null
         }
         Insert: {
           acquisition_date?: string | null
@@ -141,9 +150,16 @@ export type Database = {
           condominium_fee?: number | null
           created_at?: string
           description?: string | null
+          floor_number?: number | null
+          has_balcony?: boolean | null
+          has_barbecue?: boolean | null
+          has_elevator?: boolean | null
+          has_gym?: boolean | null
+          has_pool?: boolean | null
           id?: string
           iptu_fee?: number | null
           is_archived?: boolean | null
+          is_furnished?: boolean | null
           maintenance_fee?: number | null
           monthly_revenue?: number | null
           name: string
@@ -157,8 +173,10 @@ export type Database = {
           property_type?: Database["public"]["Enums"]["property_type"]
           property_value?: number | null
           status?: Database["public"]["Enums"]["property_status"]
+          suites?: number | null
           updated_at?: string
           user_id: string
+          year_built?: number | null
         }
         Update: {
           acquisition_date?: string | null
@@ -175,9 +193,16 @@ export type Database = {
           condominium_fee?: number | null
           created_at?: string
           description?: string | null
+          floor_number?: number | null
+          has_balcony?: boolean | null
+          has_barbecue?: boolean | null
+          has_elevator?: boolean | null
+          has_gym?: boolean | null
+          has_pool?: boolean | null
           id?: string
           iptu_fee?: number | null
           is_archived?: boolean | null
+          is_furnished?: boolean | null
           maintenance_fee?: number | null
           monthly_revenue?: number | null
           name?: string
@@ -191,8 +216,10 @@ export type Database = {
           property_type?: Database["public"]["Enums"]["property_type"]
           property_value?: number | null
           status?: Database["public"]["Enums"]["property_status"]
+          suites?: number | null
           updated_at?: string
           user_id?: string
+          year_built?: number | null
         }
         Relationships: []
       }
