@@ -50,7 +50,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleSignOut = async () => {
-    await signOut();
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Erro ao sair:', error);
+    }
+    // Sempre redirecionar, mesmo se houver erro
     navigate('/auth');
   };
 
