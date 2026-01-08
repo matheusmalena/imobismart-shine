@@ -182,11 +182,11 @@ export default function Index() {
             <Sparkles className="h-4 w-4" />A plataforma #1 de gestão imobiliária inteligente
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-foreground leading-tight mb-6">
-            Transforme seu patrimônio em <span className="gradient-text">lucro inteligente</span>
+            Gerencie seus imóveis com <span className="gradient-text">inteligência</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-            Esqueça planilhas confusas. Tenha controle total dos seus imóveis com métricas automáticas, documentos
-            organizados e insights de IA para maximizar seus rendimentos.
+            Plataforma completa para imobiliárias, investidores e proprietários.
+            Controle financeiro, documentos organizados e métricas em tempo real.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/auth">

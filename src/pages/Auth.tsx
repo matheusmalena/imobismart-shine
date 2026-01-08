@@ -137,10 +137,7 @@ export default function Auth() {
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 gradient-hero p-12 flex-col justify-between">
         <Link to="/" className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-white/10">
-            <Building2 className="h-8 w-8 text-white" />
-          </div>
-          <span className="text-2xl font-bold text-white">ImobiSmart</span>
+          <LogoText size="lg" className="[&_span:first-of-type]:text-white" />
         </Link>
         
         <div className="space-y-6">
