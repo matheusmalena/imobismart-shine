@@ -2,12 +2,14 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProperties } from '@/hooks/useProperties';
+import { usePropertyLimit } from '@/hooks/usePropertyLimit';
 import { Property, PropertyFormData, PROPERTY_TYPE_LABELS, PROPERTY_STATUS_LABELS, PROPERTY_PERFORMANCE_LABELS } from '@/types/property';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { PropertyCard } from '@/components/properties/PropertyCard';
 import { PropertyForm } from '@/components/properties/PropertyForm';
 import { EmptyState } from '@/components/properties/EmptyState';
 import { DeleteConfirmDialog } from '@/components/properties/DeleteConfirmDialog';
+import { PropertyLimitBanner } from '@/components/properties/PropertyLimitBanner';
 import { PropertyDetails } from '@/pages/PropertyDetails';
 import { PageTransition } from '@/components/PageTransition';
 import { Button } from '@/components/ui/button';
@@ -17,6 +19,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Search, SlidersHorizontal, LayoutGrid, List, Archive } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export default function Properties() {
   const navigate = useNavigate();
@@ -30,6 +33,8 @@ export default function Properties() {
     archiveProperty,
     duplicateProperty 
   } = useProperties();
+  
+  const { canAddProperty, remainingSlots, isAtLimit, plan } = usePropertyLimit();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
@@ -186,11 +191,29 @@ export default function Properties() {
               {archivedCount > 0 && ` (${archivedCount} arquivados)`}
             </p>
           </div>
-          <Button onClick={() => { setEditingProperty(null); setFormOpen(true); }} className="gap-2">
+          <Button 
+            onClick={() => {
+              if (!canAddProperty) {
+                toast.error('Limite de imóveis atingido! Faça upgrade para adicionar mais.');
+                return;
+              }
+              setEditingProperty(null); 
+              setFormOpen(true); 
+            }} 
+            className="gap-2"
+            variant={canAddProperty ? 'default' : 'secondary'}
+          >
             <Plus className="h-4 w-4" />
             Novo Imóvel
           </Button>
         </div>
+
+        {/* Property Limit Banner */}
+        <PropertyLimitBanner 
+          remainingSlots={remainingSlots} 
+          isAtLimit={isAtLimit} 
+          plan={plan} 
+        />
 
         {/* Filters */}
         <div className="bg-card rounded-xl p-4 shadow-card border border-border/50 space-y-4">

@@ -28,9 +28,9 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const PLAN_LABELS = {
-  starter: 'Starter',
+  starter: 'Gratuito',
   pro: 'Pro',
-  enterprise: 'Enterprise',
+  enterprise: 'Plus',
 };
 
 const STATUS_LABELS = {
