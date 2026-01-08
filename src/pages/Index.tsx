@@ -320,26 +320,28 @@ export default function Index() {
           </Dialog>
           <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-primary" />
-              Setup em 2 minutos
+              <Building2 className="h-4 w-4 text-primary" />
+              Mais de 200+ proprietários
             </div>
             <div className="flex items-center gap-2">
               <Shield className="h-4 w-4 text-primary" />
               Dados 100% seguros
             </div>
             <div className="flex items-center gap-2">
-              <Target className="h-4 w-4 text-primary" />
-              Sem cartão de crédito
+              <Zap className="h-4 w-4 text-primary" />
+              Pronto para usar
             </div>
           </div>
         </div>
       </section>
 
       {/* Target Audience Section */}
-      <TargetAudienceSection />
+      <section className="py-20 px-4 bg-muted/30">
+        <TargetAudienceSection />
+      </section>
 
       {/* Features */}
-      <section className="py-20 px-4 bg-muted/30">
+      <section className="py-20 px-4">
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
