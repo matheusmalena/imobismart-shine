@@ -29,10 +29,10 @@ const PLANS: Plan[] = [
     highlighted: true,
     features: [
       "Até 25 imóveis cadastrados",
-      "Dashboard avançado com IA",
+      "Dashboard avançado",
       "Upload ilimitado de documentos",
       "Relatórios automáticos",
-      "Análise preditiva de mercado",
+      "Análise de mercado",
       "Suporte prioritário",
     ],
   },
