@@ -26,6 +26,8 @@ export function TwoFactorSetup() {
   const [verifyCode, setVerifyCode] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [copiedSecret, setCopiedSecret] = useState(false);
+  const [disableCode, setDisableCode] = useState('');
+  const [currentAAL, setCurrentAAL] = useState<string>('aal1');
 
   useEffect(() => {
     checkMFAStatus();
@@ -38,6 +40,10 @@ export function TwoFactorSetup() {
       
       const verifiedFactor = data.totp.find(f => f.status === 'verified');
       setIsEnabled(!!verifiedFactor);
+      
+      // Check current AAL level
+      const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      setCurrentAAL(aalData?.currentLevel || 'aal1');
     } catch (error) {
       console.error('Erro ao verificar status MFA:', error);
     } finally {
@@ -120,6 +126,32 @@ export function TwoFactorSetup() {
         return;
       }
 
+      // If not at AAL2, need to verify first
+      if (currentAAL !== 'aal2') {
+        if (disableCode.length !== 6) {
+          toast.error('Digite o código de 6 dígitos do seu autenticador');
+          setIsLoading(false);
+          return;
+        }
+
+        // Challenge and verify to get AAL2
+        const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
+          factorId: verifiedFactor.id,
+        });
+        if (challengeError) throw challengeError;
+
+        const { error: verifyError } = await supabase.auth.mfa.verify({
+          factorId: verifiedFactor.id,
+          challengeId: challengeData.id,
+          code: disableCode,
+        });
+        if (verifyError) throw verifyError;
+        
+        // Update AAL after verification
+        setCurrentAAL('aal2');
+      }
+
+      // Now we're at AAL2, can unenroll
       const { error } = await supabase.auth.mfa.unenroll({
         factorId: verifiedFactor.id,
       });
@@ -128,6 +160,7 @@ export function TwoFactorSetup() {
 
       setIsEnabled(false);
       setShowDisableDialog(false);
+      setDisableCode('');
       toast.success('Autenticação de dois fatores desativada');
     } catch (error: any) {
       toast.error(error.message || 'Erro ao desativar 2FA');
@@ -255,22 +288,51 @@ export function TwoFactorSetup() {
       </Dialog>
 
       {/* Disable Confirmation Dialog */}
-      <Dialog open={showDisableDialog} onOpenChange={setShowDisableDialog}>
+      <Dialog open={showDisableDialog} onOpenChange={(open) => {
+        setShowDisableDialog(open);
+        if (!open) setDisableCode('');
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Desativar 2FA</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja desativar a autenticação de dois fatores? Sua conta ficará menos protegida.
+              Para desativar a autenticação de dois fatores, digite o código do seu aplicativo autenticador.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex gap-3 mt-4">
-            <Button variant="outline" onClick={() => setShowDisableDialog(false)} className="flex-1">
-              Cancelar
-            </Button>
-            <Button variant="destructive" onClick={disableMFA} disabled={isLoading} className="flex-1">
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Desativar
-            </Button>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="disable-code">Código de Verificação</Label>
+              <Input
+                id="disable-code"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={6}
+                placeholder="000000"
+                value={disableCode}
+                onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, ''))}
+                className="text-center text-lg tracking-widest"
+              />
+              <p className="text-xs text-muted-foreground">
+                Digite o código de 6 dígitos do seu aplicativo autenticador
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setShowDisableDialog(false)} className="flex-1">
+                Cancelar
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={disableMFA} 
+                disabled={isLoading || disableCode.length !== 6} 
+                className="flex-1"
+              >
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Desativar
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

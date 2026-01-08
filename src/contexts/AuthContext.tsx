@@ -48,25 +48,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [mfaPending]);
 
   const signIn = async (email: string, password: string): Promise<SignInResult> => {
+    // Set mfaPending BEFORE login to prevent onAuthStateChange from updating user state
+    setMfaPending(true);
+    
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     
     if (error) {
+      setMfaPending(false);
       return { error: error as Error };
     }
 
     // Check if MFA is required
     const { data: factors } = await supabase.auth.mfa.listFactors();
+    console.log('MFA Factors:', factors);
     const hasVerifiedFactor = factors?.totp?.some(f => f.status === 'verified');
+    console.log('Has verified factor:', hasVerifiedFactor);
     
     if (hasVerifiedFactor) {
       const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      console.log('AAL Data:', aalData);
       if (aalData?.currentLevel === 'aal1' && aalData?.nextLevel === 'aal2') {
-        // MFA verification required - set pending state to block user state update
-        setMfaPending(true);
+        // MFA verification required - keep pending state
         return { error: null, requiresMFA: true };
       }
     }
 
+    // No MFA required, allow user state update
+    setMfaPending(false);
     return { error: null, requiresMFA: false };
   };
 
