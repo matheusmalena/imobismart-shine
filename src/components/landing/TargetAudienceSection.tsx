@@ -25,35 +25,33 @@ const audiences = [
 
 export function TargetAudienceSection() {
   return (
-    <section className="py-20 px-4">
-      <div className="container mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Para quem é o <span className="text-primary">ImobiSmart</span>?
-          </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Desenvolvido para atender desde proprietários individuais até grandes administradoras.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {audiences.map((audience, index) => (
-            <div
-              key={index}
-              className="group bg-card rounded-2xl p-6 border border-border/50 shadow-card transition-all duration-300 hover:shadow-lg hover:border-primary/30 hover:-translate-y-1"
-            >
-              <div className="p-3 rounded-xl bg-primary/10 w-fit mb-4 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                {audience.icon}
-              </div>
-              <h3 className="text-lg font-semibold text-card-foreground mb-2">
-                {audience.title}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {audience.description}
-              </p>
-            </div>
-          ))}
-        </div>
+    <div className="container mx-auto">
+      <div className="text-center mb-16">
+        <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+          Para quem é o <span className="text-primary">ImobiSmart</span>?
+        </h2>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
+          Desenvolvido para atender desde proprietários individuais até grandes administradoras.
+        </p>
       </div>
-    </section>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {audiences.map((audience, index) => (
+          <div
+            key={index}
+            className="group bg-card rounded-2xl p-6 border border-border/50 shadow-card transition-all duration-300 hover:shadow-lg hover:border-primary/30 hover:-translate-y-1"
+          >
+            <div className="p-3 rounded-xl bg-primary/10 w-fit mb-4 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+              {audience.icon}
+            </div>
+            <h3 className="text-lg font-semibold text-card-foreground mb-2">
+              {audience.title}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {audience.description}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
