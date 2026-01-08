@@ -34,9 +34,9 @@ interface EditSubscriptionDialogProps {
 }
 
 const PLAN_OPTIONS = [
-  { value: 'starter', label: 'Starter' },
+  { value: 'starter', label: 'Gratuito' },
   { value: 'pro', label: 'Pro' },
-  { value: 'enterprise', label: 'Enterprise' },
+  { value: 'enterprise', label: 'Plus' },
 ];
 
 const STATUS_OPTIONS = [

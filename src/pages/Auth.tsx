@@ -7,8 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Loader2, Mail, Lock, User } from 'lucide-react';
-import logo from '@/assets/logo-imobismart.png';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { LogoText } from '@/components/common/LogoText';
+import { Eye, EyeOff, Loader2, Mail, Lock, User, Building2, BarChart3, Shield } from 'lucide-react';
 import { z } from 'zod';
 
 const loginSchema = z.object({
@@ -136,41 +137,54 @@ export default function Auth() {
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 gradient-hero p-12 flex-col justify-between">
         <Link to="/" className="flex items-center gap-3">
-          <img src={logo} alt="ImobiSmart" className="h-12 w-auto" />
-          <span className="font-bold text-xl text-white">ImobiSmart</span>
+          <div className="p-2 rounded-xl bg-white/10">
+            <Building2 className="h-8 w-8 text-white" />
+          </div>
+          <span className="text-2xl font-bold text-white">ImobiSmart</span>
         </Link>
         
         <div className="space-y-6">
           <h1 className="text-4xl font-bold text-white leading-tight">
-            Gerencie seus imóveis de forma inteligente
+            Gestão imobiliária inteligente e simplificada
           </h1>
           <p className="text-lg text-white/80 max-w-md">
-            Controle total sobre seus investimentos imobiliários com métricas em tempo real, 
-            documentos organizados e análise de performance.
+            Tenha controle total sobre seu patrimônio com métricas em tempo real, 
+            documentos organizados e insights de IA.
           </p>
-          <div className="grid grid-cols-2 gap-4 pt-4">
-            <div className="p-4 rounded-xl bg-white/10 backdrop-blur-sm">
-              <div className="text-3xl font-bold text-white">100%</div>
-              <div className="text-sm text-white/70">Controle financeiro</div>
-            </div>
-            <div className="p-4 rounded-xl bg-white/10 backdrop-blur-sm">
-              <div className="text-3xl font-bold text-white">24/7</div>
-              <div className="text-sm text-white/70">Acesso aos dados</div>
-            </div>
+          <div className="space-y-4 pt-4">
+            {[
+              { icon: BarChart3, text: 'Dashboard com métricas automáticas' },
+              { icon: Shield, text: 'Dados 100% seguros na nuvem' },
+              { icon: Building2, text: 'Gestão completa de imóveis' },
+            ].map((item, index) => (
+              <div key={index} className="flex items-center gap-3 text-white/90">
+                <div className="p-2 rounded-lg bg-white/10">
+                  <item.icon className="h-5 w-5" />
+                </div>
+                <span>{item.text}</span>
+              </div>
+            ))}
           </div>
         </div>
         
         <div className="text-sm text-white/60">
-          © 2024 ImobiSmart. Todos os direitos reservados.
+          © {new Date().getFullYear()} ImobiSmart. Todos os direitos reservados.
         </div>
       </div>
 
       {/* Right side - Auth forms */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12 bg-background">
-        <div className="w-full max-w-md space-y-6">
-          <Link to="/" className="lg:hidden flex items-center justify-center mb-8">
-            <img src={logo} alt="ImobiSmart" className="h-12 w-auto" />
+      <div className="flex-1 flex flex-col bg-background">
+        <div className="flex items-center justify-between p-4 lg:p-6">
+          <Link to="/" className="lg:hidden">
+            <LogoText size="sm" />
           </Link>
+          <div className="ml-auto">
+            <ThemeToggle />
+          </div>
+        </div>
+        
+        <div className="flex-1 flex items-center justify-center px-6 pb-6">
+          <div className="w-full max-w-md space-y-6">
 
           <Card className="border-0 shadow-xl">
             <CardHeader className="space-y-1 pb-4">
@@ -324,6 +338,7 @@ export default function Auth() {
               </Tabs>
             </CardContent>
           </Card>
+          </div>
         </div>
       </div>
     </div>

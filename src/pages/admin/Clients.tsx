@@ -17,9 +17,9 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 const PLAN_LABELS: Record<string, string> = {
-  starter: 'Starter',
+  starter: 'Gratuito',
   pro: 'Pro',
-  enterprise: 'Enterprise',
+  enterprise: 'Plus',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -154,7 +154,7 @@ export default function AdminClients() {
             <CardContent className="p-4 sm:pt-6">
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Pro/Enterprise</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Pro/Plus</p>
                   <p className="text-xl sm:text-2xl font-bold text-info">{proClients}</p>
                 </div>
                 <div className="p-2 sm:p-3 rounded-xl bg-info/10 shrink-0">
@@ -200,9 +200,9 @@ export default function AdminClients() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos Planos</SelectItem>
-                    <SelectItem value="starter">Starter</SelectItem>
+                    <SelectItem value="starter">Gratuito</SelectItem>
                     <SelectItem value="pro">Pro</SelectItem>
-                    <SelectItem value="enterprise">Enterprise</SelectItem>
+                    <SelectItem value="enterprise">Plus</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
