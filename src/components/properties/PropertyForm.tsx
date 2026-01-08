@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import { Loader2 } from 'lucide-react';
 import { PhotoUpload } from './PhotoUpload';
 import { usePhotoUpload } from '@/hooks/usePhotoUpload';
@@ -23,7 +24,6 @@ const defaultFormData: PropertyFormData = {
   name: '',
   property_type: 'apartamento',
   status: 'vago',
-  performance: 'media',
   address_street: '',
   address_number: '',
   address_complement: '',
@@ -43,6 +43,15 @@ const defaultFormData: PropertyFormData = {
   bedrooms: 0,
   bathrooms: 0,
   parking_spots: 0,
+  suites: 0,
+  has_pool: false,
+  has_gym: false,
+  has_elevator: false,
+  has_balcony: false,
+  has_barbecue: false,
+  is_furnished: false,
+  floor_number: null,
+  year_built: null,
   description: '',
   photo_url: null,
 };
@@ -59,7 +68,6 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
         name: property.name,
         property_type: property.property_type,
         status: property.status,
-        performance: property.performance || 'media',
         address_street: property.address_street || '',
         address_number: property.address_number || '',
         address_complement: property.address_complement || '',
@@ -79,6 +87,15 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
         bedrooms: property.bedrooms || 0,
         bathrooms: property.bathrooms || 0,
         parking_spots: property.parking_spots || 0,
+        suites: property.suites || 0,
+        has_pool: property.has_pool || false,
+        has_gym: property.has_gym || false,
+        has_elevator: property.has_elevator || false,
+        has_balcony: property.has_balcony || false,
+        has_barbecue: property.has_barbecue || false,
+        is_furnished: property.is_furnished || false,
+        floor_number: property.floor_number,
+        year_built: property.year_built,
         description: property.description || '',
         photo_url: property.photo_url || null,
       });
@@ -101,7 +118,10 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
       }
     }
     
-    onSubmit({ ...formData, photo_url: photoUrl });
+    // Clamp occupancy_rate between 0 and 100
+    const clampedOccupancy = Math.min(100, Math.max(0, formData.occupancy_rate));
+    
+    onSubmit({ ...formData, occupancy_rate: clampedOccupancy, photo_url: photoUrl });
   };
 
   const updateField = <K extends keyof PropertyFormData>(field: K, value: PropertyFormData[K]) => {
@@ -115,6 +135,11 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
       value = value.slice(0, 5) + '-' + value.slice(5);
     }
     updateField('address_zip', value);
+  };
+
+  const handleOccupancyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value) || 0;
+    updateField('occupancy_rate', Math.min(100, Math.max(0, value)));
   };
 
   const handlePhotoChange = (url: string | null) => {
@@ -318,7 +343,7 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="occupancy_rate">Taxa de Ocupação (%)</Label>
+                  <Label htmlFor="occupancy_rate">Taxa de Ocupação (0-100%)</Label>
                   <Input
                     id="occupancy_rate"
                     type="number"
@@ -326,7 +351,7 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                     max="100"
                     step="0.1"
                     value={formData.occupancy_rate || ''}
-                    onChange={(e) => updateField('occupancy_rate', parseFloat(e.target.value) || 0)}
+                    onChange={handleOccupancyChange}
                     placeholder="95"
                   />
                 </div>
@@ -422,6 +447,17 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="suites">Suítes</Label>
+                  <Input
+                    id="suites"
+                    type="number"
+                    min="0"
+                    value={formData.suites || ''}
+                    onChange={(e) => updateField('suites', parseInt(e.target.value) || 0)}
+                    placeholder="1"
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="bathrooms">Banheiros</Label>
                   <Input
                     id="bathrooms"
@@ -432,6 +468,9 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                     placeholder="1"
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="parking_spots">Vagas</Label>
                   <Input
@@ -443,11 +482,88 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                     placeholder="1"
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="floor_number">Andar</Label>
+                  <Input
+                    id="floor_number"
+                    type="number"
+                    min="0"
+                    value={formData.floor_number ?? ''}
+                    onChange={(e) => updateField('floor_number', e.target.value ? parseInt(e.target.value) : null)}
+                    placeholder="5"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="year_built">Ano Construção</Label>
+                  <Input
+                    id="year_built"
+                    type="number"
+                    min="1900"
+                    max={new Date().getFullYear()}
+                    value={formData.year_built ?? ''}
+                    onChange={(e) => updateField('year_built', e.target.value ? parseInt(e.target.value) : null)}
+                    placeholder="2020"
+                  />
+                </div>
+              </div>
+
+              <div className="border-t border-border pt-4">
+                <h4 className="font-medium text-card-foreground mb-4">Comodidades</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  <div className="flex items-center justify-between space-x-2">
+                    <Label htmlFor="has_pool" className="cursor-pointer">Piscina</Label>
+                    <Switch
+                      id="has_pool"
+                      checked={formData.has_pool}
+                      onCheckedChange={(checked) => updateField('has_pool', checked)}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between space-x-2">
+                    <Label htmlFor="has_gym" className="cursor-pointer">Academia</Label>
+                    <Switch
+                      id="has_gym"
+                      checked={formData.has_gym}
+                      onCheckedChange={(checked) => updateField('has_gym', checked)}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between space-x-2">
+                    <Label htmlFor="has_elevator" className="cursor-pointer">Elevador</Label>
+                    <Switch
+                      id="has_elevator"
+                      checked={formData.has_elevator}
+                      onCheckedChange={(checked) => updateField('has_elevator', checked)}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between space-x-2">
+                    <Label htmlFor="has_balcony" className="cursor-pointer">Varanda</Label>
+                    <Switch
+                      id="has_balcony"
+                      checked={formData.has_balcony}
+                      onCheckedChange={(checked) => updateField('has_balcony', checked)}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between space-x-2">
+                    <Label htmlFor="has_barbecue" className="cursor-pointer">Churrasqueira</Label>
+                    <Switch
+                      id="has_barbecue"
+                      checked={formData.has_barbecue}
+                      onCheckedChange={(checked) => updateField('has_barbecue', checked)}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between space-x-2">
+                    <Label htmlFor="is_furnished" className="cursor-pointer">Mobiliado</Label>
+                    <Switch
+                      id="is_furnished"
+                      checked={formData.is_furnished}
+                      onCheckedChange={(checked) => updateField('is_furnished', checked)}
+                    />
+                  </div>
+                </div>
               </div>
             </TabsContent>
           </Tabs>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-border">
+          <div className="flex justify-end gap-3 pt-4 border-t">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
@@ -458,7 +574,7 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                   {isUploading ? 'Enviando foto...' : 'Salvando...'}
                 </>
               ) : (
-                property ? 'Salvar Alterações' : 'Criar Imóvel'
+                property ? 'Salvar' : 'Criar Imóvel'
               )}
             </Button>
           </div>

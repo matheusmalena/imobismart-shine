@@ -1,30 +1,18 @@
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Property } from '@/types/property';
+import { Info } from 'lucide-react';
 
 interface RevenueChartProps {
   properties: Property[];
 }
 
 export function RevenueChart({ properties }: RevenueChartProps) {
-  // Generate mock monthly data based on properties
-  const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'];
-  
-  const data = months.map((month, index) => {
-    const baseRevenue = properties.reduce((sum, p) => sum + Number(p.monthly_revenue), 0);
-    const baseCosts = properties.reduce((sum, p) => 
-      sum + Number(p.condominium_fee) + Number(p.iptu_fee) + Number(p.maintenance_fee) + Number(p.other_costs), 0
-    );
-    
-    // Add some variation
-    const variation = 1 + (Math.sin(index) * 0.1);
-    
-    return {
-      month,
-      receita: Math.round(baseRevenue * variation),
-      custos: Math.round(baseCosts * variation),
-      lucro: Math.round((baseRevenue - baseCosts) * variation),
-    };
-  });
+  // Calculate current totals based on actual property data
+  const totalRevenue = properties.reduce((sum, p) => sum + Number(p.monthly_revenue), 0);
+  const totalCosts = properties.reduce((sum, p) => 
+    sum + Number(p.condominium_fee) + Number(p.iptu_fee) + Number(p.maintenance_fee) + Number(p.other_costs), 0
+  );
+  const totalProfit = totalRevenue - totalCosts;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -35,69 +23,91 @@ export function RevenueChart({ properties }: RevenueChartProps) {
     }).format(value);
   };
 
+  if (properties.length === 0) {
+    return (
+      <div className="bg-card rounded-xl p-6 shadow-card border border-border/50">
+        <h3 className="text-lg font-semibold text-card-foreground mb-6">Resumo Financeiro</h3>
+        <div className="text-center py-8 text-muted-foreground">
+          Adicione imóveis para ver o resumo financeiro
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-card rounded-xl p-6 shadow-card border border-border/50">
-      <h3 className="text-lg font-semibold text-card-foreground mb-6">Evolução Financeira</h3>
-      <div className="h-[300px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-            <defs>
-              <linearGradient id="colorReceita" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
-              </linearGradient>
-              <linearGradient id="colorLucro" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis 
-              dataKey="month" 
-              stroke="hsl(var(--muted-foreground))"
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-            />
-            <YAxis 
-              stroke="hsl(var(--muted-foreground))"
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: 'hsl(var(--card))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '8px',
-                boxShadow: 'var(--shadow-lg)',
-              }}
-              formatter={(value: number) => [formatCurrency(value), '']}
-              labelStyle={{ color: 'hsl(var(--foreground))' }}
-            />
-            <Area
-              type="monotone"
-              dataKey="receita"
-              stroke="hsl(var(--chart-1))"
-              strokeWidth={2}
-              fillOpacity={1}
-              fill="url(#colorReceita)"
-              name="Receita"
-            />
-            <Area
-              type="monotone"
-              dataKey="lucro"
-              stroke="hsl(var(--chart-2))"
-              strokeWidth={2}
-              fillOpacity={1}
-              fill="url(#colorLucro)"
-              name="Lucro"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-semibold text-card-foreground">Resumo Financeiro Mensal</h3>
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <Info className="h-3 w-3" />
+          <span>Baseado nos dados atuais</span>
+        </div>
       </div>
-      <div className="flex items-center justify-center gap-6 mt-4">
+      
+      <div className="space-y-6">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="p-4 rounded-lg bg-chart-1/10 border border-chart-1/20">
+            <p className="text-xs text-muted-foreground mb-1">Receita Total</p>
+            <p className="text-lg font-bold" style={{ color: 'hsl(var(--chart-1))' }}>
+              {formatCurrency(totalRevenue)}
+            </p>
+          </div>
+          <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+            <p className="text-xs text-muted-foreground mb-1">Custos Totais</p>
+            <p className="text-lg font-bold text-destructive">
+              {formatCurrency(totalCosts)}
+            </p>
+          </div>
+          <div className={`p-4 rounded-lg ${totalProfit >= 0 ? 'bg-chart-2/10 border-chart-2/20' : 'bg-destructive/10 border-destructive/20'} border`}>
+            <p className="text-xs text-muted-foreground mb-1">Lucro Líquido</p>
+            <p className={`text-lg font-bold ${totalProfit >= 0 ? '' : 'text-destructive'}`} style={totalProfit >= 0 ? { color: 'hsl(var(--chart-2))' } : {}}>
+              {formatCurrency(totalProfit)}
+            </p>
+          </div>
+        </div>
+
+        {/* Per Property Breakdown */}
+        <div className="space-y-3">
+          <h4 className="text-sm font-medium text-muted-foreground">Por Imóvel</h4>
+          <div className="max-h-[200px] overflow-y-auto space-y-2">
+            {properties.map((property) => {
+              const revenue = Number(property.monthly_revenue);
+              const costs = Number(property.condominium_fee) + Number(property.iptu_fee) + 
+                           Number(property.maintenance_fee) + Number(property.other_costs);
+              const profit = revenue - costs;
+              const revenuePercent = totalRevenue > 0 ? (revenue / totalRevenue) * 100 : 0;
+              
+              return (
+                <div key={property.id} className="p-3 rounded-lg bg-muted/50 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium truncate flex-1">{property.name}</span>
+                    <span className={`text-sm font-bold ${profit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                      {formatCurrency(profit)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full rounded-full"
+                        style={{ 
+                          width: `${revenuePercent}%`,
+                          backgroundColor: 'hsl(var(--chart-1))'
+                        }}
+                      />
+                    </div>
+                    <span className="text-xs text-muted-foreground w-12 text-right">
+                      {revenuePercent.toFixed(0)}%
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-center gap-6 mt-4 pt-4 border-t">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-chart-1" />
           <span className="text-sm text-muted-foreground">Receita</span>

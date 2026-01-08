@@ -7,6 +7,7 @@ interface PropertyLimitBannerProps {
   remainingSlots: number;
   isAtLimit: boolean;
   plan: string;
+  limit: number;
 }
 
 const PLAN_NAMES: Record<string, string> = {
@@ -15,10 +16,11 @@ const PLAN_NAMES: Record<string, string> = {
   enterprise: 'Plus',
 };
 
-export function PropertyLimitBanner({ remainingSlots, isAtLimit, plan }: PropertyLimitBannerProps) {
+export function PropertyLimitBanner({ remainingSlots, isAtLimit, plan, limit }: PropertyLimitBannerProps) {
   if (!isAtLimit && remainingSlots > 1) return null;
   
-  const isWarning = remainingSlots === 1 && !isAtLimit;
+  const planName = PLAN_NAMES[plan] || plan;
+  const limitText = limit === Infinity ? 'ilimitados' : limit;
   
   return (
     <Card className={`border-2 ${isAtLimit ? 'border-destructive bg-destructive/5' : 'border-warning bg-warning/5'}`}>
@@ -41,8 +43,8 @@ export function PropertyLimitBanner({ remainingSlots, isAtLimit, plan }: Propert
               </h4>
               <p className="text-sm text-muted-foreground">
                 {isAtLimit 
-                  ? `O plano ${PLAN_NAMES[plan]} permite apenas 2 imóveis. Faça upgrade para adicionar mais.`
-                  : `Resta apenas 1 vaga no plano ${PLAN_NAMES[plan]}. Considere fazer upgrade.`
+                  ? `O plano ${planName} permite apenas ${limitText} imóveis. Faça upgrade para adicionar mais.`
+                  : `Resta apenas 1 vaga no plano ${planName} (limite: ${limitText}). Considere fazer upgrade.`
                 }
               </p>
             </div>

@@ -34,7 +34,7 @@ export default function Properties() {
     duplicateProperty 
   } = useProperties();
   
-  const { canAddProperty, remainingSlots, isAtLimit, plan } = usePropertyLimit();
+  const { canAddProperty, remainingSlots, isAtLimit, plan, limit } = usePropertyLimit();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
@@ -212,7 +212,8 @@ export default function Properties() {
         <PropertyLimitBanner 
           remainingSlots={remainingSlots} 
           isAtLimit={isAtLimit} 
-          plan={plan} 
+          plan={plan}
+          limit={limit}
         />
 
         {/* Filters */}
