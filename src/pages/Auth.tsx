@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MFAVerification } from '@/components/auth/MFAVerification';
 import { useToast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { LogoText } from '@/components/common/LogoText';
@@ -33,6 +35,7 @@ export default function Auth() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showMFA, setShowMFA] = useState(false);
   
   // Login form
   const [loginEmail, setLoginEmail] = useState('');
@@ -75,13 +78,42 @@ export default function Auth() {
           : error.message,
         variant: 'destructive',
       });
-    } else {
-      toast({
-        title: 'Bem-vindo!',
-        description: 'Login realizado com sucesso.',
-      });
-      navigate('/dashboard');
+      return;
     }
+
+    // Check if user has MFA enabled
+    const { data: factors } = await supabase.auth.mfa.listFactors();
+    const hasVerifiedFactor = factors?.totp?.some(f => f.status === 'verified');
+    
+    if (hasVerifiedFactor) {
+      // Check current assurance level
+      const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aalData?.currentLevel === 'aal1' && aalData?.nextLevel === 'aal2') {
+        // User needs to verify MFA
+        setShowMFA(true);
+        return;
+      }
+    }
+
+    toast({
+      title: 'Bem-vindo!',
+      description: 'Login realizado com sucesso.',
+    });
+    navigate('/dashboard');
+  };
+
+  const handleMFASuccess = () => {
+    setShowMFA(false);
+    toast({
+      title: 'Bem-vindo!',
+      description: 'Login realizado com sucesso.',
+    });
+    navigate('/dashboard');
+  };
+
+  const handleMFACancel = async () => {
+    await supabase.auth.signOut();
+    setShowMFA(false);
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -128,6 +160,15 @@ export default function Auth() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Show MFA verification screen
+  if (showMFA) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <MFAVerification onSuccess={handleMFASuccess} onCancel={handleMFACancel} />
       </div>
     );
   }
