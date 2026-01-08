@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LogoText } from "@/components/common/LogoText";
 import { TargetAudienceSection } from "@/components/landing/TargetAudienceSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
+import { TutorialModal, TutorialModalRef } from "@/components/onboarding/TutorialModal";
 import {
   Building2,
   BarChart3,
@@ -17,22 +17,16 @@ import {
   Zap,
   TrendingUp,
   Play,
-  DollarSign,
-  Percent,
-  Activity,
   Sparkles,
   Brain,
   Crown,
   Rocket,
-  Target,
-  Clock,
 } from "lucide-react";
 
 export default function Index() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const [showDemo, setShowDemo] = useState(false);
-  const [demoStep, setDemoStep] = useState(0);
+  const tutorialRef = useRef<TutorialModalRef>(null);
 
   useEffect(() => {
     if (!loading && user) {
@@ -119,39 +113,6 @@ export default function Index() {
     },
   ];
 
-  const demoSlides = [
-    {
-      title: "Dashboard Inteligente",
-      description:
-        "Visualize todas as métricas importantes em um único lugar. ROI, receitas, custos e lucro líquido calculados automaticamente.",
-      metrics: [
-        { label: "Imóveis", value: "12", icon: Building2 },
-        { label: "Receita", value: "R$ 45.200", icon: DollarSign },
-        { label: "ROI", value: "14.2%", icon: Percent },
-        { label: "Ocupação", value: "92%", icon: Activity },
-      ],
-    },
-    {
-      title: "Gestão de Imóveis",
-      description:
-        "Cadastre e organize todos os seus imóveis com informações detalhadas: endereço, tipo, valor, custos e muito mais.",
-      properties: [
-        { name: "Apartamento Centro", type: "apartamento", revenue: "R$ 3.500", status: "Alugado" },
-        { name: "Casa Jardins", type: "casa", revenue: "R$ 5.200", status: "Alugado" },
-        { name: "Sala Comercial", type: "comercial", revenue: "R$ 2.800", status: "Vago" },
-      ],
-    },
-    {
-      title: "Documentos Organizados",
-      description:
-        "Armazene e acesse rapidamente contratos, matrículas, IPTUs e laudos. Tudo organizado por imóvel e categoria.",
-      documents: [
-        { name: "Contrato de Locação", category: "Contrato", date: "15/01/2024" },
-        { name: "Matrícula Atualizada", category: "Matrícula", date: "10/01/2024" },
-        { name: "Laudo de Vistoria", category: "Laudo", date: "05/01/2024" },
-      ],
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -199,125 +160,15 @@ export default function Index() {
               size="lg"
               variant="outline"
               className="gap-2"
-              onClick={() => {
-                setShowDemo(true);
-                setDemoStep(0);
-              }}
+              onClick={() => tutorialRef.current?.open()}
             >
               <Play className="h-5 w-5" />
               Ver Demonstração
             </Button>
           </div>
 
-          {/* Demo Modal */}
-          <Dialog open={showDemo} onOpenChange={setShowDemo}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-primary/10">
-                    <Building2 className="h-5 w-5 text-primary" />
-                  </div>
-                  {demoSlides[demoStep].title}
-                </DialogTitle>
-              </DialogHeader>
-
-              <div className="space-y-6 py-4">
-                <p className="text-muted-foreground">{demoSlides[demoStep].description}</p>
-
-                {/* Demo Content based on step */}
-                {demoStep === 0 && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {demoSlides[0].metrics?.map((metric, idx) => (
-                      <div key={idx} className="bg-muted/50 rounded-xl p-4 text-center">
-                        <metric.icon className="h-5 w-5 text-primary mx-auto mb-2" />
-                        <p className="text-lg font-bold text-foreground">{metric.value}</p>
-                        <p className="text-xs text-muted-foreground">{metric.label}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {demoStep === 1 && (
-                  <div className="space-y-3">
-                    {demoSlides[1].properties?.map((prop, idx) => (
-                      <div key={idx} className="flex items-center justify-between bg-muted/50 rounded-xl p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-primary/10">
-                            <Building2 className="h-4 w-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm text-foreground">{prop.name}</p>
-                            <p className="text-xs text-muted-foreground capitalize">{prop.type}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-sm text-foreground">{prop.revenue}/mês</p>
-                          <p
-                            className={`text-xs ${prop.status === "Alugado" ? "text-primary" : "text-muted-foreground"}`}
-                          >
-                            {prop.status}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {demoStep === 2 && (
-                  <div className="space-y-3">
-                    {demoSlides[2].documents?.map((doc, idx) => (
-                      <div key={idx} className="flex items-center justify-between bg-muted/50 rounded-xl p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-primary/10">
-                            <FileText className="h-4 w-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm text-foreground">{doc.name}</p>
-                            <p className="text-xs text-muted-foreground">{doc.category}</p>
-                          </div>
-                        </div>
-                        <p className="text-xs text-muted-foreground">{doc.date}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Navigation */}
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <div className="flex gap-1.5">
-                    {demoSlides.map((_, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setDemoStep(idx)}
-                        className={`w-2 h-2 rounded-full transition-colors ${
-                          idx === demoStep ? "bg-primary" : "bg-muted-foreground/30"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    {demoStep > 0 && (
-                      <Button variant="outline" size="sm" onClick={() => setDemoStep((s) => s - 1)}>
-                        Anterior
-                      </Button>
-                    )}
-                    {demoStep < demoSlides.length - 1 ? (
-                      <Button size="sm" onClick={() => setDemoStep((s) => s + 1)}>
-                        Próximo
-                      </Button>
-                    ) : (
-                      <Link to="/auth">
-                        <Button size="sm" className="gap-1">
-                          Começar Agora
-                          <ArrowRight className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+          {/* Tutorial Modal */}
+          <TutorialModal ref={tutorialRef} autoShow={false} />
           <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Building2 className="h-4 w-4 text-primary" />

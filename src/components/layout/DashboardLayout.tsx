@@ -78,7 +78,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Logo */}
           <div className="flex h-16 items-center gap-3 px-6 border-b border-sidebar-border">
             <Link to="/" className="flex-1">
-              <LogoText size="md" />
+              <LogoText size="md" className="[&_span.logo-name]:text-sidebar-foreground" />
             </Link>
             <button
               className="lg:hidden text-sidebar-foreground"

@@ -69,7 +69,7 @@ export function LogoText({ size = 'md', showIcon = true, className }: LogoTextPr
         </div>
       )}
       <span className={cn('font-bold', sizes.text)}>
-        <span className="text-foreground">Imobi</span>
+        <span className="logo-name text-foreground">Imobi</span>
         <span className="text-primary">Smart</span>
       </span>
     </div>
