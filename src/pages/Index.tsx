@@ -101,21 +101,20 @@ export default function Index() {
       popular: true,
     },
     {
-      id: 'enterprise',
-      name: 'Enterprise',
-      price: 'R$ 149',
+      id: 'plus',
+      name: 'Plus',
+      price: 'R$ 99',
       period: '/mês',
-      description: 'Para imobiliárias e grandes portfólios',
+      description: 'Para grandes portfólios',
       features: [
         'Imóveis ilimitados',
-        'Múltiplos usuários',
-        'API de integração',
-        'Dashboard white-label',
+        'Todos os recursos Pro',
         'Relatórios personalizados',
-        'Gerente de conta dedicado',
-        'SLA garantido',
+        'Exportação de dados',
+        'Suporte prioritário 24/7',
+        'API de integração',
       ],
-      cta: 'Falar com Vendas',
+      cta: 'Assinar Plus',
       popular: false,
     },
   ];
@@ -156,13 +155,12 @@ export default function Index() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3">
             <img src={logo} alt="ImobiSmart" className="h-10 w-auto" />
-            <span className="font-bold text-xl hidden sm:block">
-              <span className="text-primary">Imobi</span>
-              <span className="text-secondary">Smart</span>
+            <span className="font-bold text-xl hidden sm:block text-foreground">
+              ImobiSmart
             </span>
-          </div>
+          </Link>
           <div className="flex items-center gap-2 sm:gap-4">
             <ThemeToggle />
             <Link to="/auth">
@@ -192,12 +190,12 @@ export default function Index() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/auth">
-              <Button size="xl" className="gap-2 w-full sm:w-auto">
+              <Button size="lg" className="gap-2 w-full sm:w-auto">
                 Experimentar Grátis
                 <ArrowRight className="h-5 w-5" />
               </Button>
             </Link>
-            <Button size="xl" variant="outline" className="gap-2" onClick={() => { setShowDemo(true); setDemoStep(0); }}>
+            <Button size="lg" variant="outline" className="gap-2" onClick={() => { setShowDemo(true); setDemoStep(0); }}>
               <Play className="h-5 w-5" />
               Ver Demonstração
             </Button>
@@ -224,7 +222,7 @@ export default function Index() {
                     {demoSlides[0].metrics?.map((metric, idx) => (
                       <div key={idx} className="bg-muted/50 rounded-xl p-4 text-center">
                         <metric.icon className="h-5 w-5 text-primary mx-auto mb-2" />
-                        <p className="text-lg font-bold">{metric.value}</p>
+                        <p className="text-lg font-bold text-foreground">{metric.value}</p>
                         <p className="text-xs text-muted-foreground">{metric.label}</p>
                       </div>
                     ))}
@@ -240,13 +238,13 @@ export default function Index() {
                             <Building2 className="h-4 w-4 text-primary" />
                           </div>
                           <div>
-                            <p className="font-medium text-sm">{prop.name}</p>
+                            <p className="font-medium text-sm text-foreground">{prop.name}</p>
                             <p className="text-xs text-muted-foreground capitalize">{prop.type}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-semibold text-sm">{prop.revenue}/mês</p>
-                          <p className={`text-xs ${prop.status === 'Alugado' ? 'text-success' : 'text-warning'}`}>
+                          <p className="font-semibold text-sm text-foreground">{prop.revenue}/mês</p>
+                          <p className={`text-xs ${prop.status === 'Alugado' ? 'text-primary' : 'text-muted-foreground'}`}>
                             {prop.status}
                           </p>
                         </div>
@@ -264,7 +262,7 @@ export default function Index() {
                             <FileText className="h-4 w-4 text-primary" />
                           </div>
                           <div>
-                            <p className="font-medium text-sm">{doc.name}</p>
+                            <p className="font-medium text-sm text-foreground">{doc.name}</p>
                             <p className="text-xs text-muted-foreground">{doc.category}</p>
                           </div>
                         </div>
@@ -388,7 +386,7 @@ export default function Index() {
                 <ul className="space-y-3 mb-6">
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-2">
-                      <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                      <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                       <span className="text-sm text-muted-foreground">{feature}</span>
                     </li>
                   ))}
@@ -438,17 +436,17 @@ export default function Index() {
                 </Link>
               </div>
             </div>
-            <div className="bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl p-8 flex items-center justify-center">
+            <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-8 flex items-center justify-center">
               <div className="bg-card rounded-xl shadow-xl p-6 w-full max-w-md border border-border/50">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="font-semibold text-card-foreground">Performance</h3>
-                  <TrendingUp className="h-5 w-5 text-success" />
+                  <TrendingUp className="h-5 w-5 text-primary" />
                 </div>
                 <div className="space-y-4">
                   {[
-                    { label: 'ROI Médio', value: '12.5%', color: 'text-success' },
+                    { label: 'ROI Médio', value: '12.5%', color: 'text-primary' },
                     { label: 'Lucro Mensal', value: 'R$ 15.420', color: 'text-foreground' },
-                    { label: 'Ocupação', value: '94%', color: 'text-secondary' },
+                    { label: 'Ocupação', value: '94%', color: 'text-primary' },
                   ].map((item, index) => (
                     <div key={index} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
                       <span className="text-sm text-muted-foreground">{item.label}</span>
@@ -473,7 +471,7 @@ export default function Index() {
             multiplicar seus resultados com inteligência.
           </p>
           <Link to="/auth">
-            <Button size="xl" variant="secondary" className="gap-2 bg-white text-foreground hover:bg-white/90">
+            <Button size="lg" className="gap-2 bg-white text-foreground hover:bg-white/90">
               Começar Agora — É Grátis
               <ArrowRight className="h-5 w-5" />
             </Button>
@@ -485,13 +483,12 @@ export default function Index() {
       <footer className="py-12 px-4 border-t border-border">
         <div className="container mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-3">
               <img src={logo} alt="ImobiSmart" className="h-8 w-auto" />
-              <span className="font-semibold">
-                <span className="text-primary">Imobi</span>
-                <span className="text-secondary">Smart</span>
+              <span className="font-semibold text-foreground">
+                ImobiSmart
               </span>
-            </div>
+            </Link>
             <p className="text-sm text-muted-foreground">
               © 2024 ImobiSmart. Todos os direitos reservados.
             </p>

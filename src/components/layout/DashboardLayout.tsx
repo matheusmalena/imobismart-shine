@@ -24,7 +24,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import logo from '@/assets/logo.png';
+import { TutorialModal } from '@/components/onboarding/TutorialModal';
+import logo from '@/assets/logo-imobismart.png';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -55,6 +56,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Tutorial Modal */}
+      <TutorialModal />
+
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
@@ -73,7 +77,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex h-16 items-center gap-3 px-6 border-b border-sidebar-border">
-            <img src={logo} alt="ImobiSmart" className="h-10 w-auto" />
+            <Link to="/" className="flex items-center gap-3">
+              <img src={logo} alt="ImobiSmart" className="h-10 w-auto" />
+              <span className="font-bold text-sidebar-foreground">ImobiSmart</span>
+            </Link>
             <button
               className="ml-auto lg:hidden text-sidebar-foreground"
               onClick={() => setSidebarOpen(false)}
