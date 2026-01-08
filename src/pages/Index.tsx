@@ -113,7 +113,6 @@ export default function Index() {
         "Relatórios personalizados",
         "Exportação de dados",
         "Suporte prioritário 24/7",
-        "API de integração",
       ],
       cta: "Assinar Plus",
       popular: false,
@@ -183,7 +182,7 @@ export default function Index() {
             <Sparkles className="h-4 w-4" />A plataforma #1 de gestão imobiliária inteligente
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-foreground leading-tight mb-6">
-            Gerencie seus imóveis com <span className="gradient-text">inteligência</span>
+            Transforme seu patrimônio em <span className="gradient-text">lucro inteligente</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
             Esqueça planilhas confusas. Tenha controle total dos seus imóveis com métricas automáticas, documentos

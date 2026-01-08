@@ -1,11 +1,11 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Check, Sparkles } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Check, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Plan {
-  id: 'starter' | 'pro' | 'plus';
+  id: "starter" | "pro" | "plus";
   name: string;
   description: string;
   price: string;
@@ -15,51 +15,45 @@ interface Plan {
 
 const PLANS: Plan[] = [
   {
-    id: 'starter',
-    name: 'Gratuito',
-    description: 'Perfeito para começar',
-    price: 'R$ 0/mês',
-    features: [
-      'Até 2 imóveis cadastrados',
-      'Dashboard básico',
-      'Upload de documentos (100MB)',
-      'Suporte por email',
-    ],
+    id: "starter",
+    name: "Gratuito",
+    description: "Perfeito para começar",
+    price: "R$ 0/mês",
+    features: ["Até 2 imóveis cadastrados", "Dashboard básico", "Upload de documentos (100MB)", "Suporte por email"],
   },
   {
-    id: 'pro',
-    name: 'Pro',
-    description: 'Para investidores sérios',
-    price: 'R$ 49/mês',
+    id: "pro",
+    name: "Pro",
+    description: "Para investidores sérios",
+    price: "R$ 49/mês",
     highlighted: true,
     features: [
-      'Até 25 imóveis cadastrados',
-      'Dashboard avançado com IA',
-      'Upload ilimitado de documentos',
-      'Relatórios automáticos',
-      'Análise preditiva de mercado',
-      'Suporte prioritário',
+      "Até 25 imóveis cadastrados",
+      "Dashboard avançado com IA",
+      "Upload ilimitado de documentos",
+      "Relatórios automáticos",
+      "Análise preditiva de mercado",
+      "Suporte prioritário",
     ],
   },
   {
-    id: 'plus',
-    name: 'Plus',
-    description: 'Para grandes portfólios',
-    price: 'R$ 99/mês',
+    id: "plus",
+    name: "Plus",
+    description: "Para grandes portfólios",
+    price: "R$ 99/mês",
     features: [
-      'Imóveis ilimitados',
-      'Todos os recursos Pro',
-      'Relatórios personalizados',
-      'Exportação de dados',
-      'Suporte prioritário 24/7',
-      'API de integração',
+      "Imóveis ilimitados",
+      "Todos os recursos Pro",
+      "Relatórios personalizados",
+      "Exportação de dados",
+      "Suporte prioritário 24/7",
     ],
   },
 ];
 
 interface PlanComparisonProps {
-  currentPlan: 'starter' | 'pro' | 'plus';
-  onSelectPlan?: (plan: 'starter' | 'pro' | 'plus') => void;
+  currentPlan: "starter" | "pro" | "plus";
+  onSelectPlan?: (plan: "starter" | "pro" | "plus") => void;
 }
 
 export function PlanComparison({ currentPlan, onSelectPlan }: PlanComparisonProps) {
@@ -76,9 +70,9 @@ export function PlanComparison({ currentPlan, onSelectPlan }: PlanComparisonProp
           <Card
             key={plan.id}
             className={cn(
-              'relative transition-all',
-              plan.highlighted && 'border-primary shadow-lg scale-[1.02]',
-              isCurrentPlan && 'ring-2 ring-primary'
+              "relative transition-all",
+              plan.highlighted && "border-primary shadow-lg scale-[1.02]",
+              isCurrentPlan && "ring-2 ring-primary",
             )}
           >
             {plan.highlighted && (
@@ -111,10 +105,7 @@ export function PlanComparison({ currentPlan, onSelectPlan }: PlanComparisonProp
                   Plano Atual
                 </Button>
               ) : isUpgrade ? (
-                <Button
-                  className="w-full"
-                  onClick={() => onSelectPlan?.(plan.id)}
-                >
+                <Button className="w-full" onClick={() => onSelectPlan?.(plan.id)}>
                   Fazer Upgrade
                 </Button>
               ) : (
