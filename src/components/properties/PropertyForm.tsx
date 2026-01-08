@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Property, PropertyFormData, PropertyType, PropertyStatus, PROPERTY_TYPE_LABELS, PROPERTY_STATUS_LABELS } from '@/types/property';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,9 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Search } from 'lucide-react';
 import { PhotoUpload } from './PhotoUpload';
 import { usePhotoUpload } from '@/hooks/usePhotoUpload';
+import { formatCEP, formatCurrencyInput, parseCurrency, fetchAddressByCEP } from '@/utils/formatters';
+import { toast } from 'sonner';
 
 interface PropertyFormProps {
   open: boolean;
@@ -59,8 +61,19 @@ const defaultFormData: PropertyFormData = {
 export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading }: PropertyFormProps) {
   const { uploadPhoto, isUploading } = usePhotoUpload();
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [isSearchingCEP, setIsSearchingCEP] = useState(false);
   
   const [formData, setFormData] = useState<PropertyFormData>(defaultFormData);
+  
+  // Currency display values
+  const [currencyDisplay, setCurrencyDisplay] = useState({
+    property_value: '',
+    monthly_revenue: '',
+    condominium_fee: '',
+    iptu_fee: '',
+    maintenance_fee: '',
+    other_costs: '',
+  });
 
   useEffect(() => {
     if (property) {
@@ -99,8 +112,25 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
         description: property.description || '',
         photo_url: property.photo_url || null,
       });
+      // Set currency display values
+      setCurrencyDisplay({
+        property_value: Number(property.property_value) > 0 ? formatCurrencyInput((Number(property.property_value) * 100).toString()) : '',
+        monthly_revenue: Number(property.monthly_revenue) > 0 ? formatCurrencyInput((Number(property.monthly_revenue) * 100).toString()) : '',
+        condominium_fee: Number(property.condominium_fee) > 0 ? formatCurrencyInput((Number(property.condominium_fee) * 100).toString()) : '',
+        iptu_fee: Number(property.iptu_fee) > 0 ? formatCurrencyInput((Number(property.iptu_fee) * 100).toString()) : '',
+        maintenance_fee: Number(property.maintenance_fee) > 0 ? formatCurrencyInput((Number(property.maintenance_fee) * 100).toString()) : '',
+        other_costs: Number(property.other_costs) > 0 ? formatCurrencyInput((Number(property.other_costs) * 100).toString()) : '',
+      });
     } else {
       setFormData(defaultFormData);
+      setCurrencyDisplay({
+        property_value: '',
+        monthly_revenue: '',
+        condominium_fee: '',
+        iptu_fee: '',
+        maintenance_fee: '',
+        other_costs: '',
+      });
     }
     setPendingFile(null);
   }, [property, open]);
@@ -129,12 +159,40 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
   };
 
   const handleCEPChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
-    if (value.length > 8) value = value.slice(0, 8); // Max 8 digits
-    if (value.length > 5) {
-      value = value.slice(0, 5) + '-' + value.slice(5);
+    const formatted = formatCEP(e.target.value);
+    updateField('address_zip', formatted);
+  };
+
+  const handleSearchCEP = useCallback(async () => {
+    const cleanCEP = formData.address_zip.replace(/\D/g, '');
+    if (cleanCEP.length !== 8) {
+      toast.error('CEP inválido. Informe 8 dígitos.');
+      return;
     }
-    updateField('address_zip', value);
+    
+    setIsSearchingCEP(true);
+    const address = await fetchAddressByCEP(formData.address_zip);
+    setIsSearchingCEP(false);
+    
+    if (address) {
+      setFormData(prev => ({
+        ...prev,
+        address_street: address.logradouro || prev.address_street,
+        address_neighborhood: address.bairro || prev.address_neighborhood,
+        address_city: address.localidade || prev.address_city,
+        address_state: address.uf || prev.address_state,
+        address_complement: address.complemento || prev.address_complement,
+      }));
+      toast.success('Endereço preenchido automaticamente!');
+    } else {
+      toast.error('CEP não encontrado.');
+    }
+  }, [formData.address_zip]);
+
+  const handleCurrencyChange = (field: keyof typeof currencyDisplay) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCurrencyInput(e.target.value);
+    setCurrencyDisplay(prev => ({ ...prev, [field]: formatted }));
+    updateField(field as keyof PropertyFormData, parseCurrency(formatted));
   };
 
   const handleOccupancyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -302,13 +360,25 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="zip">CEP</Label>
-                  <Input
-                    id="zip"
-                    value={formData.address_zip}
-                    onChange={handleCEPChange}
-                    placeholder="00000-000"
-                    maxLength={9}
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      id="zip"
+                      value={formData.address_zip}
+                      onChange={handleCEPChange}
+                      placeholder="00000-000"
+                      maxLength={9}
+                      className="flex-1"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="icon"
+                      onClick={handleSearchCEP}
+                      disabled={isSearchingCEP}
+                    >
+                      {isSearchingCEP ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </TabsContent>
@@ -319,24 +389,18 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                   <Label htmlFor="property_value">Valor do Imóvel (R$)</Label>
                   <Input
                     id="property_value"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formData.property_value || ''}
-                    onChange={(e) => updateField('property_value', parseFloat(e.target.value) || 0)}
-                    placeholder="500000"
+                    value={currencyDisplay.property_value}
+                    onChange={handleCurrencyChange('property_value')}
+                    placeholder="500.000,00"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="monthly_revenue">Receita Mensal (R$)</Label>
                   <Input
                     id="monthly_revenue"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formData.monthly_revenue || ''}
-                    onChange={(e) => updateField('monthly_revenue', parseFloat(e.target.value) || 0)}
-                    placeholder="3000"
+                    value={currencyDisplay.monthly_revenue}
+                    onChange={handleCurrencyChange('monthly_revenue')}
+                    placeholder="3.000,00"
                   />
                 </div>
               </div>
@@ -373,48 +437,36 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                     <Label htmlFor="condominium_fee">Condomínio (R$)</Label>
                     <Input
                       id="condominium_fee"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.condominium_fee || ''}
-                      onChange={(e) => updateField('condominium_fee', parseFloat(e.target.value) || 0)}
-                      placeholder="500"
+                      value={currencyDisplay.condominium_fee}
+                      onChange={handleCurrencyChange('condominium_fee')}
+                      placeholder="500,00"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="iptu_fee">IPTU (R$)</Label>
                     <Input
                       id="iptu_fee"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.iptu_fee || ''}
-                      onChange={(e) => updateField('iptu_fee', parseFloat(e.target.value) || 0)}
-                      placeholder="200"
+                      value={currencyDisplay.iptu_fee}
+                      onChange={handleCurrencyChange('iptu_fee')}
+                      placeholder="200,00"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="maintenance_fee">Manutenção (R$)</Label>
                     <Input
                       id="maintenance_fee"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.maintenance_fee || ''}
-                      onChange={(e) => updateField('maintenance_fee', parseFloat(e.target.value) || 0)}
-                      placeholder="100"
+                      value={currencyDisplay.maintenance_fee}
+                      onChange={handleCurrencyChange('maintenance_fee')}
+                      placeholder="100,00"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="other_costs">Outros Custos (R$)</Label>
                     <Input
                       id="other_costs"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.other_costs || ''}
-                      onChange={(e) => updateField('other_costs', parseFloat(e.target.value) || 0)}
-                      placeholder="50"
+                      value={currencyDisplay.other_costs}
+                      onChange={handleCurrencyChange('other_costs')}
+                      placeholder="50,00"
                     />
                   </div>
                 </div>
