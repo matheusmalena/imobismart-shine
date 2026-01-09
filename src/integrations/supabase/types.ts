@@ -61,6 +61,36 @@ export type Database = {
           },
         ]
       }
+      plan_audit_logs: {
+        Row: {
+          action: string
+          changed_by: string
+          changes: Json
+          created_at: string
+          id: string
+          plan_id: string
+          previous_values: Json | null
+        }
+        Insert: {
+          action: string
+          changed_by: string
+          changes?: Json
+          created_at?: string
+          id?: string
+          plan_id: string
+          previous_values?: Json | null
+        }
+        Update: {
+          action?: string
+          changed_by?: string
+          changes?: Json
+          created_at?: string
+          id?: string
+          plan_id?: string
+          previous_values?: Json | null
+        }
+        Relationships: []
+      }
       plans: {
         Row: {
           created_at: string
