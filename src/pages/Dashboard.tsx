@@ -384,7 +384,7 @@ export default function Dashboard() {
         {/* Pro: Insights Section - Visible to all */}
         {activeProperties.length > 0 && (
           <Card className="relative overflow-hidden">
-            <CardHeader className="relative z-20">
+            <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
                 Análise de Mercado e Insights
@@ -396,105 +396,56 @@ export default function Dashboard() {
                 )}
               </CardTitle>
             </CardHeader>
-            <CardContent className="relative">
+            <CardContent className="relative min-h-[200px]">
+              {/* Blur overlay for non-Pro */}
               {!isPro && (
-                <div className="absolute inset-0 bg-background z-10 p-6 flex items-center justify-center">
-                  <div className="w-full max-w-2xl space-y-4">
-                    <div className="flex items-center justify-center">
-                      <Badge variant="outline" className="gap-1">
-                        <Lock className="h-3 w-3" />
-                        Disponível no Plano Pro
-                      </Badge>
+                <div className="absolute inset-0 z-10 flex items-center justify-center">
+                  <div className="absolute inset-0 backdrop-blur-lg bg-background/60" />
+                  <div className="relative z-20 text-center p-6 max-w-md">
+                    <div className="p-3 rounded-full bg-primary/10 w-fit mx-auto mb-4">
+                      <Lock className="h-6 w-6 text-primary" />
                     </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <p className="text-sm font-medium">Alertas e Recomendações</p>
-                        <p className="text-xs text-muted-foreground mt-1">Insights de ROI e ocupação</p>
-                      </div>
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <p className="text-sm font-medium">Ranking de Performance</p>
-                        <p className="text-xs text-muted-foreground mt-1">Comparação completa por imóvel</p>
-                      </div>
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <p className="text-sm font-medium">Exportar Dados</p>
-                        <p className="text-xs text-muted-foreground mt-1">CSV e JSON no plano Pro</p>
-                      </div>
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <p className="text-sm font-medium">Relatórios PDF</p>
-                        <p className="text-xs text-muted-foreground mt-1">Disponível no plano Plus</p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap justify-center gap-2 pt-2">
-                      <Button size="sm" variant="outline" onClick={() => navigate('/export')} className="gap-2">
-                        <Download className="h-4 w-4" />
-                        Ver Exportação
-                      </Button>
-                      <Button size="sm" onClick={() => navigate('/settings')} className="gap-2">
-                        <Crown className="h-4 w-4" />
-                        Ver Planos
-                      </Button>
-                    </div>
+                    <h4 className="font-semibold text-lg mb-2">Análises Avançadas</h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Alertas de ROI, ocupação baixa, recomendações personalizadas e mais.
+                    </p>
+                    <Button size="sm" onClick={() => navigate('/settings')} className="gap-2">
+                      <Crown className="h-4 w-4" />
+                      Ver Plano Pro
+                    </Button>
                   </div>
                 </div>
               )}
 
-              <div className={cn("grid grid-cols-1 md:grid-cols-2 gap-6", !isPro && "opacity-0 pointer-events-none select-none")}>
+              {/* Content - always rendered for layout, blurred when locked */}
+              <div className={cn("grid grid-cols-1 md:grid-cols-2 gap-6", !isPro && "opacity-30 pointer-events-none select-none")}>
                 {/* Insights */}
                 <div className="space-y-3">
                   <h4 className="font-medium text-sm text-muted-foreground">Alertas e Recomendações</h4>
                   
-                  {metrics.avgROI < 6 && (
-                    <div className="flex items-start gap-3 p-3 bg-warning/10 border border-warning/20 rounded-lg">
-                      <AlertTriangle className="h-5 w-5 text-warning mt-0.5 shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-warning">ROI abaixo do esperado</p>
-                        <p className="text-xs text-muted-foreground">
-                          Considere revisar custos ou buscar oportunidades de aumento de receita.
-                        </p>
-                      </div>
+                  <div className="flex items-start gap-3 p-3 bg-warning/10 border border-warning/20 rounded-lg">
+                    <AlertTriangle className="h-5 w-5 text-warning mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-warning">
+                        {isPro ? "ROI abaixo do esperado" : "••••• •••••••"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {isPro ? "Considere revisar custos ou buscar oportunidades." : "••••• ••••• •••••••"}
+                      </p>
                     </div>
-                  )}
+                  </div>
                   
-                  {lowOccupancy.length > 0 && (
-                    <div className="flex items-start gap-3 p-3 bg-warning/10 border border-warning/20 rounded-lg">
-                      <AlertTriangle className="h-5 w-5 text-warning mt-0.5 shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-warning">
-                          {lowOccupancy.length} imóvel(is) com baixa ocupação
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {lowOccupancy.map(p => p.name).slice(0, 3).join(', ')}
-                          {lowOccupancy.length > 3 && ` e mais ${lowOccupancy.length - 3}`}
-                        </p>
-                      </div>
+                  <div className="flex items-start gap-3 p-3 bg-success/10 border border-success/20 rounded-lg">
+                    <CheckCircle className="h-5 w-5 text-success mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-success">
+                        {isPro ? "Excelente performance!" : "••••• •••••••"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {isPro ? "Seu portfólio está acima da média." : "••••• ••••• •••••••"}
+                      </p>
                     </div>
-                  )}
-                  
-                  {metrics.avgROI >= 8 && (
-                    <div className="flex items-start gap-3 p-3 bg-success/10 border border-success/20 rounded-lg">
-                      <CheckCircle className="h-5 w-5 text-success mt-0.5 shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-success">Excelente performance!</p>
-                        <p className="text-xs text-muted-foreground">
-                          Seu portfólio está acima da média do mercado imobiliário.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {metrics.avgROI >= 6 && metrics.avgROI < 8 && lowOccupancy.length === 0 && (
-                    <div className="flex items-start gap-3 p-3 bg-info/10 border border-info/20 rounded-lg">
-                      <CheckCircle className="h-5 w-5 text-info mt-0.5 shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-info">Performance adequada</p>
-                        <p className="text-xs text-muted-foreground">
-                          Seu portfólio está dentro da média esperada.
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                  </div>
                 </div>
 
                 {/* Reports */}
@@ -527,15 +478,19 @@ export default function Dashboard() {
                         <Download className="h-4 w-4 text-primary" />
                         <span className="text-sm">Exportar Dados</span>
                       </div>
-                      <Button size="sm" variant="outline" onClick={handleExportData} className="h-7 text-xs">
-                        Exportar CSV
-                      </Button>
+                      {isPro ? (
+                        <Button size="sm" variant="outline" onClick={handleExportData} className="h-7 text-xs">
+                          Exportar CSV
+                        </Button>
+                      ) : (
+                        <Badge variant="outline" className="text-muted-foreground">Pro</Badge>
+                      )}
                     </div>
                     
                     <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                       <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4 text-primary" />
-                        <span className="text-sm">Relatório Personalizado</span>
+                        <span className="text-sm">Relatório PDF</span>
                       </div>
                       {isEnterprise ? (
                         <Badge variant="outline" className="text-success border-success/30">
@@ -558,7 +513,7 @@ export default function Dashboard() {
         {/* Pro: Performance Ranking Table - Visible to all */}
         {activeProperties.length > 0 && (
           <Card className="relative overflow-hidden">
-            <CardHeader className="relative z-20">
+            <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 Ranking de Performance
                 {!isPro && (
@@ -569,26 +524,29 @@ export default function Dashboard() {
                 )}
               </CardTitle>
             </CardHeader>
-            <CardContent className="relative">
+            <CardContent className="relative min-h-[250px]">
+              {/* Blur overlay for non-Pro */}
               {!isPro && (
-                <div className="absolute inset-0 bg-background z-10 p-6 flex items-center justify-center">
-                  <div className="w-full max-w-2xl space-y-4 text-center">
-                    <Badge variant="outline" className="gap-1 mx-auto w-fit">
-                      <Lock className="h-3 w-3" />
-                      Disponível no Plano Pro
-                    </Badge>
-                    <p className="text-sm text-muted-foreground">
-                      Veja receita, custos, lucro, ROI e ocupação por imóvel no ranking completo.
+                <div className="absolute inset-0 z-10 flex items-center justify-center">
+                  <div className="absolute inset-0 backdrop-blur-lg bg-background/60" />
+                  <div className="relative z-20 text-center p-6 max-w-md">
+                    <div className="p-3 rounded-full bg-primary/10 w-fit mx-auto mb-4">
+                      <BarChart3 className="h-6 w-6 text-primary" />
+                    </div>
+                    <h4 className="font-semibold text-lg mb-2">Ranking Completo</h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Compare receita, custos, lucro, ROI e ocupação de todos os seus imóveis.
                     </p>
-                    <Button size="sm" onClick={() => navigate('/settings')} className="gap-2 mx-auto">
+                    <Button size="sm" onClick={() => navigate('/settings')} className="gap-2">
                       <Crown className="h-4 w-4" />
-                      Ver Planos
+                      Ver Plano Pro
                     </Button>
                   </div>
                 </div>
               )}
 
-              <div className={cn("overflow-x-auto", !isPro && "opacity-0 pointer-events-none select-none")}> 
+              {/* Content - always rendered for layout */}
+              <div className={cn("overflow-x-auto", !isPro && "opacity-30 pointer-events-none select-none")}> 
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b">
@@ -602,7 +560,7 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {activeProperties
+                    {(isPro ? activeProperties : activeProperties.slice(0, 3))
                       .map(p => {
                         const revenue = Number(p.monthly_revenue);
                         const costs = Number(p.condominium_fee) + Number(p.iptu_fee) + 
@@ -616,16 +574,24 @@ export default function Dashboard() {
                       .slice(0, 10)
                       .map((property) => (
                         <tr key={property.id} className="border-b last:border-0 hover:bg-muted/50">
-                          <td className="py-3 px-2 font-medium">{property.name}</td>
-                          <td className="text-right py-3 px-2">{formatCurrency(property.revenue)}</td>
-                          <td className="text-right py-3 px-2 text-destructive">{formatCurrency(property.costs)}</td>
+                          <td className="py-3 px-2 font-medium">
+                            {isPro ? property.name : "•••••••••"}
+                          </td>
+                          <td className="text-right py-3 px-2">
+                            {isPro ? formatCurrency(property.revenue) : "R$ •••••"}
+                          </td>
+                          <td className="text-right py-3 px-2 text-destructive">
+                            {isPro ? formatCurrency(property.costs) : "R$ •••••"}
+                          </td>
                           <td className={cn("text-right py-3 px-2 font-medium", property.profit >= 0 ? "text-success" : "text-destructive")}>
-                            {formatCurrency(property.profit)}
+                            {isPro ? formatCurrency(property.profit) : "R$ •••••"}
                           </td>
                           <td className={cn("text-right py-3 px-2 font-medium", property.roi >= metrics.avgROI ? "text-success" : "text-warning")}>
-                            {property.roi.toFixed(1)}%
+                            {isPro ? `${property.roi.toFixed(1)}%` : "••%"}
                           </td>
-                          <td className="text-right py-3 px-2">{property.occupancy_rate}%</td>
+                          <td className="text-right py-3 px-2">
+                            {isPro ? `${property.occupancy_rate}%` : "••%"}
+                          </td>
                           <td className="text-center py-3 px-2">
                             {property.roi >= metrics.avgROI ? (
                               <TrendingUp className="h-4 w-4 text-success inline" />
