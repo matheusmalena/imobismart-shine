@@ -51,16 +51,11 @@ const PLAN_DESCRIPTIONS: Record<string, string> = {
   enterprise: 'Para grandes portfólios. Imóveis ilimitados.',
 };
 
-// Map database plan to UI plan for PlanComparison component
-const mapPlanToUI = (plan: string): 'starter' | 'pro' | 'plus' => {
-  if (plan === 'enterprise') return 'plus';
-  return plan as 'starter' | 'pro' | 'plus';
-};
-
-// Map UI plan back to database plan
-const mapPlanToDB = (plan: 'starter' | 'pro' | 'plus'): 'starter' | 'pro' | 'enterprise' => {
-  if (plan === 'plus') return 'enterprise';
-  return plan as 'starter' | 'pro' | 'enterprise';
+// Map UI plan back to database plan (for display purposes)
+const getPlanDisplayName = (plan: string): string => {
+  if (plan === 'enterprise') return 'Plus';
+  if (plan === 'pro') return 'Pro';
+  return 'Gratuito';
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -106,10 +101,9 @@ export default function Settings() {
     await cancelSubscription.mutateAsync();
   };
 
-  const handleSelectPlan = (plan: 'starter' | 'pro' | 'plus') => {
-    const dbPlan = mapPlanToDB(plan);
+  const handleSelectPlan = (planId: string) => {
     // In a real app, this would redirect to a payment flow
-    toast.info(`Para alterar para o plano ${PLAN_LABELS[dbPlan]}, entre em contato com nosso suporte.`);
+    toast.info(`Para alterar para o plano ${planId}, entre em contato com nosso suporte.`);
     setShowPlanDialog(false);
   };
 
@@ -418,7 +412,7 @@ export default function Settings() {
               </DialogDescription>
             </DialogHeader>
             <PlanComparison
-              currentPlan={mapPlanToUI(mockSubscription?.plan || 'starter')}
+              currentPlan={mockSubscription?.plan || 'starter'}
               onSelectPlan={handleSelectPlan}
             />
           </DialogContent>

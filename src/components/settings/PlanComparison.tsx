@@ -1,81 +1,51 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Check, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface Plan {
-  id: "starter" | "pro" | "plus";
-  name: string;
-  description: string;
-  price: string;
-  features: string[];
-  highlighted?: boolean;
-}
-
-const PLANS: Plan[] = [
-  {
-    id: "starter",
-    name: "Gratuito",
-    description: "Perfeito para começar",
-    price: "R$ 0/mês",
-    features: ["Até 2 imóveis cadastrados", "Dashboard básico", "Upload de documentos (100MB)", "Suporte por email"],
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    description: "Para investidores sérios",
-    price: "R$ 49/mês",
-    highlighted: true,
-    features: [
-      "Até 25 imóveis cadastrados",
-      "Dashboard avançado",
-      "Upload ilimitado de documentos",
-      "Relatórios automáticos",
-      "Análise de mercado",
-      "Suporte prioritário",
-    ],
-  },
-  {
-    id: "plus",
-    name: "Plus",
-    description: "Para grandes portfólios",
-    price: "R$ 99/mês",
-    features: [
-      "Imóveis ilimitados",
-      "Todos os recursos Pro",
-      "Relatórios personalizados",
-      "Exportação de dados",
-      "Suporte prioritário 24/7",
-    ],
-  },
-];
+import { usePlans } from "@/hooks/usePlans";
 
 interface PlanComparisonProps {
-  currentPlan: "starter" | "pro" | "plus";
-  onSelectPlan?: (plan: "starter" | "pro" | "plus") => void;
+  currentPlan: string;
+  onSelectPlan?: (planId: string) => void;
 }
 
 export function PlanComparison({ currentPlan, onSelectPlan }: PlanComparisonProps) {
-  const planOrder = { starter: 0, pro: 1, plus: 2 };
+  const { activePlans, isLoading } = usePlans();
+
+  if (isLoading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-3">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-80 w-full rounded-xl" />
+        ))}
+      </div>
+    );
+  }
+
+  // Map enterprise to plus for UI comparison
+  const normalizedCurrentPlan = currentPlan === 'enterprise' ? 'enterprise' : currentPlan;
 
   return (
     <div className="grid gap-4 md:grid-cols-3">
-      {PLANS.map((plan) => {
-        const isCurrentPlan = plan.id === currentPlan;
-        const isUpgrade = planOrder[plan.id] > planOrder[currentPlan];
-        const isDowngrade = planOrder[plan.id] < planOrder[currentPlan];
+      {activePlans.map((plan) => {
+        const isCurrentPlan = plan.id === normalizedCurrentPlan;
+        const currentPlanOrder = activePlans.findIndex(p => p.id === normalizedCurrentPlan);
+        const thisPlanOrder = activePlans.findIndex(p => p.id === plan.id);
+        const isUpgrade = thisPlanOrder > currentPlanOrder;
+        const isDowngrade = thisPlanOrder < currentPlanOrder;
 
         return (
           <Card
             key={plan.id}
             className={cn(
               "relative transition-all",
-              plan.highlighted && "border-primary shadow-lg scale-[1.02]",
+              plan.is_highlighted && "border-primary shadow-lg scale-[1.02]",
               isCurrentPlan && "ring-2 ring-primary",
             )}
           >
-            {plan.highlighted && (
+            {plan.is_highlighted && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                 <Badge className="bg-primary text-primary-foreground">
                   <Sparkles className="h-3 w-3 mr-1" />
@@ -87,7 +57,7 @@ export function PlanComparison({ currentPlan, onSelectPlan }: PlanComparisonProp
               <CardTitle className="text-xl">{plan.name}</CardTitle>
               <CardDescription>{plan.description}</CardDescription>
               <div className="mt-4">
-                <span className="text-3xl font-bold text-foreground">{plan.price}</span>
+                <span className="text-3xl font-bold text-foreground">{plan.price_label}</span>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
