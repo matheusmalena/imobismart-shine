@@ -191,10 +191,10 @@ export default function Dashboard() {
         {/* Pro/Plus: Advanced Analysis Section - Visible to all, locked for free */}
         {activeProperties.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className={cn(!isPro && "opacity-60 relative")}>
+            <Card className={cn(!isPro && "relative overflow-hidden")}>
               {!isPro && (
-                <div className="absolute inset-0 bg-background/50 backdrop-blur-[1px] rounded-lg flex items-center justify-center z-10">
-                  <Badge variant="outline" className="gap-1 bg-background">
+                <div className="absolute inset-0 bg-background/90 backdrop-blur-md rounded-lg flex items-center justify-center z-10">
+                  <Badge variant="outline" className="gap-1 bg-background shadow-sm">
                     <Lock className="h-3 w-3" />
                     Plano Pro
                   </Badge>
@@ -216,10 +216,10 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className={cn(!isPro && "opacity-60 relative")}>
+            <Card className={cn(!isPro && "relative overflow-hidden")}>
               {!isPro && (
-                <div className="absolute inset-0 bg-background/50 backdrop-blur-[1px] rounded-lg flex items-center justify-center z-10">
-                  <Badge variant="outline" className="gap-1 bg-background">
+                <div className="absolute inset-0 bg-background/90 backdrop-blur-md rounded-lg flex items-center justify-center z-10">
+                  <Badge variant="outline" className="gap-1 bg-background shadow-sm">
                     <Lock className="h-3 w-3" />
                     Plano Pro
                   </Badge>
@@ -241,10 +241,10 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className={cn(!isPro && "opacity-60 relative")}>
+            <Card className={cn(!isPro && "relative overflow-hidden")}>
               {!isPro && (
-                <div className="absolute inset-0 bg-background/50 backdrop-blur-[1px] rounded-lg flex items-center justify-center z-10">
-                  <Badge variant="outline" className="gap-1 bg-background">
+                <div className="absolute inset-0 bg-background/90 backdrop-blur-md rounded-lg flex items-center justify-center z-10">
+                  <Badge variant="outline" className="gap-1 bg-background shadow-sm">
                     <Lock className="h-3 w-3" />
                     Plano Pro
                   </Badge>
@@ -266,10 +266,10 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className={cn(!isPro && "opacity-60 relative")}>
+            <Card className={cn(!isPro && "relative overflow-hidden")}>
               {!isPro && (
-                <div className="absolute inset-0 bg-background/50 backdrop-blur-[1px] rounded-lg flex items-center justify-center z-10">
-                  <Badge variant="outline" className="gap-1 bg-background">
+                <div className="absolute inset-0 bg-background/90 backdrop-blur-md rounded-lg flex items-center justify-center z-10">
+                  <Badge variant="outline" className="gap-1 bg-background shadow-sm">
                     <Lock className="h-3 w-3" />
                     Plano Pro
                   </Badge>
@@ -301,11 +301,11 @@ export default function Dashboard() {
 
         {/* Pro/Plus: Insights Section - Visible to all */}
         {activeProperties.length > 0 && (
-          <Card className={cn(!isPro && "relative")}>
+          <Card className={cn(!isPro && "relative overflow-hidden")}>
             {!isPro && (
-              <div className="absolute inset-0 bg-background/70 backdrop-blur-[2px] rounded-lg flex items-center justify-center z-10">
+              <div className="absolute inset-0 bg-background/90 backdrop-blur-md rounded-lg flex items-center justify-center z-10">
                 <div className="text-center">
-                  <Badge variant="outline" className="gap-1 bg-background mb-2">
+                  <Badge variant="outline" className="gap-1 bg-background shadow-sm mb-2">
                     <Lock className="h-3 w-3" />
                     Disponível no Plano Pro
                   </Badge>
@@ -437,11 +437,11 @@ export default function Dashboard() {
 
         {/* Pro/Plus: Performance Ranking Table - Visible to all */}
         {activeProperties.length > 0 && (
-          <Card className={cn(!isPro && "relative")}>
+          <Card className={cn(!isPro && "relative overflow-hidden")}>
             {!isPro && (
-              <div className="absolute inset-0 bg-background/70 backdrop-blur-[2px] rounded-lg flex items-center justify-center z-10">
+              <div className="absolute inset-0 bg-background/90 backdrop-blur-md rounded-lg flex items-center justify-center z-10">
                 <div className="text-center">
-                  <Badge variant="outline" className="gap-1 bg-background mb-2">
+                  <Badge variant="outline" className="gap-1 bg-background shadow-sm mb-2">
                     <Lock className="h-3 w-3" />
                     Disponível no Plano Pro
                   </Badge>
