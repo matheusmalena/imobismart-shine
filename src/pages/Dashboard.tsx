@@ -85,28 +85,22 @@ export default function Dashboard() {
     exportToCSV(activeProperties);
   };
 
-  // Calculate advanced metrics (only when needed)
-  const totalValue = isPro
-    ? activeProperties.reduce((sum, p) => sum + Number(p.property_value), 0)
-    : 0;
+  // Calculate advanced metrics (always calculate for blur display)
+  const totalValue = activeProperties.reduce((sum, p) => sum + Number(p.property_value), 0);
 
-  const highPerformers = isPro
-    ? activeProperties.filter((p) => {
-        const profit = Number(p.monthly_revenue) - (
-          Number(p.condominium_fee) +
-          Number(p.iptu_fee) +
-          Number(p.maintenance_fee) +
-          Number(p.other_costs)
-        );
-        const value = Number(p.property_value);
-        const roi = value > 0 ? ((profit * 12) / value) * 100 : 0;
-        return roi > metrics.avgROI;
-      })
-    : [];
+  const highPerformers = activeProperties.filter((p) => {
+    const profit = Number(p.monthly_revenue) - (
+      Number(p.condominium_fee) +
+      Number(p.iptu_fee) +
+      Number(p.maintenance_fee) +
+      Number(p.other_costs)
+    );
+    const value = Number(p.property_value);
+    const roi = value > 0 ? ((profit * 12) / value) * 100 : 0;
+    return roi > metrics.avgROI;
+  });
 
-  const lowOccupancy = isPro
-    ? activeProperties.filter((p) => Number(p.occupancy_rate) < 70)
-    : [];
+  const lowOccupancy = activeProperties.filter((p) => Number(p.occupancy_rate) < 70);
 
   const getPlanLabel = () => {
     switch (plan) {
@@ -181,7 +175,7 @@ export default function Dashboard() {
         {activeProperties.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card className="relative overflow-hidden">
-              <CardHeader className="pb-2 relative z-20">
+              <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Target className="h-4 w-4 text-primary" />
                   Valor do Portfólio
@@ -194,17 +188,25 @@ export default function Dashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="relative">
-                <div className="text-2xl font-bold text-primary">
-                  {isPro ? formatCurrency(totalValue) : "R$ •••••"}
+                {!isPro && (
+                  <div className="absolute inset-0 backdrop-blur-md bg-background/40 z-10 flex items-center justify-center">
+                    <Button size="sm" variant="ghost" onClick={() => navigate('/settings')} className="gap-1 text-xs">
+                      <Crown className="h-3 w-3" />
+                      Upgrade
+                    </Button>
+                  </div>
+                )}
+                <div className={cn("text-2xl font-bold text-primary", !isPro && "opacity-20")}>
+                  {formatCurrency(totalValue)}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className={cn("text-xs text-muted-foreground mt-1", !isPro && "opacity-20")}>
                   Total investido
                 </p>
               </CardContent>
             </Card>
 
             <Card className="relative overflow-hidden">
-              <CardHeader className="pb-2 relative z-20">
+              <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-success" />
                   Alta Performance
@@ -217,17 +219,25 @@ export default function Dashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="relative">
-                <div className="text-2xl font-bold text-success">
-                  {isPro ? highPerformers.length : "•"}
+                {!isPro && (
+                  <div className="absolute inset-0 backdrop-blur-md bg-background/40 z-10 flex items-center justify-center">
+                    <Button size="sm" variant="ghost" onClick={() => navigate('/settings')} className="gap-1 text-xs">
+                      <Crown className="h-3 w-3" />
+                      Upgrade
+                    </Button>
+                  </div>
+                )}
+                <div className={cn("text-2xl font-bold text-success", !isPro && "opacity-20")}>
+                  {highPerformers.length}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className={cn("text-xs text-muted-foreground mt-1", !isPro && "opacity-20")}>
                   Acima da média de ROI
                 </p>
               </CardContent>
             </Card>
 
             <Card className="relative overflow-hidden">
-              <CardHeader className="pb-2 relative z-20">
+              <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-warning" />
                   Baixa Ocupação
@@ -240,17 +250,25 @@ export default function Dashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="relative">
-                <div className="text-2xl font-bold text-warning">
-                  {isPro ? lowOccupancy.length : "•"}
+                {!isPro && (
+                  <div className="absolute inset-0 backdrop-blur-md bg-background/40 z-10 flex items-center justify-center">
+                    <Button size="sm" variant="ghost" onClick={() => navigate('/settings')} className="gap-1 text-xs">
+                      <Crown className="h-3 w-3" />
+                      Upgrade
+                    </Button>
+                  </div>
+                )}
+                <div className={cn("text-2xl font-bold text-warning", !isPro && "opacity-20")}>
+                  {lowOccupancy.length}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className={cn("text-xs text-muted-foreground mt-1", !isPro && "opacity-20")}>
                   Abaixo de 70%
                 </p>
               </CardContent>
             </Card>
 
             <Card className="relative overflow-hidden">
-              <CardHeader className="pb-2 relative z-20">
+              <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <BarChart3 className="h-4 w-4 text-info" />
                   Lucro Anual Projetado
@@ -263,10 +281,18 @@ export default function Dashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="relative">
-                <div className={cn("text-2xl font-bold", metrics.netProfit >= 0 ? "text-success" : "text-destructive")}>
-                  {isPro ? formatCurrency(metrics.netProfit * 12) : "R$ •••••"}
+                {!isPro && (
+                  <div className="absolute inset-0 backdrop-blur-md bg-background/40 z-10 flex items-center justify-center">
+                    <Button size="sm" variant="ghost" onClick={() => navigate('/settings')} className="gap-1 text-xs">
+                      <Crown className="h-3 w-3" />
+                      Upgrade
+                    </Button>
+                  </div>
+                )}
+                <div className={cn("text-2xl font-bold", metrics.netProfit >= 0 ? "text-success" : "text-destructive", !isPro && "opacity-20")}>
+                  {formatCurrency(metrics.netProfit * 12)}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className={cn("text-xs text-muted-foreground mt-1", !isPro && "opacity-20")}>
                   Baseado nos dados atuais
                 </p>
               </CardContent>
@@ -274,106 +300,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Plus Features Section - Visible to all, locked for Pro and free */}
-        {activeProperties.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="relative overflow-hidden">
-              <CardHeader className="pb-2 relative z-20">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-primary" />
-                  Projeção 12 Meses
-                  {!isEnterprise && (
-                    <Badge variant="outline" className="gap-1 text-xs ml-auto bg-primary/10 border-primary/30 text-primary">
-                      <Lock className="h-3 w-3" />
-                      Plus
-                    </Badge>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="relative">
-                <div className="text-2xl font-bold text-primary">
-                  {isEnterprise ? formatCurrency(metrics.netProfit * 12 * 1.08) : "R$ •••••"}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Estimativa com crescimento
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="relative overflow-hidden">
-              <CardHeader className="pb-2 relative z-20">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Percent className="h-4 w-4 text-success" />
-                  Yield Médio
-                  {!isEnterprise && (
-                    <Badge variant="outline" className="gap-1 text-xs ml-auto bg-primary/10 border-primary/30 text-primary">
-                      <Lock className="h-3 w-3" />
-                      Plus
-                    </Badge>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="relative">
-                <div className="text-2xl font-bold text-success">
-                  {isEnterprise
-                    ? `${(totalValue > 0 ? (metrics.totalRevenue / totalValue) * 100 : 0).toFixed(2)}%`
-                    : "•••%"}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Retorno mensal sobre valor
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="relative overflow-hidden">
-              <CardHeader className="pb-2 relative z-20">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-info" />
-                  Score de Saúde
-                  {!isEnterprise && (
-                    <Badge variant="outline" className="gap-1 text-xs ml-auto bg-primary/10 border-primary/30 text-primary">
-                      <Lock className="h-3 w-3" />
-                      Plus
-                    </Badge>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="relative">
-                <div className="text-2xl font-bold text-info">
-                  {isEnterprise
-                    ? Math.min(100, Math.round((metrics.avgOccupancy * 0.4) + (Math.min(metrics.avgROI, 12) * 5)))
-                    : "•••"}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Baseado em ROI e ocupação
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="relative overflow-hidden">
-              <CardHeader className="pb-2 relative z-20">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Crown className="h-4 w-4 text-warning" />
-                  Potencial de Valorização
-                  {!isEnterprise && (
-                    <Badge variant="outline" className="gap-1 text-xs ml-auto bg-primary/10 border-primary/30 text-primary">
-                      <Lock className="h-3 w-3" />
-                      Plus
-                    </Badge>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="relative">
-                <div className="text-2xl font-bold text-warning">
-                  {isEnterprise ? `+${((metrics.avgROI / 2) + 3).toFixed(1)}%` : "+•••%"}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Estimativa anual
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        )}
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
