@@ -61,6 +61,51 @@ export type Database = {
           },
         ]
       }
+      plans: {
+        Row: {
+          created_at: string
+          description: string | null
+          features: Json
+          id: string
+          is_active: boolean
+          is_highlighted: boolean
+          name: string
+          price: number
+          price_label: string
+          property_limit: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          features?: Json
+          id: string
+          is_active?: boolean
+          is_highlighted?: boolean
+          name: string
+          price?: number
+          price_label?: string
+          property_limit?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          is_active?: boolean
+          is_highlighted?: boolean
+          name?: string
+          price?: number
+          price_label?: string
+          property_limit?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

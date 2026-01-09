@@ -28,6 +28,7 @@ import {
   ClipboardList,
   Lock,
   Download,
+  CreditCard,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -47,6 +48,7 @@ const navigation = [
 
 const adminNavigation = [
   { name: 'Clientes', href: '/admin/clients', icon: Crown },
+  { name: 'Planos', href: '/admin/plans', icon: CreditCard },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
