@@ -85,17 +85,28 @@ export default function Dashboard() {
     exportToCSV(activeProperties);
   };
 
-  // Calculate advanced metrics for Pro/Plus
-  const totalValue = activeProperties.reduce((sum, p) => sum + Number(p.property_value), 0);
-  const highPerformers = activeProperties.filter(p => {
-    const profit = Number(p.monthly_revenue) - (
-      Number(p.condominium_fee) + Number(p.iptu_fee) + Number(p.maintenance_fee) + Number(p.other_costs)
-    );
-    const value = Number(p.property_value);
-    const roi = value > 0 ? ((profit * 12) / value) * 100 : 0;
-    return roi > metrics.avgROI;
-  });
-  const lowOccupancy = activeProperties.filter(p => Number(p.occupancy_rate) < 70);
+  // Calculate advanced metrics (only when needed)
+  const totalValue = isPro
+    ? activeProperties.reduce((sum, p) => sum + Number(p.property_value), 0)
+    : 0;
+
+  const highPerformers = isPro
+    ? activeProperties.filter((p) => {
+        const profit = Number(p.monthly_revenue) - (
+          Number(p.condominium_fee) +
+          Number(p.iptu_fee) +
+          Number(p.maintenance_fee) +
+          Number(p.other_costs)
+        );
+        const value = Number(p.property_value);
+        const roi = value > 0 ? ((profit * 12) / value) * 100 : 0;
+        return roi > metrics.avgROI;
+      })
+    : [];
+
+  const lowOccupancy = isPro
+    ? activeProperties.filter((p) => Number(p.occupancy_rate) < 70)
+    : [];
 
   const getPlanLabel = () => {
     switch (plan) {
@@ -182,9 +193,9 @@ export default function Dashboard() {
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className={cn("relative", !isPro && "blur-sm select-none")}>
+              <CardContent className="relative">
                 <div className="text-2xl font-bold text-primary">
-                  {formatCurrency(totalValue)}
+                  {isPro ? formatCurrency(totalValue) : "R$ •••••"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Total investido
@@ -205,9 +216,9 @@ export default function Dashboard() {
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className={cn("relative", !isPro && "blur-sm select-none")}>
+              <CardContent className="relative">
                 <div className="text-2xl font-bold text-success">
-                  {highPerformers.length}
+                  {isPro ? highPerformers.length : "•"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Acima da média de ROI
@@ -228,9 +239,9 @@ export default function Dashboard() {
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className={cn("relative", !isPro && "blur-sm select-none")}>
+              <CardContent className="relative">
                 <div className="text-2xl font-bold text-warning">
-                  {lowOccupancy.length}
+                  {isPro ? lowOccupancy.length : "•"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Abaixo de 70%
@@ -251,9 +262,9 @@ export default function Dashboard() {
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className={cn("relative", !isPro && "blur-sm select-none")}>
+              <CardContent className="relative">
                 <div className={cn("text-2xl font-bold", metrics.netProfit >= 0 ? "text-success" : "text-destructive")}>
-                  {formatCurrency(metrics.netProfit * 12)}
+                  {isPro ? formatCurrency(metrics.netProfit * 12) : "R$ •••••"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Baseado nos dados atuais
@@ -279,9 +290,9 @@ export default function Dashboard() {
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className={cn("relative", !isEnterprise && "blur-sm select-none")}>
+              <CardContent className="relative">
                 <div className="text-2xl font-bold text-primary">
-                  {formatCurrency(metrics.netProfit * 12 * 1.08)}
+                  {isEnterprise ? formatCurrency(metrics.netProfit * 12 * 1.08) : "R$ •••••"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Estimativa com crescimento
@@ -302,9 +313,11 @@ export default function Dashboard() {
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className={cn("relative", !isEnterprise && "blur-sm select-none")}>
+              <CardContent className="relative">
                 <div className="text-2xl font-bold text-success">
-                  {((metrics.totalRevenue / totalValue) * 100).toFixed(2)}%
+                  {isEnterprise
+                    ? `${(totalValue > 0 ? (metrics.totalRevenue / totalValue) * 100 : 0).toFixed(2)}%`
+                    : "•••%"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Retorno mensal sobre valor
@@ -325,9 +338,11 @@ export default function Dashboard() {
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className={cn("relative", !isEnterprise && "blur-sm select-none")}>
+              <CardContent className="relative">
                 <div className="text-2xl font-bold text-info">
-                  {Math.min(100, Math.round((metrics.avgOccupancy * 0.4) + (Math.min(metrics.avgROI, 12) * 5)))}
+                  {isEnterprise
+                    ? Math.min(100, Math.round((metrics.avgOccupancy * 0.4) + (Math.min(metrics.avgROI, 12) * 5)))
+                    : "•••"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Baseado em ROI e ocupação
@@ -348,9 +363,9 @@ export default function Dashboard() {
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className={cn("relative", !isEnterprise && "blur-sm select-none")}>
+              <CardContent className="relative">
                 <div className="text-2xl font-bold text-warning">
-                  +{((metrics.avgROI / 2) + 3).toFixed(1)}%
+                  {isEnterprise ? `+${((metrics.avgROI / 2) + 3).toFixed(1)}%` : "+•••%"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Estimativa anual
@@ -381,8 +396,51 @@ export default function Dashboard() {
                 )}
               </CardTitle>
             </CardHeader>
-            <CardContent className={cn(!isPro && "blur-sm select-none")}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent className="relative">
+              {!isPro && (
+                <div className="absolute inset-0 bg-background z-10 p-6 flex items-center justify-center">
+                  <div className="w-full max-w-2xl space-y-4">
+                    <div className="flex items-center justify-center">
+                      <Badge variant="outline" className="gap-1">
+                        <Lock className="h-3 w-3" />
+                        Disponível no Plano Pro
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="p-3 bg-muted/50 rounded-lg">
+                        <p className="text-sm font-medium">Alertas e Recomendações</p>
+                        <p className="text-xs text-muted-foreground mt-1">Insights de ROI e ocupação</p>
+                      </div>
+                      <div className="p-3 bg-muted/50 rounded-lg">
+                        <p className="text-sm font-medium">Ranking de Performance</p>
+                        <p className="text-xs text-muted-foreground mt-1">Comparação completa por imóvel</p>
+                      </div>
+                      <div className="p-3 bg-muted/50 rounded-lg">
+                        <p className="text-sm font-medium">Exportar Dados</p>
+                        <p className="text-xs text-muted-foreground mt-1">CSV e JSON no plano Pro</p>
+                      </div>
+                      <div className="p-3 bg-muted/50 rounded-lg">
+                        <p className="text-sm font-medium">Relatórios PDF</p>
+                        <p className="text-xs text-muted-foreground mt-1">Disponível no plano Plus</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap justify-center gap-2 pt-2">
+                      <Button size="sm" variant="outline" onClick={() => navigate('/export')} className="gap-2">
+                        <Download className="h-4 w-4" />
+                        Ver Exportação
+                      </Button>
+                      <Button size="sm" onClick={() => navigate('/settings')} className="gap-2">
+                        <Crown className="h-4 w-4" />
+                        Ver Planos
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className={cn("grid grid-cols-1 md:grid-cols-2 gap-6", !isPro && "opacity-0 pointer-events-none select-none")}>
                 {/* Insights */}
                 <div className="space-y-3">
                   <h4 className="font-medium text-sm text-muted-foreground">Alertas e Recomendações</h4>
@@ -511,8 +569,26 @@ export default function Dashboard() {
                 )}
               </CardTitle>
             </CardHeader>
-            <CardContent className={cn(!isPro && "blur-sm select-none")}>
-              <div className="overflow-x-auto">
+            <CardContent className="relative">
+              {!isPro && (
+                <div className="absolute inset-0 bg-background z-10 p-6 flex items-center justify-center">
+                  <div className="w-full max-w-2xl space-y-4 text-center">
+                    <Badge variant="outline" className="gap-1 mx-auto w-fit">
+                      <Lock className="h-3 w-3" />
+                      Disponível no Plano Pro
+                    </Badge>
+                    <p className="text-sm text-muted-foreground">
+                      Veja receita, custos, lucro, ROI e ocupação por imóvel no ranking completo.
+                    </p>
+                    <Button size="sm" onClick={() => navigate('/settings')} className="gap-2 mx-auto">
+                      <Crown className="h-4 w-4" />
+                      Ver Planos
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <div className={cn("overflow-x-auto", !isPro && "opacity-0 pointer-events-none select-none")}> 
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b">
