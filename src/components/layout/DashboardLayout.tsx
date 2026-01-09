@@ -29,6 +29,7 @@ import {
   Lock,
   Download,
   CreditCard,
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -42,6 +43,7 @@ interface DashboardLayoutProps {
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Imóveis', href: '/properties', icon: Home },
+  { name: 'Inquilinos', href: '/tenants', icon: Users },
   { name: 'Documentos', href: '/documents', icon: FileText },
   { name: 'Configurações', href: '/settings', icon: Settings },
 ];

@@ -61,6 +61,72 @@ export type Database = {
           },
         ]
       }
+      lease_contracts: {
+        Row: {
+          contract_file_url: string | null
+          created_at: string
+          deposit_amount: number | null
+          end_date: string
+          id: string
+          monthly_rent: number
+          notes: string | null
+          payment_due_day: number | null
+          property_id: string
+          start_date: string
+          status: string
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contract_file_url?: string | null
+          created_at?: string
+          deposit_amount?: number | null
+          end_date: string
+          id?: string
+          monthly_rent?: number
+          notes?: string | null
+          payment_due_day?: number | null
+          property_id: string
+          start_date: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contract_file_url?: string | null
+          created_at?: string
+          deposit_amount?: number | null
+          end_date?: string
+          id?: string
+          monthly_rent?: number
+          notes?: string | null
+          payment_due_day?: number | null
+          property_id?: string
+          start_date?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lease_contracts_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lease_contracts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plan_audit_logs: {
         Row: {
           action: string
@@ -359,6 +425,48 @@ export type Database = {
           plan?: Database["public"]["Enums"]["subscription_plan"]
           started_at?: string
           status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tenants: {
+        Row: {
+          address: string | null
+          cpf: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          rg: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          cpf?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          rg?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          cpf?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          rg?: string | null
           updated_at?: string
           user_id?: string
         }
