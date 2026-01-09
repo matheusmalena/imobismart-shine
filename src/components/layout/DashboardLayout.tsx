@@ -6,6 +6,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +26,8 @@ import {
   ChevronDown,
   Crown,
   ClipboardList,
+  Lock,
+  Download,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -55,6 +58,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { subscription } = useSubscription();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const plan = subscription?.plan || 'starter';
+  const isPro = plan === 'pro' || plan === 'enterprise';
   const isEnterprise = subscription?.plan === 'enterprise';
 
   const getInitials = () => {
@@ -135,22 +140,47 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               );
             })}
 
-            {/* Reports - Plus only */}
-            {isEnterprise && (
-              <Link
-                to="/reports"
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
-                  location.pathname === '/reports'
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                )}
-                onClick={() => setSidebarOpen(false)}
-              >
-                <ClipboardList className="h-5 w-5" />
-                Relatórios
-              </Link>
-            )}
+            {/* Pro Feature: Exportar Dados */}
+            <Link
+              to="/export"
+              className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                location.pathname === '/export'
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              )}
+              onClick={() => setSidebarOpen(false)}
+            >
+              <Download className="h-5 w-5" />
+              Exportar Dados
+              {!isPro && (
+                <Badge variant="outline" className="ml-auto gap-1 text-xs bg-sidebar-accent">
+                  <Lock className="h-3 w-3" />
+                  Pro
+                </Badge>
+              )}
+            </Link>
+
+            {/* Plus Feature: Relatórios PDF */}
+            <Link
+              to="/reports"
+              className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                location.pathname === '/reports'
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              )}
+              onClick={() => setSidebarOpen(false)}
+            >
+              <ClipboardList className="h-5 w-5" />
+              Relatórios PDF
+              {!isEnterprise && (
+                <Badge variant="outline" className="ml-auto gap-1 text-xs bg-primary/10 border-primary/30 text-primary">
+                  <Lock className="h-3 w-3" />
+                  Plus
+                </Badge>
+              )}
+            </Link>
 
             {/* Admin section */}
             {isAdmin && (
