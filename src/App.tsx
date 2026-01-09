@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Properties from "./pages/Properties";
 import Documents from "./pages/Documents";
+import Tenants from "./pages/Tenants";
 import Settings from "./pages/Settings";
 import Reports from "./pages/Reports";
 import Export from "./pages/Export";
@@ -33,6 +34,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/properties" element={<Properties />} />
+              <Route path="/tenants" element={<Tenants />} />
               <Route path="/documents" element={<Documents />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/reports" element={<Reports />} />
