@@ -125,15 +125,25 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {isPro && (
+            {isPro ? (
               <Button variant="outline" onClick={handleExportData} className="gap-2">
                 <Download className="h-4 w-4" />
                 Exportar
               </Button>
+            ) : (
+              <Button variant="outline" disabled className="gap-2 opacity-60">
+                <Lock className="h-4 w-4" />
+                Exportar
+              </Button>
             )}
-            {isEnterprise && (
+            {isEnterprise ? (
               <Button variant="outline" onClick={() => navigate('/reports')} className="gap-2">
                 <FileText className="h-4 w-4" />
+                Relatórios
+              </Button>
+            ) : (
+              <Button variant="outline" disabled className="gap-2 opacity-60">
+                <Lock className="h-4 w-4" />
                 Relatórios
               </Button>
             )}
@@ -178,10 +188,18 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Pro/Plus: Advanced Analysis Section */}
-        {isPro && activeProperties.length > 0 && (
+        {/* Pro/Plus: Advanced Analysis Section - Visible to all, locked for free */}
+        {activeProperties.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
+            <Card className={cn(!isPro && "opacity-60 relative")}>
+              {!isPro && (
+                <div className="absolute inset-0 bg-background/50 backdrop-blur-[1px] rounded-lg flex items-center justify-center z-10">
+                  <Badge variant="outline" className="gap-1 bg-background">
+                    <Lock className="h-3 w-3" />
+                    Plano Pro
+                  </Badge>
+                </div>
+              )}
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Target className="h-4 w-4 text-primary" />
@@ -190,7 +208,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-primary">
-                  {formatCurrency(totalValue)}
+                  {isPro ? formatCurrency(totalValue) : "R$ •••••"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Total investido
@@ -198,7 +216,15 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className={cn(!isPro && "opacity-60 relative")}>
+              {!isPro && (
+                <div className="absolute inset-0 bg-background/50 backdrop-blur-[1px] rounded-lg flex items-center justify-center z-10">
+                  <Badge variant="outline" className="gap-1 bg-background">
+                    <Lock className="h-3 w-3" />
+                    Plano Pro
+                  </Badge>
+                </div>
+              )}
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-success" />
@@ -207,7 +233,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-success">
-                  {highPerformers.length}
+                  {isPro ? highPerformers.length : "•"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Acima da média de ROI
@@ -215,7 +241,15 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className={cn(!isPro && "opacity-60 relative")}>
+              {!isPro && (
+                <div className="absolute inset-0 bg-background/50 backdrop-blur-[1px] rounded-lg flex items-center justify-center z-10">
+                  <Badge variant="outline" className="gap-1 bg-background">
+                    <Lock className="h-3 w-3" />
+                    Plano Pro
+                  </Badge>
+                </div>
+              )}
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-warning" />
@@ -224,7 +258,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-warning">
-                  {lowOccupancy.length}
+                  {isPro ? lowOccupancy.length : "•"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Abaixo de 70%
@@ -232,7 +266,15 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className={cn(!isPro && "opacity-60 relative")}>
+              {!isPro && (
+                <div className="absolute inset-0 bg-background/50 backdrop-blur-[1px] rounded-lg flex items-center justify-center z-10">
+                  <Badge variant="outline" className="gap-1 bg-background">
+                    <Lock className="h-3 w-3" />
+                    Plano Pro
+                  </Badge>
+                </div>
+              )}
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <BarChart3 className="h-4 w-4 text-info" />
@@ -240,8 +282,8 @@ export default function Dashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className={cn("text-2xl font-bold", metrics.netProfit >= 0 ? "text-success" : "text-destructive")}>
-                  {formatCurrency(metrics.netProfit * 12)}
+                <div className={cn("text-2xl font-bold", isPro ? (metrics.netProfit >= 0 ? "text-success" : "text-destructive") : "text-muted-foreground")}>
+                  {isPro ? formatCurrency(metrics.netProfit * 12) : "R$ •••••"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Baseado nos dados atuais
@@ -257,9 +299,20 @@ export default function Dashboard() {
           <PropertyRanking properties={activeProperties} />
         </div>
 
-        {/* Pro/Plus: Insights Section */}
-        {isPro && activeProperties.length > 0 && (
-          <Card>
+        {/* Pro/Plus: Insights Section - Visible to all */}
+        {activeProperties.length > 0 && (
+          <Card className={cn(!isPro && "relative")}>
+            {!isPro && (
+              <div className="absolute inset-0 bg-background/70 backdrop-blur-[2px] rounded-lg flex items-center justify-center z-10">
+                <div className="text-center">
+                  <Badge variant="outline" className="gap-1 bg-background mb-2">
+                    <Lock className="h-3 w-3" />
+                    Disponível no Plano Pro
+                  </Badge>
+                  <p className="text-sm text-muted-foreground">Faça upgrade para ver insights detalhados</p>
+                </div>
+              </div>
+            )}
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
@@ -382,9 +435,20 @@ export default function Dashboard() {
           </Card>
         )}
 
-        {/* Pro/Plus: Performance Ranking Table */}
-        {isPro && activeProperties.length > 0 && (
-          <Card>
+        {/* Pro/Plus: Performance Ranking Table - Visible to all */}
+        {activeProperties.length > 0 && (
+          <Card className={cn(!isPro && "relative")}>
+            {!isPro && (
+              <div className="absolute inset-0 bg-background/70 backdrop-blur-[2px] rounded-lg flex items-center justify-center z-10">
+                <div className="text-center">
+                  <Badge variant="outline" className="gap-1 bg-background mb-2">
+                    <Lock className="h-3 w-3" />
+                    Disponível no Plano Pro
+                  </Badge>
+                  <p className="text-sm text-muted-foreground">Ranking detalhado de performance dos imóveis</p>
+                </div>
+              </div>
+            )}
             <CardHeader>
               <CardTitle>Ranking de Performance</CardTitle>
             </CardHeader>
