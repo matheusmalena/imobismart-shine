@@ -4,13 +4,16 @@ import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera, Loader2, User, Trash2 } from 'lucide-react';
+import { Camera, Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { ProfileImageCropDialog } from './ProfileImageCropDialog';
 
 export function ProfilePhotoUpload() {
   const { user } = useAuth();
   const { profile, updateProfile } = useProfile();
   const [isUploading, setIsUploading] = useState(false);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = () => {
@@ -33,12 +36,28 @@ export function ProfilePhotoUpload() {
       return;
     }
 
+    // Read file and open crop dialog
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageToCrop(reader.result as string);
+      setCropDialogOpen(true);
+    };
+    reader.readAsDataURL(file);
+
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    if (!user) return;
+
     setIsUploading(true);
 
     try {
       // Generate unique filename
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/avatar-${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/avatar-${Date.now()}.jpg`;
 
       // Delete old avatar if exists
       if (profile?.avatar_url) {
@@ -49,7 +68,7 @@ export function ProfilePhotoUpload() {
       // Upload new avatar
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, croppedBlob, { upsert: true, contentType: 'image/jpeg' });
 
       if (uploadError) throw uploadError;
 
@@ -73,9 +92,7 @@ export function ProfilePhotoUpload() {
       toast.error('Erro ao enviar foto de perfil');
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      setImageToCrop(null);
     }
   };
 
@@ -189,6 +206,15 @@ export function ProfilePhotoUpload() {
         onChange={handleFileChange}
         className="hidden"
       />
+
+      {imageToCrop && (
+        <ProfileImageCropDialog
+          open={cropDialogOpen}
+          onOpenChange={setCropDialogOpen}
+          imageSrc={imageToCrop}
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </div>
   );
 }

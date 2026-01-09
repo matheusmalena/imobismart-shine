@@ -30,13 +30,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { CreditCard, Pencil, Trash2, Plus, Sparkles, Building2, Check, X } from 'lucide-react';
+import { CreditCard, Pencil, Trash2, Plus, Sparkles, Building2, Check, X, History, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export default function AdminPlans() {
   const navigate = useNavigate();
   const { isAdmin, isLoading: roleLoading } = useUserRole();
-  const { plans, isLoading: plansLoading, updatePlan, createPlan, deletePlan } = usePlans();
+  const { plans, isLoading: plansLoading, updatePlan, createPlan, deletePlan, auditLogs, auditLoading } = usePlans();
   
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -459,6 +461,83 @@ export default function AdminPlans() {
                 </Card>
               ))}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Audit Log Section */}
+        <Card className="border-border/50">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <History className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-lg">Histórico de Alterações</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            {auditLoading ? (
+              <div className="p-4 space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <Skeleton key={i} className="h-14 w-full" />
+                ))}
+              </div>
+            ) : auditLogs.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center px-4">
+                <History className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                <h3 className="font-medium text-foreground mb-1">Nenhuma alteração registrada</h3>
+                <p className="text-sm text-muted-foreground">
+                  O histórico de alterações aparecerá aqui.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="font-semibold">Data</TableHead>
+                      <TableHead className="font-semibold">Plano</TableHead>
+                      <TableHead className="font-semibold">Ação</TableHead>
+                      <TableHead className="font-semibold">Alterações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {auditLogs.slice(0, 20).map((log) => (
+                      <TableRow key={log.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <span>{format(new Date(log.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{log.plan_id}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              log.action === 'create' ? 'default' :
+                              log.action === 'update' ? 'secondary' :
+                              'destructive'
+                            }
+                          >
+                            {log.action === 'create' ? 'Criado' :
+                             log.action === 'update' ? 'Atualizado' :
+                             'Excluído'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="max-w-xs truncate text-sm text-muted-foreground">
+                            {log.action === 'update' && log.changes && (
+                              Object.keys(log.changes).filter(k => k !== 'id').slice(0, 3).join(', ')
+                            )}
+                            {log.action === 'create' && 'Novo plano criado'}
+                            {log.action === 'delete' && 'Plano removido'}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
 
