@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +13,37 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { LogoText } from '@/components/common/LogoText';
 import { Eye, EyeOff, Loader2, Mail, Lock, User, Building2, BarChart3, Shield } from 'lucide-react';
 import { z } from 'zod';
+
+// Client-side rate limiting for auth (before DB check)
+const AUTH_RATE_LIMITS = {
+  login: { maxAttempts: 5, windowMs: 60000 }, // 5 attempts per minute
+  signup: { maxAttempts: 3, windowMs: 300000 }, // 3 attempts per 5 minutes
+};
+
+const authAttempts = new Map<string, { count: number; resetTime: number }>();
+
+function checkAuthRateLimit(action: 'login' | 'signup', identifier: string): boolean {
+  const key = `${action}:${identifier}`;
+  const limit = AUTH_RATE_LIMITS[action];
+  const now = Date.now();
+  
+  const attempt = authAttempts.get(key);
+  
+  if (attempt) {
+    if (now < attempt.resetTime) {
+      if (attempt.count >= limit.maxAttempts) {
+        return false;
+      }
+      attempt.count++;
+    } else {
+      authAttempts.set(key, { count: 1, resetTime: now + limit.windowMs });
+    }
+  } else {
+    authAttempts.set(key, { count: 1, resetTime: now + limit.windowMs });
+  }
+  
+  return true;
+}
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -56,6 +87,16 @@ export default function Auth() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Rate limit check (client-side first)
+    if (!checkAuthRateLimit('login', loginEmail)) {
+      toast({
+        title: 'Muitas tentativas',
+        description: 'Aguarde um minuto antes de tentar novamente.',
+        variant: 'destructive',
+      });
+      return;
+    }
     
     const result = loginSchema.safeParse({ email: loginEmail, password: loginPassword });
     if (!result.success) {
@@ -112,6 +153,16 @@ export default function Auth() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Rate limit check (client-side first)
+    if (!checkAuthRateLimit('signup', signupEmail)) {
+      toast({
+        title: 'Muitas tentativas',
+        description: 'Aguarde 5 minutos antes de tentar novamente.',
+        variant: 'destructive',
+      });
+      return;
+    }
     
     const result = signupSchema.safeParse({
       fullName: signupFullName,

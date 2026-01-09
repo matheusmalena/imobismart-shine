@@ -3,11 +3,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Property, PropertyFormData } from '@/types/property';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useRateLimit, RATE_LIMITS } from '@/hooks/useRateLimit';
 
 export function useProperties() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { checkRateLimit } = useRateLimit();
 
   const { data: properties = [], isLoading, error } = useQuery({
     queryKey: ['properties', user?.id],
@@ -47,6 +49,12 @@ export function useProperties() {
   const createProperty = useMutation({
     mutationFn: async (formData: PropertyFormData) => {
       if (!user) throw new Error('Usuário não autenticado');
+
+      // Rate limit check
+      const rateLimitResult = await checkRateLimit(RATE_LIMITS.CREATE_PROPERTY);
+      if (!rateLimitResult.allowed) {
+        throw new Error('Muitas requisições. Aguarde um momento.');
+      }
 
       // Check for duplicate name
       const nameExists = await checkNameExists(formData.name.trim());
@@ -113,6 +121,12 @@ export function useProperties() {
 
   const updateProperty = useMutation({
     mutationFn: async ({ id, ...formData }: PropertyFormData & { id: string }) => {
+      // Rate limit check
+      const rateLimitResult = await checkRateLimit(RATE_LIMITS.UPDATE_PROPERTY);
+      if (!rateLimitResult.allowed) {
+        throw new Error('Muitas requisições. Aguarde um momento.');
+      }
+
       // Check for duplicate name (excluding current property)
       const nameExists = await checkNameExists(formData.name.trim(), id);
       if (nameExists) {
@@ -178,6 +192,12 @@ export function useProperties() {
 
   const deleteProperty = useMutation({
     mutationFn: async (id: string) => {
+      // Rate limit check
+      const rateLimitResult = await checkRateLimit(RATE_LIMITS.DELETE_PROPERTY);
+      if (!rateLimitResult.allowed) {
+        throw new Error('Muitas requisições. Aguarde um momento.');
+      }
+
       const { error } = await supabase
         .from('properties')
         .delete()

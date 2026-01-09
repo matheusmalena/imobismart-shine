@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { useRateLimit, RATE_LIMITS } from '@/hooks/useRateLimit';
 
 export interface Profile {
   id: string;
@@ -22,6 +23,7 @@ export interface ProfileUpdateData {
 export function useProfile() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { checkRateLimit } = useRateLimit();
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['profile', user?.id],
@@ -47,6 +49,12 @@ export function useProfile() {
   const updateProfile = useMutation({
     mutationFn: async (updateData: ProfileUpdateData) => {
       if (!user) throw new Error('User not authenticated');
+      
+      // Rate limit check
+      const rateLimitResult = await checkRateLimit(RATE_LIMITS.UPDATE_PROFILE);
+      if (!rateLimitResult.allowed) {
+        throw new Error('Muitas requisições. Aguarde um momento.');
+      }
       
       const { error } = await supabase
         .from('profiles')

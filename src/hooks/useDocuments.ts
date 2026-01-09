@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useRateLimit, RATE_LIMITS } from '@/hooks/useRateLimit';
 import type { DocumentCategory, PropertyDocument } from '@/types/property';
 
 export function useDocuments(propertyId?: string) {
@@ -10,6 +11,7 @@ export function useDocuments(propertyId?: string) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isUploading, setIsUploading] = useState(false);
+  const { checkRateLimit } = useRateLimit();
 
   const { data: documents = [], isLoading } = useQuery({
     queryKey: ['documents', propertyId],
@@ -67,6 +69,17 @@ export function useDocuments(propertyId?: string) {
       toast({
         title: 'Erro',
         description: 'Usuário não autenticado',
+        variant: 'destructive',
+      });
+      return false;
+    }
+
+    // Rate limit check
+    const rateLimitResult = await checkRateLimit(RATE_LIMITS.UPLOAD_DOCUMENT);
+    if (!rateLimitResult.allowed) {
+      toast({
+        title: 'Muitas requisições',
+        description: 'Aguarde um momento antes de enviar outro documento',
         variant: 'destructive',
       });
       return false;
@@ -131,6 +144,12 @@ export function useDocuments(propertyId?: string) {
 
   const deleteDocument = useMutation({
     mutationFn: async (document: PropertyDocument) => {
+      // Rate limit check
+      const rateLimitResult = await checkRateLimit(RATE_LIMITS.DELETE_DOCUMENT);
+      if (!rateLimitResult.allowed) {
+        throw new Error('Muitas requisições. Aguarde um momento.');
+      }
+
       const filePath = getFilePath(document.file_url);
       if (filePath) {
         await supabase.storage.from('property-documents').remove([filePath]);
