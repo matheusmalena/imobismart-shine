@@ -55,13 +55,6 @@ export default function Reports() {
     }
   }, [user, authLoading, navigate]);
 
-  useEffect(() => {
-    if (!authLoading && !isEnterprise) {
-      navigate('/dashboard');
-      toast.error('Esta funcionalidade está disponível apenas para o plano Plus');
-    }
-  }, [authLoading, isEnterprise, navigate]);
-
   if (authLoading || isLoading) {
     return (
       <DashboardLayout>
@@ -73,8 +66,61 @@ export default function Reports() {
     );
   }
 
+  // Show upgrade prompt for non-Plus users
   if (!isEnterprise) {
-    return null;
+    return (
+      <DashboardLayout>
+        <div className="max-w-2xl mx-auto py-12 animate-fade-in">
+          <Card className="text-center">
+            <CardHeader className="pb-4">
+              <div className="mx-auto p-4 rounded-full bg-primary/10 w-fit mb-4">
+                <Lock className="h-8 w-8 text-primary" />
+              </div>
+              <CardTitle className="text-2xl">Relatórios Personalizados</CardTitle>
+              <CardDescription className="text-base mt-2">
+                Gere relatórios profissionais em PDF com análises detalhadas do seu portfólio imobiliário.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-4 text-left">
+                <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                  <FileText className="h-5 w-5 text-primary mt-0.5" />
+                  <div>
+                    <p className="font-medium">Relatórios em PDF</p>
+                    <p className="text-sm text-muted-foreground">Layout profissional pronto para impressão</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                  <BarChart3 className="h-5 w-5 text-primary mt-0.5" />
+                  <div>
+                    <p className="font-medium">Análises Detalhadas</p>
+                    <p className="text-sm text-muted-foreground">Métricas de performance e ROI por imóvel</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                  <Download className="h-5 w-5 text-primary mt-0.5" />
+                  <div>
+                    <p className="font-medium">Exportação Avançada</p>
+                    <p className="text-sm text-muted-foreground">CSV, JSON e PDF personalizados</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="pt-4">
+                <Badge variant="outline" className="gap-1 mb-4 bg-primary/10 border-primary/30 text-primary">
+                  <Crown className="h-3 w-3" />
+                  Disponível no Plano Plus
+                </Badge>
+                <Button onClick={() => navigate('/settings')} size="lg" className="w-full gap-2">
+                  <Crown className="h-4 w-4" />
+                  Fazer Upgrade para Plus
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   const formatCurrency = (value: number) => {

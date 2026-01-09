@@ -125,28 +125,6 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {isPro ? (
-              <Button variant="outline" onClick={handleExportData} className="gap-2">
-                <Download className="h-4 w-4" />
-                Exportar
-              </Button>
-            ) : (
-              <Button variant="outline" disabled className="gap-2 opacity-60">
-                <Lock className="h-4 w-4" />
-                Exportar
-              </Button>
-            )}
-            {isEnterprise ? (
-              <Button variant="outline" onClick={() => navigate('/reports')} className="gap-2">
-                <FileText className="h-4 w-4" />
-                Relatórios
-              </Button>
-            ) : (
-              <Button variant="outline" disabled className="gap-2 opacity-60">
-                <Lock className="h-4 w-4" />
-                Relatórios
-              </Button>
-            )}
             <Button onClick={() => navigate('/properties')} className="gap-2">
               <Plus className="h-4 w-4" />
               Novo Imóvel
