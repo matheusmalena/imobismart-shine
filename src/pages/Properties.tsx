@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProperties } from '@/hooks/useProperties';
 import { usePropertyLimit } from '@/hooks/usePropertyLimit';
+import { usePlans } from '@/hooks/usePlans';
 import { Property, PropertyFormData, PROPERTY_TYPE_LABELS, PROPERTY_STATUS_LABELS } from '@/types/property';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { PropertyCard } from '@/components/properties/PropertyCard';
@@ -10,6 +11,7 @@ import { PropertyForm } from '@/components/properties/PropertyForm';
 import { EmptyState } from '@/components/properties/EmptyState';
 import { DeleteConfirmDialog } from '@/components/properties/DeleteConfirmDialog';
 import { PropertyLimitBanner } from '@/components/properties/PropertyLimitBanner';
+import { UnarchiveBlockedDialog } from '@/components/properties/UnarchiveBlockedDialog';
 import { PropertyDetails } from '@/pages/PropertyDetails';
 import { PageTransition } from '@/components/PageTransition';
 import { Button } from '@/components/ui/button';
@@ -34,14 +36,14 @@ export default function Properties() {
     duplicateProperty 
   } = useProperties();
   
-  const { canAddProperty, remainingSlots, isAtLimit, plan, limit } = usePropertyLimit();
-
+  const { canAddProperty, remainingSlots, isAtLimit, plan, limit, activeCount: planActiveCount } = usePropertyLimit();
+  const { getPlanById } = usePlans();
   const [formOpen, setFormOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null);
-  
+  const [unarchiveBlockedOpen, setUnarchiveBlockedOpen] = useState(false);
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -105,6 +107,11 @@ export default function Properties() {
   };
 
   const handleArchive = (property: Property) => {
+    // If property is archived and user wants to unarchive, check limit
+    if (property.is_archived && isAtLimit) {
+      setUnarchiveBlockedOpen(true);
+      return;
+    }
     archiveProperty.mutate({ id: property.id, isArchived: !property.is_archived });
   };
 
@@ -348,6 +355,15 @@ export default function Properties() {
           property={propertyToDelete}
           onConfirm={confirmDelete}
           isLoading={deleteProperty.isPending}
+        />
+
+        {/* Unarchive Blocked Dialog */}
+        <UnarchiveBlockedDialog
+          open={unarchiveBlockedOpen}
+          onOpenChange={setUnarchiveBlockedOpen}
+          activeCount={planActiveCount}
+          limit={limit}
+          planName={getPlanById(plan)?.name || plan}
         />
       </div>
       </PageTransition>

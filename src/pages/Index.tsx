@@ -6,6 +6,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { LogoText } from "@/components/common/LogoText";
 import { TargetAudienceSection } from "@/components/landing/TargetAudienceSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
+import { PricingSection } from "@/components/landing/PricingSection";
 import { TutorialModal, TutorialModalRef } from "@/components/onboarding/TutorialModal";
 import {
   Building2,
@@ -18,7 +19,6 @@ import {
   TrendingUp,
   Play,
   Sparkles,
-  Crown,
   Rocket,
 } from "lucide-react";
 
@@ -66,51 +66,6 @@ export default function Index() {
     "Acesso de qualquer dispositivo",
   ];
 
-  const plans = [
-    {
-      id: "free",
-      name: "Gratuito",
-      price: "R$ 0",
-      period: "/mês",
-      description: "Ideal para começar",
-      features: ["Até 2 imóveis cadastrados", "Dashboard básico", "Upload de documentos (100MB)", "Suporte por email"],
-      cta: "Começar Grátis",
-      popular: false,
-    },
-    {
-      id: "pro",
-      name: "Pro",
-      price: "R$ 49",
-      period: "/mês",
-      description: "Para investidores sérios",
-      features: [
-        "Até 25 imóveis cadastrados",
-        "Dashboard avançado",
-        "Upload ilimitado de documentos",
-        "Relatórios automáticos",
-        "Análise de mercado",
-        "Suporte prioritário",
-      ],
-      cta: "Assinar Pro",
-      popular: true,
-    },
-    {
-      id: "plus",
-      name: "Plus",
-      price: "R$ 99",
-      period: "/mês",
-      description: "Para grandes portfólios",
-      features: [
-        "Imóveis ilimitados",
-        "Todos os recursos Pro",
-        "Relatórios personalizados",
-        "Exportação de dados",
-        "Suporte prioritário 24/7",
-      ],
-      cta: "Assinar Plus",
-      popular: false,
-    },
-  ];
 
 
   return (
@@ -219,56 +174,7 @@ export default function Index() {
       </section>
 
       {/* Pricing */}
-      <section className="py-20 px-4" id="pricing">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Planos que cabem no seu bolso</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Comece grátis e evolua conforme seu portfólio cresce. Sem surpresas.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {plans.map((plan) => (
-              <div
-                key={plan.id}
-                className={`relative bg-card rounded-2xl p-6 border transition-all duration-300 hover:shadow-lg ${
-                  plan.popular ? "border-primary shadow-lg shadow-primary/10 scale-105" : "border-border/50 shadow-card"
-                }`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium">
-                      <Crown className="h-3 w-3" />
-                      Mais Popular
-                    </span>
-                  </div>
-                )}
-                <div className="text-center mb-6">
-                  <h3 className="text-xl font-bold text-card-foreground mb-1">{plan.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-4xl font-bold text-foreground">{plan.price}</span>
-                    <span className="text-muted-foreground">{plan.period}</span>
-                  </div>
-                </div>
-                <ul className="space-y-3 mb-6">
-                  {plan.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                      <span className="text-sm text-muted-foreground">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Link to="/auth" className="block">
-                  <Button className="w-full" variant={plan.popular ? "default" : "outline"}>
-                    {plan.cta}
-                  </Button>
-                </Link>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <PricingSection />
 
       {/* Testimonials */}
       <TestimonialsSection />
