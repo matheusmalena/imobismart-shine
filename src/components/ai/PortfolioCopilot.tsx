@@ -418,9 +418,10 @@ export function PortfolioCopilot() {
                       )}
                     >
                       {message.content || (
-                        <div className="flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span className="text-muted-foreground">Pensando...</span>
+                        <div className="flex items-center gap-1 py-1">
+                          <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                          <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                          <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce"></span>
                         </div>
                       )}
                     </div>
