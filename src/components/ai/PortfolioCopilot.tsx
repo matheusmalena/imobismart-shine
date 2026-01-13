@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
-import { X, Send, Bot, User, Sparkles, Trash2 } from "lucide-react";
+import { X, Send, Bot, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -14,6 +15,11 @@ interface Message {
   timestamp: Date;
 }
 
+interface UserProfile {
+  avatar_url: string | null;
+  full_name: string | null;
+}
+
 const QUICK_SUGGESTIONS = [
   "Qual meu lucro total?",
   "Quantos imóveis tenho?",
@@ -22,12 +28,12 @@ const QUICK_SUGGESTIONS = [
   "Taxa de ocupação",
 ];
 
-// Typing indicator component
+// Typing indicator component with pulse animation
 const TypingIndicator = () => (
   <div className="flex items-center gap-1.5 py-1 px-1">
-    <span className="w-2 h-2 bg-primary/70 rounded-full animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '0ms' }}></span>
-    <span className="w-2 h-2 bg-primary/70 rounded-full animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '150ms' }}></span>
-    <span className="w-2 h-2 bg-primary/70 rounded-full animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '300ms' }}></span>
+    <span className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0ms', animationDuration: '0.6s' }}></span>
+    <span className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.2s', animationDuration: '0.6s' }}></span>
+    <span className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.4s', animationDuration: '0.6s' }}></span>
   </div>
 );
 
@@ -41,6 +47,7 @@ export const PortfolioCopilot = forwardRef<PortfolioCopilotRef>((_, ref) => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -53,15 +60,26 @@ export const PortfolioCopilot = forwardRef<PortfolioCopilotRef>((_, ref) => {
     },
   }));
 
-  // Load user and messages on mount
+  // Load user and profile on mount
   useEffect(() => {
-    const loadUser = async () => {
+    const loadUserAndProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserId(user.id);
+        
+        // Load user profile
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("avatar_url, full_name")
+          .eq("user_id", user.id)
+          .single();
+        
+        if (profile) {
+          setUserProfile(profile);
+        }
       }
     };
-    loadUser();
+    loadUserAndProfile();
   }, []);
 
   // Load messages from database
@@ -426,20 +444,18 @@ export const PortfolioCopilot = forwardRef<PortfolioCopilotRef>((_, ref) => {
                       message.role === "user" && "flex-row-reverse"
                     )}
                   >
-                    <div
-                      className={cn(
-                        "h-8 w-8 rounded-full flex items-center justify-center shrink-0",
-                        message.role === "user"
-                          ? "bg-primary"
-                          : "bg-gradient-to-r from-primary/20 to-primary/10"
-                      )}
-                    >
-                      {message.role === "user" ? (
-                        <User className="h-4 w-4 text-primary-foreground" />
-                      ) : (
+                    {message.role === "user" ? (
+                      <Avatar className="h-8 w-8 shrink-0">
+                        <AvatarImage src={userProfile?.avatar_url || undefined} />
+                        <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                          {userProfile?.full_name?.charAt(0)?.toUpperCase() || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 flex items-center justify-center shrink-0">
                         <Bot className="h-4 w-4 text-primary" />
-                      )}
-                    </div>
+                      </div>
+                    )}
                     <div
                       className={cn(
                         "rounded-2xl px-4 py-3 max-w-[80%] text-sm",
@@ -452,6 +468,18 @@ export const PortfolioCopilot = forwardRef<PortfolioCopilotRef>((_, ref) => {
                     </div>
                   </div>
                 ))}
+                
+                {/* Show typing indicator when loading and last message is from user */}
+                {isLoading && messages.length > 0 && messages[messages.length - 1]?.role === "user" && (
+                  <div className="flex gap-3">
+                    <div className="h-8 w-8 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 flex items-center justify-center shrink-0">
+                      <Bot className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="rounded-2xl px-4 py-3 bg-muted rounded-tl-sm">
+                      <TypingIndicator />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </ScrollArea>
