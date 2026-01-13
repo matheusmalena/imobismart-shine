@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -35,6 +35,7 @@ import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { TutorialModal } from '@/components/onboarding/TutorialModal';
 import { LogoText } from '@/components/common/LogoText';
+import { PortfolioCopilot, PortfolioCopilotRef } from '@/components/ai/PortfolioCopilot';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -61,6 +62,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { profile } = useProfile();
   const { subscription } = useSubscription();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const copilotRef = useRef<PortfolioCopilotRef>(null);
 
   const plan = subscription?.plan || 'starter';
   const isPro = plan === 'pro' || plan === 'enterprise';
@@ -274,6 +276,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           {children}
         </main>
       </div>
+
+      {/* AI Copilot - Available on all pages */}
+      <PortfolioCopilot ref={copilotRef} />
     </div>
   );
 }

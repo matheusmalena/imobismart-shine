@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
-import { X, Send, Bot, Sparkles, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { X, Send, Bot, Sparkles, Trash2, Home, FileText, Users, Settings, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -37,11 +38,56 @@ const TypingIndicator = () => (
   </div>
 );
 
+// Action button interface
+interface ActionButton {
+  type: string;
+  label: string;
+  param?: string;
+}
+
+// Parse actions from message content
+const parseActions = (content: string): { text: string; actions: ActionButton[] } => {
+  const actionRegex = /\[AÇÃO:([^:]+):([^\]:]+)(?::([^\]]+))?\]/g;
+  const actions: ActionButton[] = [];
+  let match;
+  
+  while ((match = actionRegex.exec(content)) !== null) {
+    actions.push({
+      type: match[1],
+      label: match[2],
+      param: match[3],
+    });
+  }
+  
+  const text = content.replace(actionRegex, '').trim();
+  return { text, actions };
+};
+
+// Get icon for action type
+const getActionIcon = (type: string) => {
+  switch (type) {
+    case 'criar_imovel':
+      return Plus;
+    case 'ver_imovel':
+      return Home;
+    case 'ver_documento':
+    case 'ver_documentos':
+      return FileText;
+    case 'ver_inquilinos':
+      return Users;
+    case 'ver_configuracoes':
+      return Settings;
+    default:
+      return Sparkles;
+  }
+};
+
 export interface PortfolioCopilotRef {
   openWithQuestion: (question: string) => void;
 }
 
 export const PortfolioCopilot = forwardRef<PortfolioCopilotRef>((_, ref) => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -51,6 +97,37 @@ export const PortfolioCopilot = forwardRef<PortfolioCopilotRef>((_, ref) => {
   const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Handle action button clicks
+  const handleAction = useCallback((action: ActionButton) => {
+    switch (action.type) {
+      case 'criar_imovel':
+        navigate('/properties?action=new');
+        setIsOpen(false);
+        break;
+      case 'ver_imovel':
+        if (action.param) {
+          navigate(`/properties/${action.param}`);
+          setIsOpen(false);
+        }
+        break;
+      case 'ver_documento':
+      case 'ver_documentos':
+        navigate('/documents');
+        setIsOpen(false);
+        break;
+      case 'ver_inquilinos':
+        navigate('/tenants');
+        setIsOpen(false);
+        break;
+      case 'ver_configuracoes':
+        navigate('/settings');
+        setIsOpen(false);
+        break;
+      default:
+        toast.info(`Ação: ${action.label}`);
+    }
+  }, [navigate]);
 
   // Expose method to parent
   useImperativeHandle(ref, () => ({
@@ -436,38 +513,67 @@ export const PortfolioCopilot = forwardRef<PortfolioCopilotRef>((_, ref) => {
               </div>
             ) : (
               <div className="space-y-4">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={cn(
-                      "flex gap-3",
-                      message.role === "user" && "flex-row-reverse"
-                    )}
-                  >
-                    {message.role === "user" ? (
-                      <Avatar className="h-8 w-8 shrink-0">
-                        <AvatarImage src={userProfile?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                          {userProfile?.full_name?.charAt(0)?.toUpperCase() || "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                    ) : (
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 flex items-center justify-center shrink-0">
-                        <Bot className="h-4 w-4 text-primary" />
-                      </div>
-                    )}
+                {messages.map((message) => {
+                  const { text, actions } = message.role === "assistant" 
+                    ? parseActions(message.content) 
+                    : { text: message.content, actions: [] };
+                  
+                  return (
                     <div
+                      key={message.id}
                       className={cn(
-                        "rounded-2xl px-4 py-3 max-w-[80%] text-sm",
-                        message.role === "user"
-                          ? "bg-primary text-primary-foreground rounded-tr-sm"
-                          : "bg-muted rounded-tl-sm"
+                        "flex gap-3",
+                        message.role === "user" && "flex-row-reverse"
                       )}
                     >
-                      {message.content || <TypingIndicator />}
+                      {message.role === "user" ? (
+                        <Avatar className="h-8 w-8 shrink-0">
+                          <AvatarImage src={userProfile?.avatar_url || undefined} />
+                          <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                            {userProfile?.full_name?.charAt(0)?.toUpperCase() || "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                      ) : (
+                        <div className="h-8 w-8 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 flex items-center justify-center shrink-0">
+                          <Bot className="h-4 w-4 text-primary" />
+                        </div>
+                      )}
+                      <div className="flex flex-col gap-2 max-w-[80%]">
+                        <div
+                          className={cn(
+                            "rounded-2xl px-4 py-3 text-sm",
+                            message.role === "user"
+                              ? "bg-primary text-primary-foreground rounded-tr-sm"
+                              : "bg-muted rounded-tl-sm"
+                          )}
+                        >
+                          {text || <TypingIndicator />}
+                        </div>
+                        
+                        {/* Action buttons */}
+                        {actions.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {actions.map((action, index) => {
+                              const Icon = getActionIcon(action.type);
+                              return (
+                                <Button
+                                  key={index}
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 text-xs rounded-full gap-1.5 hover:bg-primary hover:text-primary-foreground transition-colors"
+                                  onClick={() => handleAction(action)}
+                                >
+                                  <Icon className="h-3.5 w-3.5" />
+                                  {action.label}
+                                </Button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 
                 {/* Show typing indicator when loading and last message is from user */}
                 {isLoading && messages.length > 0 && messages[messages.length - 1]?.role === "user" && (

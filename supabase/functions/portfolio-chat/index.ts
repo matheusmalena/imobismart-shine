@@ -16,7 +16,26 @@ REGRAS:
 - Valores em R$ (ex: R$ 5.200)
 - Sem emojis excessivos - use só quando fizer sentido
 - Vá direto ao ponto
-- Se faltar dado, avise brevemente`;
+- Se faltar dado, avise brevemente
+
+AÇÕES SUGERIDAS:
+Quando apropriado, sugira ações clicáveis usando este formato EXATO no final da resposta:
+[AÇÃO:tipo:texto_botão:parametro]
+
+Tipos de ação disponíveis:
+- criar_imovel: Criar novo imóvel
+- ver_imovel: Ver detalhes de um imóvel (parametro = id do imóvel)
+- ver_documento: Ver documento (parametro = nome do documento)
+- ver_inquilinos: Ver lista de inquilinos
+- ver_configuracoes: Abrir configurações
+- ver_documentos: Ver todos os documentos
+
+Exemplos:
+- "Quer adicionar um novo imóvel? [AÇÃO:criar_imovel:Criar novo imóvel]"
+- "Você pode ver os detalhes aqui: [AÇÃO:ver_imovel:Ver detalhes:abc123]"
+- "Confira seus documentos: [AÇÃO:ver_documentos:Ver documentos]"
+
+Use ações apenas quando fizer sentido no contexto da conversa.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
