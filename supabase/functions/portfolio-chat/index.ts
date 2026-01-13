@@ -6,9 +6,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SYSTEM_PROMPT = `Você é um parceiro de negócios do usuário, especialista em imóveis. Fale de forma informal, como se estivesse batendo papo com um amigo.
+const buildSystemPrompt = (userName: string) => `Você é um parceiro de negócios do usuário chamado ${userName || "amigo"}. Fale de forma informal, como se estivesse batendo papo com um amigo.
 
 REGRAS:
+- SEMPRE se refira ao usuário pelo nome: ${userName || "amigo"}
 - Respostas CURTAS (2-4 linhas no máximo)
 - Tom descontraído mas profissional
 - Use APENAS dados do contexto - nunca invente
@@ -60,7 +61,7 @@ serve(async (req) => {
     }
 
     // Fetch user's portfolio data (multi-tenant - only user's data)
-    const [propertiesResult, subscriptionResult] = await Promise.all([
+    const [propertiesResult, subscriptionResult, profileResult] = await Promise.all([
       supabase
         .from("properties")
         .select("*")
@@ -71,6 +72,11 @@ serve(async (req) => {
         .select("plan, status")
         .eq("user_id", user.id)
         .single(),
+      supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("user_id", user.id)
+        .single(),
     ]);
 
     if (propertiesResult.error) {
@@ -79,6 +85,7 @@ serve(async (req) => {
 
     const properties = propertiesResult.data || [];
     const subscription = subscriptionResult.data;
+    const userName = profileResult.data?.full_name?.split(" ")[0] || "amigo";
 
     // Calculate portfolio metrics
     const activeProperties = properties.filter(p => p.status === "alugado");
@@ -144,7 +151,7 @@ serve(async (req) => {
 
     // Prepare messages for AI
     const messages = [
-      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: buildSystemPrompt(userName) },
       { 
         role: "system", 
         content: `CONTEXTO DO PORTFÓLIO DO USUÁRIO:\n${JSON.stringify(portfolioContext, null, 2)}` 
