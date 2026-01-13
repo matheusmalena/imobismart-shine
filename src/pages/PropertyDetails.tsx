@@ -424,6 +424,51 @@ export function PropertyDetails({ property, onEdit, onClose }: PropertyDetailsPr
             )}
           </TabsContent>
 
+          {/* Gallery Tab */}
+          <TabsContent value="gallery" className="mt-6">
+            {isLoadingGallery ? (
+              <Card>
+                <CardContent className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </CardContent>
+              </Card>
+            ) : galleryImages.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                  <Images className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                  <h3 className="text-lg font-medium mb-2">Nenhuma foto na galeria</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Este imóvel não possui fotos adicionais na galeria.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {galleryImages.map((image, index) => (
+                  <div
+                    key={image.id}
+                    className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group"
+                    onClick={() => setSelectedImageIndex(index)}
+                  >
+                    <img
+                      src={image.image_url}
+                      alt={image.caption || `Foto ${index + 1}`}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                      <Maximize className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    {image.caption && (
+                      <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
+                        <p className="text-white text-xs truncate">{image.caption}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
           {/* Metrics Tab */}
           <TabsContent value="metrics" className="mt-6">
             <div className="grid gap-6 md:grid-cols-2">
