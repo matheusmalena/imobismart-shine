@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, Bot, User, Sparkles, Loader2 } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { MessageCircle, X, Send, Bot, User, Sparkles, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -27,9 +27,52 @@ export function PortfolioCopilot() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Load user and messages on mount
+  useEffect(() => {
+    const loadUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+      }
+    };
+    loadUser();
+  }, []);
+
+  // Load messages from database
+  useEffect(() => {
+    if (!userId) return;
+
+    const loadMessages = async () => {
+      const { data, error } = await supabase
+        .from("ai_chat_messages")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: true })
+        .limit(50);
+
+      if (error) {
+        console.error("Error loading messages:", error);
+        return;
+      }
+
+      if (data) {
+        setMessages(
+          data.map((msg) => ({
+            id: msg.id,
+            role: msg.role as "user" | "assistant",
+            content: msg.content,
+            timestamp: new Date(msg.created_at),
+          }))
+        );
+      }
+    };
+
+    loadMessages();
+  }, [userId]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -43,13 +86,54 @@ export function PortfolioCopilot() {
     }
   }, [isOpen]);
 
-  const handleSend = async () => {
+  const saveMessage = async (role: "user" | "assistant", content: string) => {
+    if (!userId) return null;
+
+    const { data, error } = await supabase
+      .from("ai_chat_messages")
+      .insert({
+        user_id: userId,
+        role,
+        content,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error saving message:", error);
+      return null;
+    }
+
+    return data?.id;
+  };
+
+  const handleClearHistory = async () => {
+    if (!userId) return;
+
+    const { error } = await supabase
+      .from("ai_chat_messages")
+      .delete()
+      .eq("user_id", userId);
+
+    if (error) {
+      toast.error("Erro ao limpar histórico");
+      return;
+    }
+
+    setMessages([]);
+    toast.success("Histórico limpo!");
+  };
+
+  const handleSend = useCallback(async () => {
     if (!input.trim() || isLoading) return;
 
+    const userContent = input.trim();
+    const tempUserId = crypto.randomUUID();
+
     const userMessage: Message = {
-      id: crypto.randomUUID(),
+      id: tempUserId,
       role: "user",
-      content: input.trim(),
+      content: userContent,
       timestamp: new Date(),
     };
 
@@ -62,14 +146,22 @@ export function PortfolioCopilot() {
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
         toast.error("Você precisa estar logado para usar o Copiloto");
         setIsLoading(false);
         return;
       }
 
-      const conversationHistory = messages.map((m) => ({
+      // Save user message
+      const savedUserMsgId = await saveMessage("user", userContent);
+      if (savedUserMsgId) {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === tempUserId ? { ...m, id: savedUserMsgId } : m))
+        );
+      }
+
+      const conversationHistory = messages.slice(-10).map((m) => ({
         role: m.role,
         content: m.content,
       }));
@@ -83,7 +175,7 @@ export function PortfolioCopilot() {
             Authorization: `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({
-            message: userMessage.content,
+            message: userContent,
             conversationHistory,
           }),
         }
@@ -174,16 +266,26 @@ export function PortfolioCopilot() {
           }
         }
       }
+
+      // Save assistant message
+      if (assistantContent) {
+        const savedAssistantId = await saveMessage("assistant", assistantContent);
+        if (savedAssistantId) {
+          setMessages((prev) =>
+            prev.map((m) => (m.id === assistantId ? { ...m, id: savedAssistantId } : m))
+          );
+        }
+      }
     } catch (error) {
       console.error("Chat error:", error);
       toast.error(error instanceof Error ? error.message : "Erro ao enviar mensagem");
-      
+
       // Remove failed assistant message if empty
       setMessages((prev) => prev.filter((m) => m.id !== assistantId || m.content));
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [input, isLoading, messages, userId]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -194,8 +296,14 @@ export function PortfolioCopilot() {
 
   const handleQuickSuggestion = (suggestion: string) => {
     setInput(suggestion);
-    setTimeout(() => handleSend(), 100);
   };
+
+  // Submit when input changes to a suggestion
+  useEffect(() => {
+    if (input && QUICK_SUGGESTIONS.includes(input) && !isLoading) {
+      handleSend();
+    }
+  }, [input]);
 
   return (
     <>
@@ -225,17 +333,30 @@ export function PortfolioCopilot() {
               </div>
               <div>
                 <h3 className="font-semibold text-sm">Copiloto IA</h3>
-                <p className="text-xs text-muted-foreground">Analista do seu portfólio</p>
+                <p className="text-xs text-muted-foreground">Seu parceiro de negócios</p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsOpen(false)}
-              className="h-8 w-8 rounded-full"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+              {messages.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleClearHistory}
+                  className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive"
+                  title="Limpar histórico"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsOpen(false)}
+                className="h-8 w-8 rounded-full"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           {/* Messages */}
