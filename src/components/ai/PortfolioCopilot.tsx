@@ -14,6 +14,14 @@ interface Message {
   timestamp: Date;
 }
 
+const QUICK_SUGGESTIONS = [
+  "Qual meu lucro total?",
+  "Quantos imóveis tenho?",
+  "Quais estão vagos?",
+  "Ranking por lucro",
+  "Taxa de ocupação",
+];
+
 export function PortfolioCopilot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -21,6 +29,7 @@ export function PortfolioCopilot() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -183,6 +192,11 @@ export function PortfolioCopilot() {
     }
   };
 
+  const handleQuickSuggestion = (suggestion: string) => {
+    setInput(suggestion);
+    setTimeout(() => handleSend(), 100);
+  };
+
   return (
     <>
       {/* Floating Button */}
@@ -228,19 +242,27 @@ export function PortfolioCopilot() {
           <ScrollArea className="flex-1 p-4" ref={scrollRef}>
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center p-4">
-                <div className="h-16 w-16 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 flex items-center justify-center mb-4">
-                  <Sparkles className="h-8 w-8 text-primary" />
+                <div className="h-12 w-12 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 flex items-center justify-center mb-3">
+                  <Sparkles className="h-6 w-6 text-primary" />
                 </div>
-                <h4 className="font-medium mb-2">Olá! Sou seu Copiloto IA</h4>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Posso analisar seu portfólio imobiliário e responder perguntas sobre:
+                <h4 className="font-medium mb-1 text-sm">Copiloto IA</h4>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Pergunte sobre seu portfólio
                 </p>
-                <ul className="text-xs text-muted-foreground space-y-1 text-left">
-                  <li>• Receitas, despesas e lucros</li>
-                  <li>• Comparação entre imóveis</li>
-                  <li>• Taxa de ocupação e desempenho</li>
-                  <li>• Ranking e insights do portfólio</li>
-                </ul>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {QUICK_SUGGESTIONS.map((suggestion) => (
+                    <Button
+                      key={suggestion}
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7 rounded-full hover:bg-primary hover:text-primary-foreground transition-colors"
+                      onClick={() => handleQuickSuggestion(suggestion)}
+                      disabled={isLoading}
+                    >
+                      {suggestion}
+                    </Button>
+                  ))}
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
