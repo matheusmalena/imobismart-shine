@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProperties } from '@/hooks/useProperties';
@@ -6,7 +6,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useExportData } from '@/hooks/useExportData';
 import { useProfile } from '@/hooks/useProfile';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { PortfolioCopilot } from '@/components/ai/PortfolioCopilot';
+import { PortfolioCopilot, PortfolioCopilotRef } from '@/components/ai/PortfolioCopilot';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { RevenueChart } from '@/components/dashboard/RevenueChart';
 import { PropertyRanking } from '@/components/dashboard/PropertyRanking';
@@ -33,6 +33,8 @@ import {
   CheckCircle,
   Lock,
   BarChart3,
+  Sparkles,
+  Send,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -43,12 +45,28 @@ export default function Dashboard() {
   const { subscription } = useSubscription();
   const { exportToCSV } = useExportData();
   const { profile } = useProfile();
+  const copilotRef = useRef<PortfolioCopilotRef>(null);
+  const [aiQuestion, setAiQuestion] = useState('');
 
   const plan = subscription?.plan || 'starter';
   const isPro = plan === 'pro' || plan === 'enterprise';
   const isEnterprise = plan === 'enterprise';
   
   const firstName = profile?.full_name?.split(' ')[0] || 'Investidor';
+
+  const handleAskCopilot = () => {
+    if (aiQuestion.trim() && copilotRef.current) {
+      copilotRef.current.openWithQuestion(aiQuestion.trim());
+      setAiQuestion('');
+    }
+  };
+
+  const handleAiKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAskCopilot();
+    }
+  };
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -138,7 +156,35 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Metrics Grid - Always 3 columns on medium screens and up */}
+        {/* AI Search Input */}
+        <div className="flex justify-center">
+          <div className="relative w-full max-w-2xl">
+            <div className="relative flex items-center">
+              <div className="absolute left-4 flex items-center pointer-events-none">
+                <Sparkles className="h-5 w-5 text-primary" />
+              </div>
+              <input
+                type="text"
+                value={aiQuestion}
+                onChange={(e) => setAiQuestion(e.target.value)}
+                onKeyDown={handleAiKeyDown}
+                placeholder="Pergunte ao Copiloto IA sobre seu portfólio..."
+                className="w-full h-14 pl-12 pr-14 rounded-2xl border bg-background text-foreground placeholder:text-muted-foreground shadow-lg shadow-primary/5 focus:shadow-xl focus:shadow-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300"
+              />
+              <button
+                onClick={handleAskCopilot}
+                disabled={!aiQuestion.trim()}
+                className="absolute right-3 h-10 w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105"
+              >
+                <Send className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              Ex: "Qual meu lucro total?" ou "Quais imóveis estão vagos?"
+            </p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <MetricCard
             title={metrics.totalProperties === 1 ? "Imóvel" : "Imóveis"}
@@ -588,7 +634,7 @@ export default function Dashboard() {
       </div>
       
       {/* AI Copilot */}
-      <PortfolioCopilot />
+      <PortfolioCopilot ref={copilotRef} />
     </DashboardLayout>
   );
 }
