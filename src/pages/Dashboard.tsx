@@ -6,6 +6,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useExportData } from '@/hooks/useExportData';
 import { useProfile } from '@/hooks/useProfile';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { PortfolioCopilot } from '@/components/ai/PortfolioCopilot';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { RevenueChart } from '@/components/dashboard/RevenueChart';
 import { PropertyRanking } from '@/components/dashboard/PropertyRanking';
@@ -585,6 +586,9 @@ export default function Dashboard() {
           </Card>
         )}
       </div>
+      
+      {/* AI Copilot */}
+      <PortfolioCopilot />
     </DashboardLayout>
   );
 }
