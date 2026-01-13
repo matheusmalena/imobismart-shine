@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Loader2, Search } from 'lucide-react';
 import { PhotoUpload } from './PhotoUpload';
+import { PropertyGallery } from './PropertyGallery';
 import { usePhotoUpload } from '@/hooks/usePhotoUpload';
 import { formatCEP, formatCurrencyInput, parseCurrency, fetchAddressByCEP } from '@/utils/formatters';
 import { toast } from 'sonner';
@@ -220,11 +221,12 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="basic">Básico</TabsTrigger>
               <TabsTrigger value="address">Endereço</TabsTrigger>
               <TabsTrigger value="financial">Financeiro</TabsTrigger>
               <TabsTrigger value="features">Características</TabsTrigger>
+              <TabsTrigger value="gallery">Galeria</TabsTrigger>
             </TabsList>
 
             <TabsContent value="basic" className="space-y-4 mt-4">
@@ -612,6 +614,13 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                   </div>
                 </div>
               </div>
+            </TabsContent>
+
+            <TabsContent value="gallery" className="space-y-4 mt-4">
+              <PropertyGallery 
+                propertyId={property?.id} 
+                isNewProperty={!property}
+              />
             </TabsContent>
           </Tabs>
 
