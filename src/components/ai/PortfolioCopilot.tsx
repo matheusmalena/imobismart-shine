@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { MessageCircle, X, Send, Bot, User, Sparkles, Loader2, Trash2 } from "lucide-react";
+import { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
+import { X, Send, Bot, User, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -22,14 +22,36 @@ const QUICK_SUGGESTIONS = [
   "Taxa de ocupação",
 ];
 
-export function PortfolioCopilot() {
+// Typing indicator component
+const TypingIndicator = () => (
+  <div className="flex items-center gap-1.5 py-1 px-1">
+    <span className="w-2 h-2 bg-primary/70 rounded-full animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '0ms' }}></span>
+    <span className="w-2 h-2 bg-primary/70 rounded-full animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '150ms' }}></span>
+    <span className="w-2 h-2 bg-primary/70 rounded-full animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '300ms' }}></span>
+  </div>
+);
+
+export interface PortfolioCopilotRef {
+  openWithQuestion: (question: string) => void;
+}
+
+export const PortfolioCopilot = forwardRef<PortfolioCopilotRef>((_, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Expose method to parent
+  useImperativeHandle(ref, () => ({
+    openWithQuestion: (question: string) => {
+      setIsOpen(true);
+      setPendingQuestion(question);
+    },
+  }));
 
   // Load user and messages on mount
   useEffect(() => {
@@ -124,10 +146,10 @@ export function PortfolioCopilot() {
     toast.success("Histórico limpo!");
   };
 
-  const handleSend = useCallback(async () => {
-    if (!input.trim() || isLoading) return;
+  const sendMessage = useCallback(async (messageContent: string) => {
+    if (!messageContent.trim() || isLoading) return;
 
-    const userContent = input.trim();
+    const userContent = messageContent.trim();
     const tempUserId = crypto.randomUUID();
 
     const userMessage: Message = {
@@ -285,7 +307,23 @@ export function PortfolioCopilot() {
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, messages, userId]);
+  }, [isLoading, messages, userId]);
+
+  // Handle pending question when copilot opens
+  useEffect(() => {
+    if (isOpen && pendingQuestion && userId && !isLoading) {
+      const question = pendingQuestion;
+      setPendingQuestion(null);
+      // Small delay to ensure UI is ready
+      setTimeout(() => {
+        sendMessage(question);
+      }, 300);
+    }
+  }, [isOpen, pendingQuestion, userId, isLoading, sendMessage]);
+
+  const handleSend = useCallback(() => {
+    sendMessage(input);
+  }, [input, sendMessage]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -295,15 +333,8 @@ export function PortfolioCopilot() {
   };
 
   const handleQuickSuggestion = (suggestion: string) => {
-    setInput(suggestion);
+    sendMessage(suggestion);
   };
-
-  // Submit when input changes to a suggestion
-  useEffect(() => {
-    if (input && QUICK_SUGGESTIONS.includes(input) && !isLoading) {
-      handleSend();
-    }
-  }, [input]);
 
   return (
     <>
@@ -361,7 +392,7 @@ export function PortfolioCopilot() {
 
           {/* Messages */}
           <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-            {messages.length === 0 ? (
+            {messages.length === 0 && !isLoading ? (
               <div className="flex flex-col items-center justify-center h-full text-center p-4">
                 <div className="h-12 w-12 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 flex items-center justify-center mb-3">
                   <Sparkles className="h-6 w-6 text-primary" />
@@ -417,13 +448,7 @@ export function PortfolioCopilot() {
                           : "bg-muted rounded-tl-sm"
                       )}
                     >
-                      {message.content || (
-                        <div className="flex items-center gap-1 py-1">
-                          <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                          <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                          <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce"></span>
-                        </div>
-                      )}
+                      {message.content || <TypingIndicator />}
                     </div>
                   </div>
                 ))}
@@ -449,11 +474,7 @@ export function PortfolioCopilot() {
                 size="icon"
                 className="rounded-full shrink-0"
               >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
+                <Send className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -461,4 +482,6 @@ export function PortfolioCopilot() {
       )}
     </>
   );
-}
+});
+
+PortfolioCopilot.displayName = "PortfolioCopilot";
