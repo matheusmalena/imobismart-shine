@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { 
   ArrowLeft, 
   Building2, 
@@ -30,10 +31,15 @@ import {
   Flame,
   CheckCircle,
   XCircle,
+  Images,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageTransition } from "@/components/PageTransition";
 import { useDocuments } from "@/hooks/useDocuments";
+import { usePropertyGallery } from "@/hooks/usePropertyGallery";
 import { DocumentCard } from "@/components/documents/DocumentCard";
 import { DocumentViewDialog } from "@/components/documents/DocumentViewDialog";
 import { useState } from "react";
@@ -55,7 +61,9 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 export function PropertyDetails({ property, onEdit, onClose }: PropertyDetailsProps) {
   const { documents, deleteDocument, downloadDocument, viewDocument, getThumbnailUrl } = useDocuments();
+  const { images: galleryImages, isLoading: isLoadingGallery } = usePropertyGallery(property.id);
   const [viewDocumentData, setViewDocumentData] = useState<PropertyDocument | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -192,6 +200,15 @@ export function PropertyDetails({ property, onEdit, onClose }: PropertyDetailsPr
               {propertyDocuments.length > 0 && (
                 <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
                   {propertyDocuments.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="gallery" className="gap-2 rounded-lg">
+              <Images className="h-4 w-4" />
+              <span className="hidden sm:inline">Galeria</span>
+              {galleryImages.length > 0 && (
+                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                  {galleryImages.length}
                 </Badge>
               )}
             </TabsTrigger>
@@ -459,6 +476,66 @@ export function PropertyDetails({ property, onEdit, onClose }: PropertyDetailsPr
           onDownload={downloadDocument}
           getSignedUrl={handleGetSignedUrl}
         />
+
+        {/* Gallery Image Viewer Dialog */}
+        <Dialog open={selectedImageIndex !== null} onOpenChange={(open) => !open && setSelectedImageIndex(null)}>
+          <DialogContent className="max-w-4xl p-0 bg-black/95 border-none">
+            {selectedImageIndex !== null && galleryImages[selectedImageIndex] && (
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 right-2 z-10 text-white hover:bg-white/20"
+                  onClick={() => setSelectedImageIndex(null)}
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+                
+                {galleryImages.length > 1 && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute left-2 top-1/2 -translate-y-1/2 z-10 text-white hover:bg-white/20"
+                      onClick={() => setSelectedImageIndex((prev) => 
+                        prev !== null ? (prev === 0 ? galleryImages.length - 1 : prev - 1) : null
+                      )}
+                    >
+                      <ChevronLeft className="h-8 w-8" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 z-10 text-white hover:bg-white/20"
+                      onClick={() => setSelectedImageIndex((prev) => 
+                        prev !== null ? (prev === galleryImages.length - 1 ? 0 : prev + 1) : null
+                      )}
+                    >
+                      <ChevronRight className="h-8 w-8" />
+                    </Button>
+                  </>
+                )}
+
+                <img
+                  src={galleryImages[selectedImageIndex].image_url}
+                  alt={galleryImages[selectedImageIndex].caption || `Foto ${selectedImageIndex + 1}`}
+                  className="w-full max-h-[80vh] object-contain"
+                />
+                
+                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                  <div className="flex items-center justify-between text-white">
+                    <p className="text-sm">
+                      {galleryImages[selectedImageIndex].caption || `Foto ${selectedImageIndex + 1} de ${galleryImages.length}`}
+                    </p>
+                    <p className="text-xs text-white/70">
+                      {selectedImageIndex + 1} / {galleryImages.length}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </PageTransition>
   );
