@@ -61,7 +61,7 @@ serve(async (req) => {
     }
 
     // Fetch user's portfolio data (multi-tenant - only user's data)
-    const [propertiesResult, subscriptionResult, profileResult] = await Promise.all([
+    const [propertiesResult, subscriptionResult, profileResult, documentsResult, galleryResult, tenantsResult, contractsResult] = await Promise.all([
       supabase
         .from("properties")
         .select("*")
@@ -71,12 +71,28 @@ serve(async (req) => {
         .from("subscriptions")
         .select("plan, status")
         .eq("user_id", user.id)
-        .single(),
+        .maybeSingle(),
       supabase
         .from("profiles")
         .select("full_name")
         .eq("user_id", user.id)
-        .single(),
+        .maybeSingle(),
+      supabase
+        .from("documents")
+        .select("*")
+        .eq("user_id", user.id),
+      supabase
+        .from("property_gallery")
+        .select("*")
+        .eq("user_id", user.id),
+      supabase
+        .from("tenants")
+        .select("*")
+        .eq("user_id", user.id),
+      supabase
+        .from("lease_contracts")
+        .select("*")
+        .eq("user_id", user.id),
     ]);
 
     if (propertiesResult.error) {
@@ -84,6 +100,10 @@ serve(async (req) => {
     }
 
     const properties = propertiesResult.data || [];
+    const documents = documentsResult.data || [];
+    const gallery = galleryResult.data || [];
+    const tenants = tenantsResult.data || [];
+    const contracts = contractsResult.data || [];
     const subscription = subscriptionResult.data;
     const userName = profileResult.data?.full_name?.split(" ")[0] || "amigo";
 
@@ -102,31 +122,99 @@ serve(async (req) => {
       : 0;
     const totalValue = properties.reduce((sum, p) => sum + (p.property_value || 0), 0);
 
-    // Build property details for context
-    const propertyDetails = properties.map(p => ({
-      nome: p.name,
-      tipo: p.property_type,
-      status: p.status,
-      cidade: p.address_city,
-      bairro: p.address_neighborhood,
-      valor_imovel: p.property_value,
-      receita_mensal: p.monthly_revenue,
-      taxa_ocupacao: p.occupancy_rate,
-      condominio: p.condominium_fee,
-      iptu: p.iptu_fee,
-      manutencao: p.maintenance_fee,
-      outros_custos: p.other_costs,
-      lucro_mensal: (p.monthly_revenue || 0) - ((p.condominium_fee || 0) + (p.iptu_fee || 0) + (p.maintenance_fee || 0) + (p.other_costs || 0)),
-      quartos: p.bedrooms,
-      banheiros: p.bathrooms,
-      area_m2: p.area_sqm,
-      desempenho: p.performance,
-    }));
+    // Build complete property details with all information
+    const propertyDetails = properties.map(p => {
+      // Get documents for this property
+      const propertyDocs = documents.filter(d => d.property_id === p.id).map(d => ({
+        nome: d.name,
+        categoria: d.category,
+        tipo_arquivo: d.file_type,
+        data_upload: d.created_at,
+      }));
+
+      // Get gallery images for this property
+      const propertyGallery = gallery.filter(g => g.property_id === p.id).map(g => ({
+        legenda: g.caption,
+        ordem: g.display_order,
+      }));
+
+      // Get contracts for this property
+      const propertyContracts = contracts.filter(c => c.property_id === p.id).map(c => {
+        const tenant = tenants.find(t => t.id === c.tenant_id);
+        return {
+          inquilino: tenant?.name || "Desconhecido",
+          aluguel_mensal: c.monthly_rent,
+          inicio: c.start_date,
+          fim: c.end_date,
+          status: c.status,
+          deposito: c.deposit_amount,
+          dia_vencimento: c.payment_due_day,
+          notas: c.notes,
+        };
+      });
+
+      return {
+        id: p.id,
+        nome: p.name,
+        descricao: p.description,
+        tipo: p.property_type,
+        status: p.status,
+        desempenho: p.performance,
+        // Endereço completo
+        endereco: {
+          rua: p.address_street,
+          numero: p.address_number,
+          complemento: p.address_complement,
+          bairro: p.address_neighborhood,
+          cidade: p.address_city,
+          estado: p.address_state,
+          cep: p.address_zip,
+        },
+        // Características
+        caracteristicas: {
+          area_m2: p.area_sqm,
+          quartos: p.bedrooms,
+          suites: p.suites,
+          banheiros: p.bathrooms,
+          vagas_garagem: p.parking_spots,
+          andar: p.floor_number,
+          ano_construcao: p.year_built,
+          mobiliado: p.is_furnished,
+        },
+        // Comodidades
+        comodidades: {
+          piscina: p.has_pool,
+          academia: p.has_gym,
+          churrasqueira: p.has_barbecue,
+          varanda: p.has_balcony,
+          elevador: p.has_elevator,
+        },
+        // Financeiro
+        financeiro: {
+          valor_imovel: p.property_value,
+          receita_mensal: p.monthly_revenue,
+          taxa_ocupacao: p.occupancy_rate,
+          condominio: p.condominium_fee,
+          iptu: p.iptu_fee,
+          manutencao: p.maintenance_fee,
+          outros_custos: p.other_costs,
+          lucro_mensal: (p.monthly_revenue || 0) - ((p.condominium_fee || 0) + (p.iptu_fee || 0) + (p.maintenance_fee || 0) + (p.other_costs || 0)),
+          data_aquisicao: p.acquisition_date,
+        },
+        // Relacionamentos
+        documentos: propertyDocs,
+        fotos: propertyGallery,
+        contratos: propertyContracts,
+        total_documentos: propertyDocs.length,
+        total_fotos: propertyGallery.length,
+        total_contratos: propertyContracts.length,
+      };
+    });
 
     // Performance ranking
     const ranking = [...propertyDetails]
-      .sort((a, b) => (b.lucro_mensal || 0) - (a.lucro_mensal || 0))
-      .map((p, i) => ({ posicao: i + 1, nome: p.nome, lucro: p.lucro_mensal }));
+      .sort((a, b) => (b.financeiro.lucro_mensal || 0) - (a.financeiro.lucro_mensal || 0))
+      .map((p, i) => ({ posicao: i + 1, nome: p.nome, lucro: p.financeiro.lucro_mensal }));
 
     // Build context JSON
     const portfolioContext = {
