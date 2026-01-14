@@ -9,17 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +19,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { CreditCard, Pencil, Trash2, Plus, Sparkles, Building2, Check, X, History, Clock } from 'lucide-react';
+import { PlanFormDialog } from '@/components/admin/PlanFormDialog';
+import { CreditCard, Pencil, Trash2, Plus, Sparkles, Building2, Check, History, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -150,144 +140,6 @@ export default function AdminPlans() {
       currency: 'BRL',
     }).format(value);
   };
-
-  const PlanDialog = ({ isOpen, onClose, title, description }: { 
-    isOpen: boolean; 
-    onClose: () => void; 
-    title: string;
-    description: string;
-  }) => (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
-        
-        <div className="space-y-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="id">ID do Plano</Label>
-              <Input
-                id="id"
-                value={formData.id}
-                onChange={(e) => setFormData({ ...formData, id: e.target.value.toLowerCase().replace(/\s/g, '_') })}
-                placeholder="ex: starter"
-                disabled={!!editingPlan}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="ex: Gratuito"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Descrição</Label>
-            <Input
-              id="description"
-              value={formData.description || ''}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="ex: Perfeito para começar"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="price">Preço (R$)</Label>
-              <Input
-                id="price"
-                type="number"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-                min={0}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="price_label">Label do Preço</Label>
-              <Input
-                id="price_label"
-                value={formData.price_label}
-                onChange={(e) => setFormData({ ...formData, price_label: e.target.value })}
-                placeholder="ex: R$ 49/mês"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="property_limit">Limite de Imóveis</Label>
-              <Input
-                id="property_limit"
-                type="number"
-                value={formData.property_limit}
-                onChange={(e) => setFormData({ ...formData, property_limit: Number(e.target.value) })}
-                min={-1}
-              />
-              <p className="text-xs text-muted-foreground">Use -1 para ilimitado</p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="sort_order">Ordem</Label>
-              <Input
-                id="sort_order"
-                type="number"
-                value={formData.sort_order}
-                onChange={(e) => setFormData({ ...formData, sort_order: Number(e.target.value) })}
-                min={0}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="features">Recursos (um por linha)</Label>
-            <Textarea
-              id="features"
-              value={featuresText}
-              onChange={(e) => setFeaturesText(e.target.value)}
-              placeholder="Dashboard básico&#10;Upload de documentos&#10;Suporte por email"
-              rows={5}
-            />
-          </div>
-
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <Switch
-                id="is_active"
-                checked={formData.is_active}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-              />
-              <Label htmlFor="is_active">Ativo</Label>
-            </div>
-            <div className="flex items-center gap-2">
-              <Switch
-                id="is_highlighted"
-                checked={formData.is_highlighted}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_highlighted: checked })}
-              />
-              <Label htmlFor="is_highlighted">Destacado</Label>
-            </div>
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancelar
-          </Button>
-          <Button 
-            onClick={handleSave} 
-            disabled={!formData.id || !formData.name || updatePlan.isPending || createPlan.isPending}
-          >
-            {updatePlan.isPending || createPlan.isPending ? 'Salvando...' : 'Salvar'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
 
   return (
     <DashboardLayout>
@@ -542,19 +394,33 @@ export default function AdminPlans() {
         </Card>
 
         {/* Edit Dialog */}
-        <PlanDialog
+        <PlanFormDialog
           isOpen={!!editingPlan}
           onClose={() => setEditingPlan(null)}
           title="Editar Plano"
           description="Modifique as informações do plano"
+          formData={formData}
+          setFormData={setFormData}
+          featuresText={featuresText}
+          setFeaturesText={setFeaturesText}
+          onSave={handleSave}
+          isSaving={updatePlan.isPending}
+          isEditing={true}
         />
 
         {/* Create Dialog */}
-        <PlanDialog
+        <PlanFormDialog
           isOpen={isCreateDialogOpen}
           onClose={() => setIsCreateDialogOpen(false)}
           title="Novo Plano"
           description="Crie um novo plano de assinatura"
+          formData={formData}
+          setFormData={setFormData}
+          featuresText={featuresText}
+          setFeaturesText={setFeaturesText}
+          onSave={handleSave}
+          isSaving={createPlan.isPending}
+          isEditing={false}
         />
 
         {/* Delete Confirmation */}
