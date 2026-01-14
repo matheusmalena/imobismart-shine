@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useToast } from '@/hooks/use-toast';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { PageTransition } from '@/components/PageTransition';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +14,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { 
   ArrowLeft, 
   User, 
-  Mail, 
   Calendar, 
   CreditCard, 
   Building2, 
@@ -21,11 +21,12 @@ import {
   Crown,
   Home,
   MapPin,
-  DollarSign,
-  Eye
+  Eye,
+  Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useState } from 'react';
 
 const PLAN_LABELS = {
   starter: 'Gratuito',
@@ -59,6 +60,59 @@ export default function ClientDetails() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { isAdmin, isLoading: roleLoading } = useUserRole();
+  const { toast } = useToast();
+  const [loadingDocId, setLoadingDocId] = useState<string | null>(null);
+
+  // Helper function to extract file path from URL
+  const getFilePath = (fileUrl: string): string | null => {
+    const urlParts = fileUrl.split('/property-documents/');
+    if (urlParts.length >= 2) {
+      return urlParts[1];
+    }
+    return null;
+  };
+
+  // Generate signed URL for document viewing
+  const getSignedUrl = async (fileUrl: string): Promise<string | null> => {
+    const filePath = getFilePath(fileUrl);
+    if (!filePath) return null;
+
+    const { data, error } = await supabase.storage
+      .from('property-documents')
+      .createSignedUrl(filePath, 3600); // 1 hour expiry
+
+    if (error) {
+      console.error('Error creating signed URL:', error);
+      return null;
+    }
+
+    return data.signedUrl;
+  };
+
+  // Handle document view with signed URL
+  const handleViewDocument = async (doc: { id: string; file_url: string; name: string }) => {
+    setLoadingDocId(doc.id);
+    try {
+      const signedUrl = await getSignedUrl(doc.file_url);
+      if (signedUrl) {
+        window.open(signedUrl, '_blank');
+      } else {
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível gerar o link para visualizar o documento',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Falha ao abrir o documento',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingDocId(null);
+    }
+  };
 
   // Fetch client profile
   const { data: profile, isLoading: profileLoading } = useQuery({
@@ -424,9 +478,14 @@ export default function ClientDetails() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => window.open(doc.file_url, '_blank')}
+                                onClick={() => handleViewDocument(doc)}
+                                disabled={loadingDocId === doc.id}
                               >
-                                <Eye className="h-4 w-4 mr-1" />
+                                {loadingDocId === doc.id ? (
+                                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                ) : (
+                                  <Eye className="h-4 w-4 mr-1" />
+                                )}
                                 Ver
                               </Button>
                             </TableCell>
