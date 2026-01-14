@@ -183,6 +183,33 @@ export function usePlans() {
     },
   });
 
+  const reorderPlans = useMutation({
+    mutationFn: async (orderedPlanIds: string[]) => {
+      // Update each plan's sort_order based on new position
+      const updates = orderedPlanIds.map((planId, index) => 
+        supabase
+          .from('plans')
+          .update({ sort_order: index })
+          .eq('id', planId)
+      );
+
+      const results = await Promise.all(updates);
+      const errors = results.filter(r => r.error);
+      
+      if (errors.length > 0) {
+        throw new Error('Failed to update some plans');
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['plans'] });
+      toast.success('Ordem dos planos atualizada');
+    },
+    onError: (error) => {
+      console.error('Error reordering plans:', error);
+      toast.error('Erro ao reordenar planos');
+    },
+  });
+
   const getPlanById = (planId: string) => {
     return plans.find(p => p.id === planId);
   };
@@ -202,6 +229,7 @@ export function usePlans() {
     updatePlan,
     createPlan,
     deletePlan,
+    reorderPlans,
     getPlanById,
     getPlanLimit,
     auditLogs,

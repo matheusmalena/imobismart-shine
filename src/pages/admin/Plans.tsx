@@ -1,5 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useUserRole } from '@/hooks/useUserRole';
 import { usePlans, Plan, PlanInput } from '@/hooks/usePlans';
@@ -8,7 +23,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Switch } from '@/components/ui/switch';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,7 +34,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { PlanFormDialog } from '@/components/admin/PlanFormDialog';
-import { CreditCard, Pencil, Trash2, Plus, Sparkles, Building2, Check, History, Clock } from 'lucide-react';
+import { SortablePlanRow } from '@/components/admin/SortablePlanRow';
+import { CreditCard, Plus, Sparkles, Check, History, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -28,7 +43,25 @@ import { ptBR } from 'date-fns/locale';
 export default function AdminPlans() {
   const navigate = useNavigate();
   const { isAdmin, isLoading: roleLoading } = useUserRole();
-  const { plans, isLoading: plansLoading, updatePlan, createPlan, deletePlan, auditLogs, auditLoading } = usePlans();
+  const { plans, isLoading: plansLoading, updatePlan, createPlan, deletePlan, reorderPlans, auditLogs, auditLoading } = usePlans();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = plans.findIndex((p) => p.id === active.id);
+      const newIndex = plans.findIndex((p) => p.id === over.id);
+      const newOrder = arrayMove(plans, oldIndex, newIndex);
+      reorderPlans.mutate(newOrder.map((p) => p.id));
+    }
+  };
   
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -182,90 +215,46 @@ export default function AdminPlans() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead className="font-semibold">Plano</TableHead>
-                      <TableHead className="font-semibold">Preço</TableHead>
-                      <TableHead className="font-semibold text-center">Limite Imóveis</TableHead>
-                      <TableHead className="font-semibold text-center">Recursos</TableHead>
-                      <TableHead className="font-semibold text-center">Status</TableHead>
-                      <TableHead className="font-semibold text-center">Destaque</TableHead>
-                      <TableHead className="font-semibold text-center">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {plans.map((plan) => (
-                      <TableRow key={plan.id} className="group">
-                        <TableCell>
-                          <div className="min-w-0">
-                            <p className="font-medium text-foreground flex items-center gap-2">
-                              {plan.name}
-                              {plan.is_highlighted && (
-                                <Sparkles className="h-4 w-4 text-primary" />
-                              )}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {plan.id} • {plan.description}
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-semibold">{formatCurrency(plan.price)}</p>
-                            <p className="text-xs text-muted-foreground">{plan.price_label}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <Building2 className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-semibold">
-                              {plan.property_limit === -1 ? '∞' : plan.property_limit}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant="outline">
-                            {plan.features.length} recursos
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Switch
-                            checked={plan.is_active}
-                            onCheckedChange={() => handleToggleActive(plan)}
-                          />
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Switch
-                            checked={plan.is_highlighted}
-                            onCheckedChange={() => handleToggleHighlighted(plan)}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center justify-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openEditDialog(plan)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setDeleteConfirm(plan.id)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead className="w-10"></TableHead>
+                        <TableHead className="font-semibold">Plano</TableHead>
+                        <TableHead className="font-semibold">Preço</TableHead>
+                        <TableHead className="font-semibold text-center">Limite Imóveis</TableHead>
+                        <TableHead className="font-semibold text-center">Recursos</TableHead>
+                        <TableHead className="font-semibold text-center">Status</TableHead>
+                        <TableHead className="font-semibold text-center">Destaque</TableHead>
+                        <TableHead className="font-semibold text-center">Ações</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <SortableContext
+                      items={plans.map((p) => p.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <TableBody>
+                        {plans.map((plan) => (
+                          <SortablePlanRow
+                            key={plan.id}
+                            plan={plan}
+                            formatCurrency={formatCurrency}
+                            onEdit={openEditDialog}
+                            onDelete={(id) => setDeleteConfirm(id)}
+                            onToggleActive={handleToggleActive}
+                            onToggleHighlighted={handleToggleHighlighted}
+                          />
+                        ))}
+                      </TableBody>
+                    </SortableContext>
+                  </Table>
+                </div>
+              </DndContext>
             )}
           </CardContent>
         </Card>
