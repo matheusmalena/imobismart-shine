@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { Building2, Briefcase, Users, Home } from 'lucide-react';
 
 const audiences = [
@@ -23,21 +24,57 @@ const audiences = [
   },
 ];
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.5,
+      ease: [0.25, 0.46, 0.45, 0.94] as const,
+    },
+  },
+};
+
 export function TargetAudienceSection() {
   return (
     <div className="container mx-auto">
-      <div className="text-center mb-16">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.6 }}
+        className="text-center mb-16"
+      >
         <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
           Para quem é o <span className="text-primary">ImobiSmart</span>?
         </h2>
         <p className="text-muted-foreground max-w-2xl mx-auto">
           Desenvolvido para atender desde proprietários individuais até grandes administradoras.
         </p>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      </motion.div>
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+      >
         {audiences.map((audience, index) => (
-          <div
+          <motion.div
             key={index}
+            variants={itemVariants}
             className="group bg-card rounded-2xl p-6 border border-border/50 shadow-card transition-all duration-300 hover:shadow-lg hover:border-primary/30 hover:-translate-y-1"
           >
             <div className="p-3 rounded-xl bg-primary/10 w-fit mb-4 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
@@ -49,9 +86,9 @@ export function TargetAudienceSection() {
             <p className="text-sm text-muted-foreground">
               {audience.description}
             </p>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }

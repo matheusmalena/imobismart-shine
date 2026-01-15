@@ -1,8 +1,32 @@
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { usePlans } from "@/hooks/usePlans";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Check, Crown, Sparkles } from "lucide-react";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.5,
+      ease: [0.25, 0.46, 0.45, 0.94] as const,
+    },
+  },
+};
 
 export function PricingSection() {
   const { activePlans, isLoading } = usePlans();
@@ -42,7 +66,13 @@ export function PricingSection() {
   return (
     <section className="py-24 px-4 bg-muted/30" id="pricing">
       <div className="container mx-auto">
-        <div className="text-center mb-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
+        >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
             <Sparkles className="h-4 w-4" />
             Planos Flexíveis
@@ -53,11 +83,18 @@ export function PricingSection() {
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Comece grátis e evolua conforme seu portfólio cresce. Sem surpresas.
           </p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-7xl mx-auto">
+        </motion.div>
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-7xl mx-auto"
+        >
           {activePlans.map((plan, index) => (
-            <div
+            <motion.div
               key={plan.id}
+              variants={itemVariants}
               className={`relative flex flex-col bg-card rounded-2xl p-6 border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
                 plan.is_highlighted 
                   ? "border-primary shadow-lg shadow-primary/15 ring-2 ring-primary/20 lg:scale-105 z-10" 
@@ -99,9 +136,9 @@ export function PricingSection() {
                   {getCtaText(plan.price, index)}
                 </Button>
               </Link>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
