@@ -91,21 +91,29 @@ export default function Index() {
       </header>
 
       {/* Hero */}
-      <section className="pt-32 pb-20 px-4">
-        <div className="container mx-auto text-center max-w-4xl">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-8">
-            <Sparkles className="h-4 w-4" />A plataforma #1 de gestão imobiliária inteligente
+      <section className="pt-32 pb-24 px-4 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-10 right-10 w-96 h-96 bg-primary/3 rounded-full blur-3xl" />
+        </div>
+        
+        <div className="container mx-auto text-center max-w-5xl">
+          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-8 border border-primary/20">
+            <Sparkles className="h-4 w-4" />
+            A plataforma #1 de gestão imobiliária inteligente
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold text-foreground leading-tight mb-6">
-            Gerencie seus imóveis com <span className="gradient-text">inteligência</span>
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-foreground leading-[1.1] mb-8">
+            Gerencie seus imóveis com{" "}
+            <span className="gradient-text">inteligência</span>
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
+          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-12 leading-relaxed">
             Plataforma completa para imobiliárias, investidores e proprietários.
             Controle financeiro, documentos organizados e métricas em tempo real.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Link to="/auth">
-              <Button size="lg" className="gap-2 w-full sm:w-auto">
+              <Button size="lg" className="gap-2 w-full sm:w-auto text-base px-8 py-6 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
                 <Rocket className="h-5 w-5" />
                 Começar Gratuitamente
               </Button>
@@ -113,7 +121,7 @@ export default function Index() {
             <Button
               size="lg"
               variant="outline"
-              className="gap-2"
+              className="gap-2 text-base px-8 py-6 hover:bg-muted/50"
               onClick={() => tutorialRef.current?.open()}
             >
               <Play className="h-5 w-5" />
@@ -123,18 +131,20 @@ export default function Index() {
 
           {/* Tutorial Modal */}
           <TutorialModal ref={tutorialRef} autoShow={false} />
-          <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
+          
+          {/* Trust badges */}
+          <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 bg-card/50 px-4 py-2 rounded-full border border-border/50">
               <Building2 className="h-4 w-4 text-primary" />
-              Mais de 200+ proprietários
+              <span>200+ proprietários</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-card/50 px-4 py-2 rounded-full border border-border/50">
               <Shield className="h-4 w-4 text-primary" />
-              Dados 100% seguros
+              <span>100% seguro</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-card/50 px-4 py-2 rounded-full border border-border/50">
               <Zap className="h-4 w-4 text-primary" />
-              Pronto para usar
+              <span>Pronto para usar</span>
             </div>
           </div>
         </div>
@@ -146,13 +156,17 @@ export default function Index() {
       </section>
 
       {/* Features */}
-      <section className="py-20 px-4">
+      <section className="py-24 px-4">
         <div className="container mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
+              <Zap className="h-4 w-4" />
+              Recursos Poderosos
+            </div>
+            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
               Tudo que você precisa em um só lugar
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               Ferramentas poderosas para você parar de perder dinheiro com falta de controle.
             </p>
           </div>
@@ -160,13 +174,13 @@ export default function Index() {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="bg-card rounded-xl p-6 shadow-card border border-border/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+                className="group bg-card rounded-2xl p-8 shadow-card border border-border/50 transition-all duration-300 hover:shadow-xl hover:-translate-y-2 hover:border-primary/30"
               >
-                <div className="p-3 rounded-xl bg-primary/10 w-fit mb-4">
+                <div className="p-4 rounded-2xl bg-primary/10 w-fit mb-6 group-hover:bg-primary/15 transition-colors">
                   <div className="text-primary">{feature.icon}</div>
                 </div>
-                <h3 className="text-lg font-semibold text-card-foreground mb-2">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground">{feature.description}</p>
+                <h3 className="text-xl font-semibold text-card-foreground mb-3">{feature.title}</h3>
+                <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -238,15 +252,21 @@ export default function Index() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-4 gradient-hero">
-        <div className="container mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Pronto para multiplicar seus resultados?</h2>
-          <p className="text-white/80 max-w-xl mx-auto mb-8">
+      <section className="py-24 px-4 gradient-hero relative overflow-hidden">
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
+        </div>
+        <div className="container mx-auto text-center max-w-3xl">
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight">
+            Pronto para multiplicar seus resultados?
+          </h2>
+          <p className="text-white/80 text-lg max-w-xl mx-auto mb-10 leading-relaxed">
             Junte-se a milhares de investidores que já usam o ImobiSmart para ter controle total sobre seu patrimônio
             imobiliário.
           </p>
           <Link to="/auth">
-            <Button size="lg" variant="secondary" className="gap-2">
+            <Button size="lg" variant="secondary" className="gap-2 text-base px-8 py-6 shadow-xl hover:scale-105 transition-transform">
               Criar Minha Conta Grátis
               <ArrowRight className="h-5 w-5" />
             </Button>

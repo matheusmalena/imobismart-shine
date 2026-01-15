@@ -2,24 +2,30 @@ import { Link } from "react-router-dom";
 import { usePlans } from "@/hooks/usePlans";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Check, Crown } from "lucide-react";
+import { Check, Crown, Sparkles } from "lucide-react";
 
 export function PricingSection() {
   const { activePlans, isLoading } = usePlans();
 
   if (isLoading) {
     return (
-      <section className="py-20 px-4" id="pricing">
+      <section className="py-24 px-4 bg-muted/30" id="pricing">
         <div className="container mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Planos que cabem no seu bolso</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
+              <Sparkles className="h-4 w-4" />
+              Planos Flexíveis
+            </div>
+            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
+              Escolha o plano ideal para você
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               Comece grátis e evolua conforme seu portfólio cresce. Sem surpresas.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-96 rounded-2xl" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-7xl mx-auto">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-[420px] rounded-2xl" />
             ))}
           </div>
         </div>
@@ -27,56 +33,69 @@ export function PricingSection() {
     );
   }
 
-  // Sort plans by sort_order and get CTA text based on price
+  // Get CTA text based on price
   const getCtaText = (price: number, index: number) => {
     if (price === 0) return "Começar Grátis";
-    if (index === activePlans.length - 1) return "Assinar Plus";
-    return "Assinar Pro";
+    return "Assinar Agora";
   };
 
   return (
-    <section className="py-20 px-4" id="pricing">
+    <section className="py-24 px-4 bg-muted/30" id="pricing">
       <div className="container mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Planos que cabem no seu bolso</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
+            <Sparkles className="h-4 w-4" />
+            Planos Flexíveis
+          </div>
+          <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
+            Escolha o plano ideal para você
+          </h2>
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Comece grátis e evolua conforme seu portfólio cresce. Sem surpresas.
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-7xl mx-auto">
           {activePlans.map((plan, index) => (
             <div
               key={plan.id}
-              className={`relative bg-card rounded-2xl p-6 border transition-all duration-300 hover:shadow-lg ${
-                plan.is_highlighted ? "border-primary shadow-lg shadow-primary/10 scale-105" : "border-border/50 shadow-card"
+              className={`relative flex flex-col bg-card rounded-2xl p-6 border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+                plan.is_highlighted 
+                  ? "border-primary shadow-lg shadow-primary/15 ring-2 ring-primary/20 lg:scale-105 z-10" 
+                  : "border-border/50 shadow-card hover:border-primary/30"
               }`}
             >
               {plan.is_highlighted && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium">
-                    <Crown className="h-3 w-3" />
+                  <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold shadow-lg">
+                    <Crown className="h-3.5 w-3.5" />
                     Mais Popular
                   </span>
                 </div>
               )}
-              <div className="text-center mb-6">
-                <h3 className="text-xl font-bold text-card-foreground mb-1">{plan.name}</h3>
-                <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
+              <div className="text-center mb-6 pt-2">
+                <h3 className="text-lg font-bold text-card-foreground mb-2">{plan.name}</h3>
+                <p className="text-xs text-muted-foreground mb-4 min-h-[32px]">{plan.description}</p>
                 <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-4xl font-bold text-foreground">{plan.price_label.split('/')[0]}</span>
-                  <span className="text-muted-foreground">/{plan.price_label.split('/')[1] || 'mês'}</span>
+                  <span className="text-3xl md:text-4xl font-bold text-foreground">{plan.price_label.split('/')[0]}</span>
+                  <span className="text-sm text-muted-foreground">/{plan.price_label.split('/')[1] || 'mês'}</span>
                 </div>
               </div>
-              <ul className="space-y-3 mb-6">
+              <ul className="space-y-3 mb-6 flex-grow">
                 {plan.features.map((feature, idx) => (
                   <li key={idx} className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm text-muted-foreground">{feature}</span>
+                    <div className="p-0.5 rounded-full bg-primary/10 mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5 text-primary" />
+                    </div>
+                    <span className="text-sm text-muted-foreground leading-tight">{feature}</span>
                   </li>
                 ))}
               </ul>
-              <Link to="/auth" className="block">
-                <Button className="w-full" variant={plan.is_highlighted ? "default" : "outline"}>
+              <Link to="/auth" className="block mt-auto">
+                <Button 
+                  className={`w-full ${plan.is_highlighted ? "shadow-lg" : ""}`} 
+                  variant={plan.is_highlighted ? "default" : "outline"}
+                  size="lg"
+                >
                   {getCtaText(plan.price, index)}
                 </Button>
               </Link>
