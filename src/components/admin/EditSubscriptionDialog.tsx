@@ -28,7 +28,7 @@ interface EditSubscriptionDialogProps {
     user_id: string;
     full_name: string | null;
     email: string | null;
-    plan: 'starter' | 'pro' | 'enterprise';
+    plan: string;
     subscription_status: 'active' | 'inactive' | 'cancelled' | 'trial';
   };
 }
@@ -36,7 +36,8 @@ interface EditSubscriptionDialogProps {
 const PLAN_OPTIONS = [
   { value: 'starter', label: 'Gratuito' },
   { value: 'pro', label: 'Pro' },
-  { value: 'enterprise', label: 'Plus' },
+  { value: 'plus', label: 'Plus' },
+  { value: 'enterprise', label: 'Enterprise' },
 ];
 
 const STATUS_OPTIONS = [

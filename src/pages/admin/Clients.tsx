@@ -19,7 +19,8 @@ import { cn } from '@/lib/utils';
 const PLAN_LABELS: Record<string, string> = {
   starter: 'Gratuito',
   pro: 'Pro',
-  enterprise: 'Plus',
+  plus: 'Plus',
+  enterprise: 'Enterprise',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -32,6 +33,7 @@ const STATUS_LABELS: Record<string, string> = {
 function getPlanColor(plan: string) {
   switch (plan) {
     case 'enterprise': return 'bg-primary/10 text-primary border-primary/20';
+    case 'plus': return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20';
     case 'pro': return 'bg-info/10 text-info border-info/20';
     default: return 'bg-muted text-muted-foreground';
   }
@@ -86,7 +88,7 @@ export default function AdminClients() {
 
   const totalClients = clients.length;
   const activeClients = clients.filter(c => c.subscription_status === 'active').length;
-  const proClients = clients.filter(c => c.plan === 'pro' || c.plan === 'enterprise').length;
+  const proClients = clients.filter(c => c.plan === 'pro' || c.plan === 'plus' || c.plan === 'enterprise').length;
   const totalProperties = clients.reduce((sum, c) => sum + c.properties_count, 0);
   const trialClients = clients.filter(c => c.subscription_status === 'trial').length;
 
@@ -202,7 +204,8 @@ export default function AdminClients() {
                     <SelectItem value="all">Todos Planos</SelectItem>
                     <SelectItem value="starter">Gratuito</SelectItem>
                     <SelectItem value="pro">Pro</SelectItem>
-                    <SelectItem value="enterprise">Plus</SelectItem>
+                    <SelectItem value="plus">Plus</SelectItem>
+                    <SelectItem value="enterprise">Enterprise</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
