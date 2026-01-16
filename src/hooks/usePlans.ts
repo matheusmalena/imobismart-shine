@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import type { Json } from '@/integrations/supabase/types';
 
 export interface Plan {
   id: string;
@@ -64,8 +65,8 @@ export function usePlans() {
   const { data: auditLogs = [], isLoading: auditLoading, refetch: refetchAudit } = useQuery({
     queryKey: ['plan-audit-logs'],
     queryFn: async () => {
-      // Use type assertion since the table was just created and types may not be synced yet
-      const { data, error } = await (supabase.from('plan_audit_logs') as any)
+      const { data, error } = await supabase
+        .from('plan_audit_logs')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(100);
@@ -78,13 +79,12 @@ export function usePlans() {
   const logAudit = async (planId: string, action: 'create' | 'update' | 'delete', changes: Record<string, unknown>, previousValues?: Record<string, unknown>) => {
     if (!user) return;
     
-    // Use type assertion since the table was just created and types may not be synced yet
-    await (supabase.from('plan_audit_logs') as any).insert({
+    await supabase.from('plan_audit_logs').insert({
       plan_id: planId,
       action,
       changed_by: user.id,
-      changes,
-      previous_values: previousValues || null,
+      changes: changes as Json,
+      previous_values: (previousValues || null) as Json,
     });
   };
 
