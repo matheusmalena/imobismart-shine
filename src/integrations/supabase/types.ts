@@ -773,7 +773,7 @@ export type Database = {
         | "sala"
         | "loja"
         | "outro"
-      subscription_plan: "starter" | "pro" | "enterprise"
+      subscription_plan: "starter" | "pro" | "enterprise" | "plus"
       subscription_status: "active" | "inactive" | "cancelled" | "trial"
     }
     CompositeTypes: {
@@ -917,7 +917,7 @@ export const Constants = {
         "loja",
         "outro",
       ],
-      subscription_plan: ["starter", "pro", "enterprise"],
+      subscription_plan: ["starter", "pro", "enterprise", "plus"],
       subscription_status: ["active", "inactive", "cancelled", "trial"],
     },
   },

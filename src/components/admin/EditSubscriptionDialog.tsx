@@ -55,9 +55,13 @@ export function EditSubscriptionDialog({ client }: EditSubscriptionDialogProps) 
 
   const updateSubscription = useMutation({
     mutationFn: async () => {
+      // Cast plan to the expected type (database enum includes 'plus' now)
       const { error } = await supabase
         .from('subscriptions')
-        .update({ plan, status })
+        .update({ 
+          plan: plan as any, 
+          status 
+        })
         .eq('user_id', client.user_id);
 
       if (error) throw error;
