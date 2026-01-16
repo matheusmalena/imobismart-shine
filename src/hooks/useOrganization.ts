@@ -244,11 +244,25 @@ export function useOrganization() {
         throw error;
       }
 
+      // Send invitation email via edge function
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-team-invite', {
+          body: { invitationId: data.id },
+        });
+
+        if (emailError) {
+          console.error('Error sending invitation email:', emailError);
+          // Don't throw - the invitation is created, just email failed
+        }
+      } catch (emailErr) {
+        console.error('Failed to send invitation email:', emailErr);
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['org-invitations'] });
-      toast.success('Convite enviado com sucesso!');
+      toast.success('Convite enviado com sucesso! Um email foi enviado para o novo membro.');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Erro ao enviar convite');
