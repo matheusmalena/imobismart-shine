@@ -188,6 +188,27 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               )}
             </Link>
 
+            {/* Enterprise Feature: Equipe */}
+            <Link
+              to="/team"
+              className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                location.pathname === '/team'
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              )}
+              onClick={() => setSidebarOpen(false)}
+            >
+              <Users className="h-5 w-5" />
+              Equipe
+              {!isEnterprise && (
+                <Badge variant="outline" className="ml-auto gap-1 text-xs bg-amber-500/10 border-amber-500/30 text-amber-600">
+                  <Lock className="h-3 w-3" />
+                  Enterprise
+                </Badge>
+              )}
+            </Link>
+
             {/* Admin section */}
             {isAdmin && (
               <>
