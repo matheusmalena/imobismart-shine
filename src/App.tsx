@@ -17,6 +17,7 @@ import Export from "./pages/Export";
 import AdminClients from "./pages/admin/Clients";
 import AdminClientDetails from "./pages/admin/ClientDetails";
 import AdminPlans from "./pages/admin/Plans";
+import Team from "./pages/Team";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="/settings" element={<Settings />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/export" element={<Export />} />
+              <Route path="/team" element={<Team />} />
               <Route path="/admin/clients" element={<AdminClients />} />
               <Route path="/admin/clients/:userId" element={<AdminClientDetails />} />
               <Route path="/admin/plans" element={<AdminPlans />} />

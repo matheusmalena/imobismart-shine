@@ -47,6 +47,7 @@ export type Database = {
           file_url: string
           id: string
           name: string
+          organization_id: string | null
           property_id: string
           updated_at: string
           user_id: string
@@ -59,6 +60,7 @@ export type Database = {
           file_url: string
           id?: string
           name: string
+          organization_id?: string | null
           property_id: string
           updated_at?: string
           user_id: string
@@ -71,11 +73,19 @@ export type Database = {
           file_url?: string
           id?: string
           name?: string
+          organization_id?: string | null
           property_id?: string
           updated_at?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "documents_property_id_fkey"
             columns: ["property_id"]
@@ -94,6 +104,7 @@ export type Database = {
           id: string
           monthly_rent: number
           notes: string | null
+          organization_id: string | null
           payment_due_day: number | null
           property_id: string
           start_date: string
@@ -110,6 +121,7 @@ export type Database = {
           id?: string
           monthly_rent?: number
           notes?: string | null
+          organization_id?: string | null
           payment_due_day?: number | null
           property_id: string
           start_date: string
@@ -126,6 +138,7 @@ export type Database = {
           id?: string
           monthly_rent?: number
           notes?: string | null
+          organization_id?: string | null
           payment_due_day?: number | null
           property_id?: string
           start_date?: string
@@ -135,6 +148,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "lease_contracts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "lease_contracts_property_id_fkey"
             columns: ["property_id"]
@@ -150,6 +170,121 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      organization_invitations: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          organization_id: string
+          role: Database["public"]["Enums"]["org_member_role"]
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by: string
+          organization_id: string
+          role?: Database["public"]["Enums"]["org_member_role"]
+          token?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          organization_id?: string
+          role?: Database["public"]["Enums"]["org_member_role"]
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_invitations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_members: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          id: string
+          invited_at: string
+          invited_by: string | null
+          organization_id: string
+          role: Database["public"]["Enums"]["org_member_role"]
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          organization_id: string
+          role?: Database["public"]["Enums"]["org_member_role"]
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          organization_id?: string
+          role?: Database["public"]["Enums"]["org_member_role"]
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          id: string
+          max_members: number
+          name: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          max_members?: number
+          name: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          max_members?: number
+          name?: string
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       plan_audit_logs: {
         Row: {
@@ -289,6 +424,7 @@ export type Database = {
           monthly_revenue: number | null
           name: string
           occupancy_rate: number | null
+          organization_id: string | null
           other_costs: number | null
           parking_spots: number | null
           performance:
@@ -332,6 +468,7 @@ export type Database = {
           monthly_revenue?: number | null
           name: string
           occupancy_rate?: number | null
+          organization_id?: string | null
           other_costs?: number | null
           parking_spots?: number | null
           performance?:
@@ -375,6 +512,7 @@ export type Database = {
           monthly_revenue?: number | null
           name?: string
           occupancy_rate?: number | null
+          organization_id?: string | null
           other_costs?: number | null
           parking_spots?: number | null
           performance?:
@@ -389,7 +527,15 @@ export type Database = {
           user_id?: string
           year_built?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "properties_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       property_gallery: {
         Row: {
@@ -504,6 +650,7 @@ export type Database = {
           id: string
           name: string
           notes: string | null
+          organization_id: string | null
           phone: string | null
           rg: string | null
           updated_at: string
@@ -517,6 +664,7 @@ export type Database = {
           id?: string
           name: string
           notes?: string | null
+          organization_id?: string | null
           phone?: string | null
           rg?: string | null
           updated_at?: string
@@ -530,12 +678,21 @@ export type Database = {
           id?: string
           name?: string
           notes?: string | null
+          organization_id?: string | null
           phone?: string | null
           rg?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tenants_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -566,6 +723,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_manage_org: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
       check_rate_limit: {
         Args: {
           _action: string
@@ -576,6 +737,11 @@ export type Database = {
         Returns: boolean
       }
       cleanup_rate_limits: { Args: never; Returns: undefined }
+      get_org_role: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: Database["public"]["Enums"]["org_member_role"]
+      }
+      get_user_org_id: { Args: { _user_id: string }; Returns: string }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -587,10 +753,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_org_member: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "user"
       document_category: "matricula" | "iptu" | "contrato" | "laudo" | "outro"
+      org_member_role: "owner" | "admin" | "financial" | "operator"
       property_performance: "alta" | "media" | "baixa"
       property_status: "alugado" | "vago" | "em_reforma" | "a_venda"
       property_type:
@@ -733,6 +904,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user"],
       document_category: ["matricula", "iptu", "contrato", "laudo", "outro"],
+      org_member_role: ["owner", "admin", "financial", "operator"],
       property_performance: ["alta", "media", "baixa"],
       property_status: ["alugado", "vago", "em_reforma", "a_venda"],
       property_type: [
