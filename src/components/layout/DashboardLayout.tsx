@@ -30,6 +30,8 @@ import {
   Download,
   CreditCard,
   Users,
+  Sparkles,
+  Send,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -63,6 +65,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { subscription } = useSubscription();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const copilotRef = useRef<PortfolioCopilotRef>(null);
+  const [aiQuestion, setAiQuestion] = useState('');
+
+  const handleAskCopilot = () => {
+    if (aiQuestion.trim() && copilotRef.current) {
+      copilotRef.current.openWithQuestion(aiQuestion.trim());
+      setAiQuestion('');
+    }
+  };
+
+  const handleAiKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAskCopilot();
+    }
+  };
 
   const plan = subscription?.plan || 'starter';
   const isPro = plan === 'pro' || plan === 'enterprise';
@@ -288,7 +305,33 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div className="flex-1" />
+          
+          {/* AI Copilot Input - Centered */}
+          <div className="flex-1 flex justify-center px-4">
+            <div className="relative w-full max-w-xl">
+              <div className="relative flex items-center">
+                <div className="absolute left-3 flex items-center pointer-events-none">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                </div>
+                <input
+                  type="text"
+                  value={aiQuestion}
+                  onChange={(e) => setAiQuestion(e.target.value)}
+                  onKeyDown={handleAiKeyDown}
+                  placeholder="Pergunte ao Copiloto IA..."
+                  className="w-full h-10 pl-10 pr-11 rounded-xl border bg-background text-sm text-foreground placeholder:text-muted-foreground shadow-md shadow-primary/5 focus:shadow-lg focus:shadow-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300"
+                />
+                <button
+                  onClick={handleAskCopilot}
+                  disabled={!aiQuestion.trim()}
+                  className="absolute right-1.5 h-7 w-7 rounded-lg bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+
           <ThemeToggle />
         </header>
 
