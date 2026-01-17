@@ -175,7 +175,7 @@ export default function Export() {
                     <FileText className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg">Quer relatórios em PDF?</h3>
+                    <h3 className="font-semibold text-lg">Relatórios Personalizados</h3>
                     <p className="text-muted-foreground text-sm mt-1">
                       Faça upgrade para o Plus e gere relatórios profissionais com layout personalizado.
                     </p>
