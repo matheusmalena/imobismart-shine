@@ -57,6 +57,8 @@ import {
   Building2,
   Lock,
   AlertTriangle,
+  RefreshCw,
+  AlertCircle,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -89,6 +91,7 @@ export function TeamManagement() {
     createOrganization,
     inviteMember,
     cancelInvitation,
+    resendInvitation,
     updateMemberRole,
     removeMember,
     ROLE_LABELS,
@@ -459,43 +462,70 @@ export function TeamManagement() {
             <Separator />
             <div className="space-y-3">
               <h4 className="text-sm font-medium text-muted-foreground">Convites Pendentes</h4>
-              {invitations.map((invitation) => (
-                <div
-                  key={invitation.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-dashed bg-muted/30"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                      <Mail className="h-5 w-5 text-muted-foreground" />
+              {invitations.map((invitation) => {
+                const expiresAt = new Date(invitation.expires_at);
+                const now = new Date();
+                const daysUntilExpiry = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                const isExpiringSoon = daysUntilExpiry <= 2;
+                
+                return (
+                  <div
+                    key={invitation.id}
+                    className="flex items-center justify-between p-3 rounded-lg border border-dashed bg-muted/30"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                        <Mail className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{invitation.email}</p>
+                        <p className={`text-xs flex items-center gap-1 ${isExpiringSoon ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                          {isExpiringSoon ? (
+                            <AlertCircle className="h-3 w-3" />
+                          ) : (
+                            <Clock className="h-3 w-3" />
+                          )}
+                          {isExpiringSoon 
+                            ? `Expira em ${daysUntilExpiry} dia${daysUntilExpiry !== 1 ? 's' : ''}` 
+                            : `Expira em ${format(expiresAt, "d 'de' MMM", { locale: ptBR })}`
+                          }
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium">{invitation.email}</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        Expira em {format(new Date(invitation.expires_at), "d 'de' MMM", { locale: ptBR })}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className={ROLE_COLORS[invitation.role]}>
-                      {ROLE_ICONS[invitation.role]}
-                      <span className="ml-1">{ROLE_LABELS[invitation.role]}</span>
-                    </Badge>
                     
-                    {canManage && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={() => cancelInvitation.mutate(invitation.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className={ROLE_COLORS[invitation.role]}>
+                        {ROLE_ICONS[invitation.role]}
+                        <span className="ml-1">{ROLE_LABELS[invitation.role]}</span>
+                      </Badge>
+                      
+                      {canManage && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => resendInvitation.mutate(invitation.id)}
+                            disabled={resendInvitation.isPending}
+                            title="Reenviar convite"
+                          >
+                            <RefreshCw className={`h-4 w-4 ${resendInvitation.isPending ? 'animate-spin' : ''}`} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            onClick={() => cancelInvitation.mutate(invitation.id)}
+                            title="Cancelar convite"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </>
         )}

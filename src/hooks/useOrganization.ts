@@ -288,6 +288,39 @@ export function useOrganization() {
     },
   });
 
+  // Resend invitation
+  const resendInvitation = useMutation({
+    mutationFn: async (invitationId: string) => {
+      // Update expires_at to extend invitation validity
+      const newExpiresAt = new Date();
+      newExpiresAt.setDate(newExpiresAt.getDate() + 7);
+
+      const { error: updateError } = await supabase
+        .from('organization_invitations')
+        .update({ expires_at: newExpiresAt.toISOString() })
+        .eq('id', invitationId);
+
+      if (updateError) throw updateError;
+
+      // Resend email
+      const { error: emailError } = await supabase.functions.invoke('send-team-invite', {
+        body: { invitationId },
+      });
+
+      if (emailError) {
+        console.error('Error resending invitation email:', emailError);
+        throw new Error('Erro ao reenviar email');
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['org-invitations'] });
+      toast.success('Convite reenviado com sucesso!');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erro ao reenviar convite');
+    },
+  });
+
   // Update member role
   const updateMemberRole = useMutation({
     mutationFn: async ({ memberId, role }: { memberId: string; role: OrgMemberRole }) => {
@@ -361,6 +394,7 @@ export function useOrganization() {
     createOrganization,
     inviteMember,
     cancelInvitation,
+    resendInvitation,
     updateMemberRole,
     removeMember,
     updateOrganization,
