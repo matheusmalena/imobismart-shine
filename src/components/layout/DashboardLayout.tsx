@@ -1,4 +1,4 @@
-import { ReactNode, useState, useRef } from 'react';
+import { ReactNode, useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -66,6 +66,61 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const copilotRef = useRef<PortfolioCopilotRef>(null);
   const [aiQuestion, setAiQuestion] = useState('');
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [isTyping, setIsTyping] = useState(true);
+  const [displayedPlaceholder, setDisplayedPlaceholder] = useState('');
+
+  const placeholderSuggestions = [
+    "Qual imóvel teve melhor rentabilidade?",
+    "Quantos inquilinos tenho ativos?",
+    "Qual a taxa de ocupação do portfólio?",
+    "Quais contratos vencem este mês?",
+    "Resumo financeiro do meu portfólio",
+  ];
+
+  useEffect(() => {
+    const currentSuggestion = placeholderSuggestions[placeholderIndex];
+    let charIndex = 0;
+    let typingInterval: NodeJS.Timeout;
+    let pauseTimeout: NodeJS.Timeout;
+    let deleteInterval: NodeJS.Timeout;
+
+    if (isTyping) {
+      // Typing animation
+      typingInterval = setInterval(() => {
+        if (charIndex <= currentSuggestion.length) {
+          setDisplayedPlaceholder(currentSuggestion.slice(0, charIndex));
+          charIndex++;
+        } else {
+          clearInterval(typingInterval);
+          // Pause before deleting
+          pauseTimeout = setTimeout(() => {
+            setIsTyping(false);
+          }, 2000);
+        }
+      }, 50);
+    } else {
+      // Deleting animation
+      let deleteIndex = currentSuggestion.length;
+      deleteInterval = setInterval(() => {
+        if (deleteIndex >= 0) {
+          setDisplayedPlaceholder(currentSuggestion.slice(0, deleteIndex));
+          deleteIndex--;
+        } else {
+          clearInterval(deleteInterval);
+          // Move to next suggestion
+          setPlaceholderIndex((prev) => (prev + 1) % placeholderSuggestions.length);
+          setIsTyping(true);
+        }
+      }, 30);
+    }
+
+    return () => {
+      clearInterval(typingInterval);
+      clearTimeout(pauseTimeout);
+      clearInterval(deleteInterval);
+    };
+  }, [placeholderIndex, isTyping]);
 
   const handleAskCopilot = () => {
     if (aiQuestion.trim() && copilotRef.current) {
@@ -318,7 +373,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   value={aiQuestion}
                   onChange={(e) => setAiQuestion(e.target.value)}
                   onKeyDown={handleAiKeyDown}
-                  placeholder="Pergunte ao Copiloto IA..."
+                  placeholder={aiQuestion ? '' : displayedPlaceholder || 'Pergunte ao Copiloto IA...'}
                   className="w-full h-10 pl-10 pr-11 rounded-xl border bg-background text-sm text-foreground placeholder:text-muted-foreground shadow-md shadow-primary/5 focus:shadow-lg focus:shadow-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300"
                 />
                 <button
