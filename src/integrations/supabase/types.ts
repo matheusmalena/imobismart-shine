@@ -736,6 +736,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      cleanup_expired_invitations: { Args: never; Returns: undefined }
       cleanup_rate_limits: { Args: never; Returns: undefined }
       get_org_role: {
         Args: { _org_id: string; _user_id: string }

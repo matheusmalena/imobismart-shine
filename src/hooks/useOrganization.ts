@@ -147,11 +147,18 @@ export function useOrganization() {
     enabled: !!organization?.id,
   });
 
-  // Fetch pending invitations
+  // Fetch pending invitations and cleanup expired ones
   const { data: invitations = [], isLoading: invitationsLoading } = useQuery({
     queryKey: ['org-invitations', organization?.id],
     queryFn: async () => {
       if (!organization?.id) return [];
+
+      // First, cleanup expired invitations (call the database function)
+      try {
+        await supabase.rpc('cleanup_expired_invitations' as any);
+      } catch (err) {
+        console.error('Error cleaning up expired invitations:', err);
+      }
 
       const { data, error } = await supabase
         .from('organization_invitations')
