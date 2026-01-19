@@ -20,6 +20,7 @@ import AdminPlans from "./pages/admin/Plans";
 import Team from "./pages/Team";
 import AcceptInvite from "./pages/AcceptInvite";
 import NotFound from "./pages/NotFound";
+import WhatsApp from "./pages/WhatsApp";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
               <Route path="/reports" element={<Reports />} />
               <Route path="/export" element={<Export />} />
               <Route path="/team" element={<Team />} />
+              <Route path="/whatsapp" element={<WhatsApp />} />
               <Route path="/admin/clients" element={<AdminClients />} />
               <Route path="/admin/clients/:userId" element={<AdminClientDetails />} />
               <Route path="/admin/plans" element={<AdminPlans />} />
