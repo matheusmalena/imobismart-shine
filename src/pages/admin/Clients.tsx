@@ -4,6 +4,8 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useAdminClients, ClientData } from '@/hooks/useAdminClients';
 import { EditSubscriptionDialog } from '@/components/admin/EditSubscriptionDialog';
+import { BlockUserDialog } from '@/components/admin/BlockUserDialog';
+import { DeleteUserDialog } from '@/components/admin/DeleteUserDialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -306,6 +308,15 @@ export default function AdminClients() {
                               <Eye className="h-4 w-4" />
                             </Button>
                             <EditSubscriptionDialog client={client} />
+                            <BlockUserDialog 
+                              userId={client.user_id} 
+                              userName={client.full_name} 
+                              isBlocked={client.subscription_status === 'inactive'}
+                            />
+                            <DeleteUserDialog 
+                              userId={client.user_id} 
+                              userName={client.full_name} 
+                            />
                           </div>
                         </TableCell>
                       </TableRow>
