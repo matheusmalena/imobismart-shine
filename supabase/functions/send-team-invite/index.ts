@@ -14,6 +14,9 @@ interface InviteEmailRequest {
   invitationId: string;
 }
 
+// UUID validation regex
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -21,30 +24,110 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // 1. AUTHENTICATION - Verify user is logged in
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.error("Missing or invalid authorization header");
+      return new Response(
+        JSON.stringify({ error: "Não autorizado" }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Verify the JWT and get user
+    const token = authHeader.replace("Bearer ", "");
+    const { data: userData, error: userError } = await supabase.auth.getUser(token);
+    
+    if (userError || !userData.user) {
+      console.error("Invalid token or user not found:", userError);
+      return new Response(
+        JSON.stringify({ error: "Usuário não autenticado" }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    const userId = userData.user.id;
+    console.log("Authenticated user:", userId);
+
+    // 2. INPUT VALIDATION - Validate invitationId format
     const { invitationId }: InviteEmailRequest = await req.json();
+
+    if (!invitationId || typeof invitationId !== "string" || !UUID_REGEX.test(invitationId)) {
+      console.error("Invalid invitation ID format:", invitationId);
+      return new Response(
+        JSON.stringify({ error: "ID de convite inválido" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
 
     console.log("Processing invitation:", invitationId);
 
-    // Fetch invitation details
+    // Fetch invitation details with organization info
     const { data: invitation, error: invitationError } = await supabase
       .from("organization_invitations")
       .select(`
         *,
-        organizations:organization_id (name)
+        organizations:organization_id (name, owner_id)
       `)
       .eq("id", invitationId)
       .single();
 
     if (invitationError || !invitation) {
       console.error("Error fetching invitation:", invitationError);
-      throw new Error("Convite não encontrado");
+      return new Response(
+        JSON.stringify({ error: "Convite não encontrado" }),
+        {
+          status: 404,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
     }
 
-    // Get inviter profile
+    // 3. AUTHORIZATION - Verify caller has permission to send this invitation
+    // Check if user is the organization owner
+    const isOwner = invitation.organizations?.owner_id === userId;
+    
+    // Check if user is an admin of the organization
+    const { data: membership } = await supabase
+      .from("organization_members")
+      .select("role")
+      .eq("organization_id", invitation.organization_id)
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .single();
+
+    const isAdmin = membership?.role === "admin";
+    
+    // Check if user is the one who created the invitation
+    const isInviter = invitation.invited_by === userId;
+
+    if (!isOwner && !isAdmin && !isInviter) {
+      console.error("User not authorized to send this invitation:", userId);
+      return new Response(
+        JSON.stringify({ error: "Acesso negado - você não tem permissão para enviar este convite" }),
+        {
+          status: 403,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    console.log("Authorization passed for user:", userId, { isOwner, isAdmin, isInviter });
+
+    // Get inviter profile for the email
     const { data: inviterProfile } = await supabase
       .from("profiles")
       .select("full_name, email")
