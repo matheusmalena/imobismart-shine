@@ -7,9 +7,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useWhatsAppSettings } from '@/hooks/useWhatsAppSettings';
 import { DEFAULT_MESSAGE_TEMPLATE } from '@/types/whatsapp';
-import { Save, TestTube2, Loader2, Info, ExternalLink, X, Plus } from 'lucide-react';
+import { EvolutionApiGuide } from './EvolutionApiGuide';
+import { Save, TestTube2, Loader2, Info, ExternalLink, X, Plus, HelpCircle, ChevronDown } from 'lucide-react';
 
 export function WhatsAppSettingsPanel() {
   const { settings, isLoading, saveSettings, testConnection } = useWhatsAppSettings();
@@ -68,8 +70,32 @@ export function WhatsAppSettingsPanel() {
     );
   }
 
+  const [showGuide, setShowGuide] = useState(false);
+
   return (
     <div className="space-y-6">
+      {/* Guide Section */}
+      <Collapsible open={showGuide} onOpenChange={setShowGuide}>
+        <Card className="border-dashed">
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <CardTitle className="flex items-center justify-between text-base">
+                <span className="flex items-center gap-2">
+                  <HelpCircle className="h-5 w-5 text-primary" />
+                  Não tem Evolution API? Configure gratuitamente em 5 minutos
+                </span>
+                <ChevronDown className={`h-5 w-5 transition-transform ${showGuide ? 'rotate-180' : ''}`} />
+              </CardTitle>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="pt-0">
+              <EvolutionApiGuide onComplete={() => setShowGuide(false)} />
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+
       {/* Info Alert */}
       <Alert>
         <Info className="h-4 w-4" />
