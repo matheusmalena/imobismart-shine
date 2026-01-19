@@ -32,6 +32,7 @@ import {
   Users,
   Sparkles,
   Send,
+  MessageCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -48,6 +49,7 @@ const navigation = [
   { name: 'Imóveis', href: '/properties', icon: Home },
   { name: 'Inquilinos', href: '/tenants', icon: Users },
   { name: 'Documentos', href: '/documents', icon: FileText },
+  { name: 'WhatsApp', href: '/whatsapp', icon: MessageCircle },
   { name: 'Configurações', href: '/settings', icon: Settings },
 ];
 
