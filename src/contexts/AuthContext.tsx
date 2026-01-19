@@ -14,7 +14,7 @@ interface AuthContextType {
   mfaPending: boolean;
   setMfaPending: (pending: boolean) => void;
   signIn: (email: string, password: string) => Promise<SignInResult>;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, fullName: string, mobileNumber?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: null, requiresMFA: false };
   };
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string, mobileNumber?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     const { error } = await supabase.auth.signUp({
       email,
@@ -87,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName,
+          mobile_number: mobileNumber,
         },
       },
     });

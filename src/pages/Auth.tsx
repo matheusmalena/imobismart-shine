@@ -11,7 +11,7 @@ import { MFAVerification } from '@/components/auth/MFAVerification';
 import { useToast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { LogoText } from '@/components/common/LogoText';
-import { Eye, EyeOff, Loader2, Mail, Lock, User, Building2, BarChart3, Shield } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Mail, Lock, User, Building2, BarChart3, Shield, Phone } from 'lucide-react';
 import { z } from 'zod';
 
 // Client-side rate limiting for auth (before DB check)
@@ -52,6 +52,11 @@ const loginSchema = z.object({
 
 const signupSchema = z.object({
   fullName: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres'),
+  mobileNumber: z.string().optional().refine((val) => {
+    if (!val || val.trim() === '') return true;
+    const cleaned = val.replace(/\D/g, '');
+    return cleaned.length >= 10 && cleaned.length <= 11;
+  }, 'Número de celular inválido'),
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
   confirmPassword: z.string(),
@@ -74,6 +79,7 @@ export default function Auth() {
   
   // Signup form
   const [signupFullName, setSignupFullName] = useState('');
+  const [signupMobileNumber, setSignupMobileNumber] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
@@ -166,6 +172,7 @@ export default function Auth() {
     
     const result = signupSchema.safeParse({
       fullName: signupFullName,
+      mobileNumber: signupMobileNumber,
       email: signupEmail,
       password: signupPassword,
       confirmPassword: signupConfirmPassword,
@@ -181,7 +188,7 @@ export default function Auth() {
     }
 
     setIsLoading(true);
-    const { error } = await signUp(signupEmail, signupPassword, signupFullName);
+    const { error } = await signUp(signupEmail, signupPassword, signupFullName, signupMobileNumber || undefined);
     setIsLoading(false);
 
     if (error) {
@@ -351,6 +358,20 @@ export default function Auth() {
                           onChange={(e) => setSignupFullName(e.target.value)}
                           className="pl-10"
                           required
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-mobile">Celular (opcional)</Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="signup-mobile"
+                          type="tel"
+                          placeholder="(11) 99999-9999"
+                          value={signupMobileNumber}
+                          onChange={(e) => setSignupMobileNumber(e.target.value)}
+                          className="pl-10"
                         />
                       </div>
                     </div>
