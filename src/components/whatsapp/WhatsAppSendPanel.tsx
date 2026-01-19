@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useLeaseContracts } from '@/hooks/useLeaseContracts';
+import { useWhatsAppSettings } from '@/hooks/useWhatsAppSettings';
 import { Loader2, AlertTriangle, Phone, MessageSquare, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -11,6 +12,10 @@ import { DEFAULT_MESSAGE_TEMPLATE } from '@/types/whatsapp';
 
 export function WhatsAppSendPanel() {
   const { contracts, isLoading } = useLeaseContracts();
+  const { settings, isLoading: isLoadingSettings } = useWhatsAppSettings();
+
+  // Use saved template or default
+  const messageTemplate = settings?.message_template || DEFAULT_MESSAGE_TEMPLATE;
 
   // Filter only active contracts with tenants that have phone numbers
   const validContracts = useMemo(() => {
@@ -29,7 +34,7 @@ export function WhatsAppSendPanel() {
       dueDate.setMonth(dueDate.getMonth() + 1);
     }
 
-    const message = DEFAULT_MESSAGE_TEMPLATE
+    const message = messageTemplate
       .replace(/{tenant_name}/g, contract.tenant?.name || 'Inquilino')
       .replace(/{property_name}/g, contract.property?.name || 'Imóvel')
       .replace(/{due_date}/g, format(dueDate, "dd 'de' MMMM", { locale: ptBR }))
@@ -43,7 +48,7 @@ export function WhatsAppSendPanel() {
     return `https://wa.me/${fullPhone}?text=${encodeURIComponent(message)}`;
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingSettings) {
     return (
       <div className="flex justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
