@@ -169,22 +169,64 @@ export default function Export() {
         {plan === 'pro' && (
           <Card className="border-primary/30 bg-primary/5">
             <CardContent className="p-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-xl bg-primary/10">
-                    <FileText className="h-6 w-6 text-primary" />
+              <div className="flex flex-col gap-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-xl bg-primary/10">
+                      <FileText className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg">Relatórios Personalizados</h3>
+                      <p className="text-muted-foreground text-sm mt-1">
+                        Crie relatórios profissionais com sua marca e layout exclusivo para impressionar clientes e parceiros.
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-lg">Relatórios Personalizados</h3>
-                    <p className="text-muted-foreground text-sm mt-1">
-                      Faça upgrade para o Plus e gere relatórios profissionais com layout personalizado.
-                    </p>
+                  <Button onClick={() => navigate('/settings')} className="gap-2 shrink-0">
+                    <Crown className="h-4 w-4" />
+                    Ver Plano Plus
+                  </Button>
+                </div>
+                
+                {/* Report types with badges */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="flex items-center gap-2 p-3 bg-background/50 rounded-lg border border-border/50">
+                    <div className="p-1.5 rounded-md bg-green-500/10">
+                      <FileSpreadsheet className="h-4 w-4 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Financeiro</p>
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 mt-1">PDF</Badge>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 p-3 bg-background/50 rounded-lg border border-border/50">
+                    <div className="p-1.5 rounded-md bg-blue-500/10">
+                      <FileText className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Ocupação</p>
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 mt-1">PDF</Badge>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 p-3 bg-background/50 rounded-lg border border-border/50">
+                    <div className="p-1.5 rounded-md bg-purple-500/10">
+                      <FileJson className="h-4 w-4 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Rentabilidade</p>
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 mt-1">PDF</Badge>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 p-3 bg-background/50 rounded-lg border border-border/50">
+                    <div className="p-1.5 rounded-md bg-orange-500/10">
+                      <Download className="h-4 w-4 text-orange-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Completo</p>
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 mt-1">PDF</Badge>
+                    </div>
                   </div>
                 </div>
-                <Button onClick={() => navigate('/settings')} className="gap-2 shrink-0">
-                  <Crown className="h-4 w-4" />
-                  Ver Plano Plus
-                </Button>
               </div>
             </CardContent>
           </Card>
