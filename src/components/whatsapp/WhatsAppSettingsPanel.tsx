@@ -123,6 +123,14 @@ export function WhatsAppSettingsPanel() {
                 value={formData.evolution_api_url}
                 onChange={(e) => setFormData(prev => ({ ...prev, evolution_api_url: e.target.value }))}
               />
+              {formData.evolution_api_url && 
+                (formData.evolution_api_url.toLowerCase().includes('localhost') || 
+                 formData.evolution_api_url.includes('127.0.0.1') ||
+                 formData.evolution_api_url.includes('0.0.0.0')) && (
+                <p className="text-xs text-destructive">
+                  ⚠️ URLs locais não funcionam. Use a URL pública da sua Evolution API.
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="instance_name">Nome da Instância</Label>

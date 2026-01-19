@@ -72,6 +72,18 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
+      // Validate URL is not localhost
+      const urlLower = apiUrl.toLowerCase();
+      if (urlLower.includes('localhost') || urlLower.includes('127.0.0.1') || urlLower.includes('0.0.0.0')) {
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: "URLs locais (localhost) não são acessíveis pela função em nuvem. Use a URL pública da sua Evolution API (ex: https://sua-instancia.evolution-api.com)" 
+          }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
       try {
         // Call Evolution API to check instance status
         const response = await fetch(`${apiUrl}/instance/connectionState/${instanceName}`, {
