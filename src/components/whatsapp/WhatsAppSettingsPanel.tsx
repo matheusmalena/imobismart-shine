@@ -1,273 +1,74 @@
-import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { useWhatsAppSettings } from '@/hooks/useWhatsAppSettings';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { DEFAULT_MESSAGE_TEMPLATE } from '@/types/whatsapp';
-import { EvolutionApiGuide } from './EvolutionApiGuide';
-import { Save, TestTube2, Loader2, Info, ExternalLink, X, Plus, HelpCircle, ChevronDown } from 'lucide-react';
+import { Info, RotateCcw, Construction } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 export function WhatsAppSettingsPanel() {
-  const { settings, isLoading, saveSettings, testConnection } = useWhatsAppSettings();
-  
-  const [formData, setFormData] = useState({
-    is_enabled: false,
-    evolution_api_url: '',
-    evolution_api_key: '',
-    evolution_instance_name: '',
-    days_before_due: [3, 1] as number[],
-    message_template: DEFAULT_MESSAGE_TEMPLATE,
-  });
+  const [messageTemplate, setMessageTemplate] = useState(DEFAULT_MESSAGE_TEMPLATE);
 
-  const [newDayValue, setNewDayValue] = useState('');
-
-  useEffect(() => {
-    if (settings) {
-      setFormData({
-        is_enabled: settings.is_enabled,
-        evolution_api_url: settings.evolution_api_url || '',
-        evolution_api_key: settings.evolution_api_key || '',
-        evolution_instance_name: settings.evolution_instance_name || '',
-        days_before_due: settings.days_before_due || [3, 1],
-        message_template: settings.message_template || DEFAULT_MESSAGE_TEMPLATE,
-      });
-    }
-  }, [settings]);
-
-  const handleSave = () => {
-    saveSettings.mutate(formData);
+  const handleReset = () => {
+    setMessageTemplate(DEFAULT_MESSAGE_TEMPLATE);
+    toast.success('Modelo restaurado ao padrão');
   };
-
-  const handleAddDay = () => {
-    const day = parseInt(newDayValue);
-    if (day > 0 && day <= 30 && !formData.days_before_due.includes(day)) {
-      setFormData(prev => ({
-        ...prev,
-        days_before_due: [...prev.days_before_due, day].sort((a, b) => b - a),
-      }));
-      setNewDayValue('');
-    }
-  };
-
-  const handleRemoveDay = (day: number) => {
-    setFormData(prev => ({
-      ...prev,
-      days_before_due: prev.days_before_due.filter(d => d !== day),
-    }));
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  const [showGuide, setShowGuide] = useState(false);
 
   return (
     <div className="space-y-6">
-      {/* Guide Section */}
-      <Collapsible open={showGuide} onOpenChange={setShowGuide}>
-        <Card className="border-dashed">
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-              <CardTitle className="flex items-center justify-between text-base">
-                <span className="flex items-center gap-2">
-                  <HelpCircle className="h-5 w-5 text-primary" />
-                  Não tem Evolution API? Configure gratuitamente em 5 minutos
-                </span>
-                <ChevronDown className={`h-5 w-5 transition-transform ${showGuide ? 'rotate-180' : ''}`} />
-              </CardTitle>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent className="pt-0">
-              <EvolutionApiGuide onComplete={() => setShowGuide(false)} />
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
-
-      {/* Info Alert */}
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertDescription className="flex items-center justify-between">
-          <span>
-            Para usar este recurso, você precisa de uma instância da Evolution API.
-          </span>
-          <a
-            href="https://doc.evolution-api.com/pt/get-started/introduction"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-primary hover:underline ml-2"
-          >
-            Documentação
-            <ExternalLink className="h-3 w-3" />
-          </a>
+      {/* Coming Soon Alert */}
+      <Alert className="border-amber-500/20 bg-amber-500/5">
+        <Construction className="h-4 w-4 text-amber-600" />
+        <AlertDescription>
+          <strong>Em breve:</strong> Envio automático de lembretes via API. 
+          Por enquanto, use os links do WhatsApp na aba "Enviar" para cobranças manuais.
         </AlertDescription>
       </Alert>
 
-      {/* Enable/Disable */}
+      {/* Message Template Preview */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Ativar Notificações</span>
-            <Switch
-              checked={formData.is_enabled}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_enabled: checked }))}
-            />
-          </CardTitle>
+          <CardTitle>Modelo de Mensagem</CardTitle>
           <CardDescription>
-            Habilite para enviar lembretes automáticos de pagamento via WhatsApp
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
-      {/* API Configuration */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Configuração da Evolution API</CardTitle>
-          <CardDescription>
-            Configure as credenciais da sua instância Evolution API
+            Visualize e personalize o modelo usado nas cobranças.
+            Variáveis: {'{tenant_name}'}, {'{property_name}'}, {'{due_date}'}, {'{rent_value}'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="api_url">URL da API</Label>
-              <Input
-                id="api_url"
-                placeholder="https://sua-instancia.evolution-api.com"
-                value={formData.evolution_api_url}
-                onChange={(e) => setFormData(prev => ({ ...prev, evolution_api_url: e.target.value }))}
-              />
-              {formData.evolution_api_url && 
-                (formData.evolution_api_url.toLowerCase().includes('localhost') || 
-                 formData.evolution_api_url.includes('127.0.0.1') ||
-                 formData.evolution_api_url.includes('0.0.0.0')) && (
-                <p className="text-xs text-destructive">
-                  ⚠️ URLs locais não funcionam. Use a URL pública da sua Evolution API.
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="instance_name">Nome da Instância</Label>
-              <Input
-                id="instance_name"
-                placeholder="minha-instancia"
-                value={formData.evolution_instance_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, evolution_instance_name: e.target.value }))}
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="api_key">API Key</Label>
-            <Input
-              id="api_key"
-              type="password"
-              placeholder="Sua chave de API"
-              value={formData.evolution_api_key}
-              onChange={(e) => setFormData(prev => ({ ...prev, evolution_api_key: e.target.value }))}
-            />
-          </div>
-          <Button
-            variant="outline"
-            onClick={() => testConnection.mutate()}
-            disabled={testConnection.isPending || !formData.evolution_api_url || !formData.evolution_api_key}
-          >
-            {testConnection.isPending ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <TestTube2 className="h-4 w-4 mr-2" />
-            )}
-            Testar Conexão
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Schedule Configuration */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Agendamento Automático</CardTitle>
-          <CardDescription>
-            Configure quantos dias antes do vencimento as mensagens devem ser enviadas
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            {formData.days_before_due.map((day) => (
-              <Badge key={day} variant="secondary" className="gap-1 px-3 py-1.5">
-                {day} {day === 1 ? 'dia' : 'dias'} antes
-                <button
-                  onClick={() => handleRemoveDay(day)}
-                  className="ml-1 hover:text-destructive"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <Input
-              type="number"
-              min="1"
-              max="30"
-              placeholder="Dias antes"
-              value={newDayValue}
-              onChange={(e) => setNewDayValue(e.target.value)}
-              className="w-32"
-            />
-            <Button variant="outline" size="icon" onClick={handleAddDay}>
-              <Plus className="h-4 w-4" />
+          <Textarea
+            value={messageTemplate}
+            onChange={(e) => setMessageTemplate(e.target.value)}
+            rows={8}
+            className="font-mono text-sm"
+          />
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleReset}
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Restaurar padrão
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Message Template */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Modelo de Mensagem</CardTitle>
-          <CardDescription>
-            Personalize a mensagem de lembrete. Use as variáveis: {'{tenant_name}'}, {'{property_name}'}, {'{due_date}'}, {'{rent_value}'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Textarea
-            value={formData.message_template}
-            onChange={(e) => setFormData(prev => ({ ...prev, message_template: e.target.value }))}
-            rows={8}
-            className="font-mono text-sm"
-          />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setFormData(prev => ({ ...prev, message_template: DEFAULT_MESSAGE_TEMPLATE }))}
-          >
-            Restaurar modelo padrão
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saveSettings.isPending}>
-          {saveSettings.isPending ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <Save className="h-4 w-4 mr-2" />
-          )}
-          Salvar Configurações
-        </Button>
-      </div>
+      {/* Info about future features */}
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertDescription>
+          <strong>Funcionalidades planejadas:</strong>
+          <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+            <li>Integração com APIs de WhatsApp (Evolution API, Z-API, etc.)</li>
+            <li>Envio automático de lembretes X dias antes do vencimento</li>
+            <li>Histórico de mensagens enviadas</li>
+            <li>Agendamento de mensagens</li>
+          </ul>
+        </AlertDescription>
+      </Alert>
     </div>
   );
 }
