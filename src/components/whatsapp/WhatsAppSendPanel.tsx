@@ -1,11 +1,12 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useLeaseContracts } from '@/hooks/useLeaseContracts';
 import { useWhatsAppSettings } from '@/hooks/useWhatsAppSettings';
-import { Loader2, AlertTriangle, Phone, MessageSquare, ExternalLink } from 'lucide-react';
+import { Loader2, AlertTriangle, Phone, MessageSquare, ExternalLink, ChevronDown, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { DEFAULT_MESSAGE_TEMPLATE } from '@/types/whatsapp';
@@ -13,6 +14,7 @@ import { DEFAULT_MESSAGE_TEMPLATE } from '@/types/whatsapp';
 export function WhatsAppSendPanel() {
   const { contracts, isLoading } = useLeaseContracts();
   const { settings, isLoading: isLoadingSettings } = useWhatsAppSettings();
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
 
   // Use saved template or default
   const messageTemplate = settings?.message_template || DEFAULT_MESSAGE_TEMPLATE;
@@ -25,8 +27,8 @@ export function WhatsAppSendPanel() {
     );
   }, [contracts]);
 
-  // Generate wa.me link for a contract
-  const generateWhatsAppLink = (contract: typeof validContracts[0]) => {
+  // Generate message preview for a contract
+  const generateMessagePreview = (contract: typeof validContracts[0]) => {
     const dueDay = contract.payment_due_day || 5;
     const now = new Date();
     const dueDate = new Date(now.getFullYear(), now.getMonth(), dueDay);
@@ -34,18 +36,31 @@ export function WhatsAppSendPanel() {
       dueDate.setMonth(dueDate.getMonth() + 1);
     }
 
-    const message = messageTemplate
+    return messageTemplate
       .replace(/{tenant_name}/g, contract.tenant?.name || 'Inquilino')
       .replace(/{property_name}/g, contract.property?.name || 'Imóvel')
       .replace(/{due_date}/g, format(dueDate, "dd 'de' MMMM", { locale: ptBR }))
       .replace(/{rent_value}/g, new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(contract.monthly_rent));
+  };
 
-    // Clean phone number (remove non-numeric chars)
+  // Generate wa.me link for a contract
+  const generateWhatsAppLink = (contract: typeof validContracts[0]) => {
+    const message = generateMessagePreview(contract);
     const phone = contract.tenant?.phone?.replace(/\D/g, '') || '';
-    // Add Brazil country code if not present
     const fullPhone = phone.startsWith('55') ? phone : `55${phone}`;
-    
     return `https://wa.me/${fullPhone}?text=${encodeURIComponent(message)}`;
+  };
+
+  const toggleCardExpanded = (contractId: string) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(contractId)) {
+        newSet.delete(contractId);
+      } else {
+        newSet.add(contractId);
+      }
+      return newSet;
+    });
   };
 
   if (isLoading || isLoadingSettings) {
@@ -72,8 +87,7 @@ export function WhatsAppSendPanel() {
       <Alert className="border-primary/20 bg-primary/5">
         <MessageSquare className="h-4 w-4 text-primary" />
         <AlertDescription>
-          Clique no botão de cada contrato para abrir o WhatsApp com a mensagem pronta.
-          Futuramente você poderá configurar envio automático.
+          Clique em "Ver Prévia" para visualizar a mensagem antes de enviar. O botão "Enviar Cobrança" abre o WhatsApp com a mensagem pronta.
         </AlertDescription>
       </Alert>
 
@@ -85,6 +99,7 @@ export function WhatsAppSendPanel() {
           if (dueDate < now) {
             dueDate.setMonth(dueDate.getMonth() + 1);
           }
+          const isExpanded = expandedCards.has(contract.id);
 
           return (
             <Card key={contract.id} className="flex flex-col">
@@ -114,6 +129,24 @@ export function WhatsAppSendPanel() {
                     <span>{format(dueDate, "dd/MM", { locale: ptBR })}</span>
                   </div>
                 </div>
+
+                {/* Preview Collapsible */}
+                <Collapsible open={isExpanded} onOpenChange={() => toggleCardExpanded(contract.id)}>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm" className="w-full justify-between text-muted-foreground hover:text-foreground">
+                      <span className="flex items-center gap-2">
+                        <Eye className="h-4 w-4" />
+                        Ver Prévia
+                      </span>
+                      <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-2">
+                    <div className="rounded-lg bg-muted/50 p-3 text-sm whitespace-pre-wrap border border-border">
+                      {generateMessagePreview(contract)}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
 
                 <Button
                   asChild
