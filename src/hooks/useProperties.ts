@@ -26,6 +26,8 @@ export function useProperties() {
       return data as Property[];
     },
     enabled: !!user,
+    staleTime: 2 * 60 * 1000, // 2 minutos - reduz requisições desnecessárias
+    gcTime: 5 * 60 * 1000, // 5 minutos de cache
   });
 
   // Check if property name already exists for this user

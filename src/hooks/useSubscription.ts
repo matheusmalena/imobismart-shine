@@ -1,9 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserData } from '@/hooks/useUserData';
 import { toast } from 'sonner';
 
-export type SubscriptionPlan = 'starter' | 'pro' | 'enterprise';
+export type SubscriptionPlan = 'starter' | 'pro' | 'enterprise' | 'plus';
 export type SubscriptionStatus = 'active' | 'inactive' | 'cancelled' | 'trial';
 
 export interface Subscription {
@@ -17,30 +18,14 @@ export interface Subscription {
   updated_at: string;
 }
 
+/**
+ * Hook para gerenciar subscription do usuário
+ * Usa useUserData para evitar requisições duplicadas
+ */
 export function useSubscription() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-
-  const { data: subscription, isLoading } = useQuery({
-    queryKey: ['subscription', user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      
-      const { data, error } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error) {
-        console.error('Error fetching subscription:', error);
-        return null;
-      }
-      
-      return data as Subscription;
-    },
-    enabled: !!user,
-  });
+  const { subscription, isLoading } = useUserData();
 
   const cancelSubscription = useMutation({
     mutationFn: async () => {
@@ -54,7 +39,7 @@ export function useSubscription() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subscription', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['user-data', user?.id] });
       toast.success('Assinatura cancelada com sucesso');
     },
     onError: (error) => {

@@ -73,7 +73,7 @@ export function useOrganization() {
         .select('organization_id')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .single();
+        .maybeSingle();
 
       if (memberError || !membership) return null;
 
@@ -91,6 +91,7 @@ export function useOrganization() {
       return org as Organization;
     },
     enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000, // 5 minutos de cache
   });
 
   // Fetch user's role in organization
@@ -147,19 +148,13 @@ export function useOrganization() {
     enabled: !!organization?.id,
   });
 
-  // Fetch pending invitations and cleanup expired ones
+  // Fetch pending invitations (cleanup is handled by the database, not client)
   const { data: invitations = [], isLoading: invitationsLoading } = useQuery({
     queryKey: ['org-invitations', organization?.id],
     queryFn: async () => {
       if (!organization?.id) return [];
 
-      // First, cleanup expired invitations (call the database function)
-      try {
-        await supabase.rpc('cleanup_expired_invitations' as any);
-      } catch (err) {
-        console.error('Error cleaning up expired invitations:', err);
-      }
-
+      // Only fetch non-expired invitations - cleanup happens automatically via database trigger/cron
       const { data, error } = await supabase
         .from('organization_invitations')
         .select('*')
@@ -175,6 +170,7 @@ export function useOrganization() {
       return data as OrganizationInvitation[];
     },
     enabled: !!organization?.id,
+    staleTime: 2 * 60 * 1000, // 2 minutos de cache
   });
 
   // Create organization

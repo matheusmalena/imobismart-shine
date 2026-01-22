@@ -1,6 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserData } from '@/hooks/useUserData';
 import { toast } from 'sonner';
 import { useRateLimit, RATE_LIMITS } from '@/hooks/useRateLimit';
 
@@ -20,31 +21,15 @@ export interface ProfileUpdateData {
   mobile_number?: string;
 }
 
+/**
+ * Hook para gerenciar perfil do usuário
+ * Usa useUserData para evitar requisições duplicadas
+ */
 export function useProfile() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { checkRateLimit } = useRateLimit();
-
-  const { data: profile, isLoading } = useQuery({
-    queryKey: ['profile', user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return null;
-      }
-      
-      return data as Profile;
-    },
-    enabled: !!user,
-  });
+  const { profile, isLoading } = useUserData();
 
   const updateProfile = useMutation({
     mutationFn: async (updateData: ProfileUpdateData) => {
@@ -64,7 +49,7 @@ export function useProfile() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['user-data', user?.id] });
       toast.success('Perfil atualizado com sucesso');
     },
     onError: (error) => {

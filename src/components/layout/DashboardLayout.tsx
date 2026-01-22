@@ -1,9 +1,7 @@
 import { ReactNode, useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useUserRole } from '@/hooks/useUserRole';
-import { useProfile } from '@/hooks/useProfile';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useUserData } from '@/hooks/useUserData';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +20,6 @@ import {
   LogOut,
   Menu,
   X,
-  User,
   ChevronDown,
   Crown,
   ClipboardList,
@@ -62,9 +59,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { isAdmin } = useUserRole();
-  const { profile } = useProfile();
-  const { subscription } = useSubscription();
+  // Usando hook centralizado - elimina 3 requisições separadas
+  const { profile, isAdmin, isPro, isEnterprise } = useUserData();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const copilotRef = useRef<PortfolioCopilotRef>(null);
   const [aiQuestion, setAiQuestion] = useState('');
@@ -138,9 +134,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   };
 
-  const plan = subscription?.plan || 'starter';
-  const isPro = plan === 'pro' || plan === 'enterprise';
-  const isEnterprise = subscription?.plan === 'enterprise';
+  // isPro e isEnterprise já vem do useUserData
 
   const getInitials = () => {
     if (profile?.full_name) {
