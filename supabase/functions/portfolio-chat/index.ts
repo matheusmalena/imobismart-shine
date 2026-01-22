@@ -70,14 +70,81 @@ serve(async (req) => {
 
     console.log("User authenticated:", user.id);
 
-    const { message, conversationHistory = [] } = await req.json();
+    const body = await req.json();
+    const { message, conversationHistory = [] } = body;
 
+    // ===== INPUT VALIDATION =====
+    // Validate message exists and is a string
     if (!message || typeof message !== "string") {
       return new Response(JSON.stringify({ error: "Mensagem inválida" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Validate message length (max 2000 characters)
+    const MAX_MESSAGE_LENGTH = 2000;
+    if (message.length > MAX_MESSAGE_LENGTH) {
+      return new Response(JSON.stringify({ 
+        error: `Mensagem muito longa. Máximo de ${MAX_MESSAGE_LENGTH} caracteres permitidos.` 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate conversationHistory is an array
+    if (!Array.isArray(conversationHistory)) {
+      return new Response(JSON.stringify({ error: "Histórico de conversa inválido" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Limit conversation history to prevent abuse (max 20 messages)
+    const MAX_HISTORY_LENGTH = 20;
+    if (conversationHistory.length > MAX_HISTORY_LENGTH) {
+      return new Response(JSON.stringify({ 
+        error: `Histórico de conversa muito longo. Máximo de ${MAX_HISTORY_LENGTH} mensagens.` 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate each history item format and content length
+    for (const item of conversationHistory) {
+      if (!item || typeof item !== "object") {
+        return new Response(JSON.stringify({ error: "Formato de histórico inválido" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
+      if (!item.role || !["user", "assistant", "system"].includes(item.role)) {
+        return new Response(JSON.stringify({ error: "Role inválido no histórico" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
+      if (!item.content || typeof item.content !== "string") {
+        return new Response(JSON.stringify({ error: "Conteúdo de mensagem inválido no histórico" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
+      if (item.content.length > MAX_MESSAGE_LENGTH) {
+        return new Response(JSON.stringify({ 
+          error: `Mensagem no histórico muito longa. Máximo de ${MAX_MESSAGE_LENGTH} caracteres.` 
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+    // ===== END INPUT VALIDATION =====
 
     // Fetch user's portfolio data (multi-tenant - only user's data)
     const [propertiesResult, subscriptionResult, profileResult, documentsResult, galleryResult, tenantsResult, contractsResult] = await Promise.all([
