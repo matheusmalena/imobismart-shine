@@ -53,36 +53,24 @@ export default function AcceptInvite() {
 
   const validateInvitation = async () => {
     try {
+      // Use secure function that validates token without exposing all invitations
       const { data, error: queryError } = await supabase
-        .from('organization_invitations')
-        .select(`
-          id,
-          email,
-          role,
-          organization_id,
-          expires_at,
-          organizations:organization_id (name)
-        `)
-        .eq('token', token)
-        .single();
+        .rpc('validate_invitation_token' as any, { _token: token });
 
-      if (queryError || !data) {
+      if (queryError || !data || (Array.isArray(data) && data.length === 0)) {
         setError('Convite inválido ou já utilizado');
         return;
       }
 
-      if (new Date(data.expires_at) < new Date()) {
-        setError('Este convite expirou');
-        return;
-      }
+      const invitation = Array.isArray(data) ? data[0] : data;
 
       setInvitation({
-        id: data.id,
-        email: data.email,
-        role: data.role,
-        organization_id: data.organization_id,
-        organization_name: (data.organizations as any)?.name || 'Equipe',
-        expires_at: data.expires_at,
+        id: invitation.id,
+        email: invitation.email,
+        role: invitation.role,
+        organization_id: invitation.organization_id,
+        organization_name: invitation.organization_name || 'Equipe',
+        expires_at: invitation.expires_at,
       });
     } catch (err) {
       console.error('Error validating invitation:', err);
