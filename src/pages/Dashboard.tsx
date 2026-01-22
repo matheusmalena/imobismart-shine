@@ -2,9 +2,8 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProperties } from '@/hooks/useProperties';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useUserData } from '@/hooks/useUserData';
 import { useExportData } from '@/hooks/useExportData';
-import { useProfile } from '@/hooks/useProfile';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { RevenueChart } from '@/components/dashboard/RevenueChart';
@@ -39,13 +38,9 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { activeProperties, isLoading, metrics } = useProperties();
-  const { subscription } = useSubscription();
+  // Usando hook centralizado - elimina requisições duplicadas
+  const { profile, plan, isPro, isEnterprise } = useUserData();
   const { exportToCSV } = useExportData();
-  const { profile } = useProfile();
-
-  const plan = subscription?.plan || 'starter';
-  const isPro = plan === 'pro' || plan === 'enterprise';
-  const isEnterprise = plan === 'enterprise';
   
   const firstName = profile?.full_name?.split(' ')[0] || 'Investidor';
 

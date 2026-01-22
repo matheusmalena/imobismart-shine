@@ -6,6 +6,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Security headers for responses
+const securityHeaders = {
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "X-XSS-Protection": "1; mode=block",
+};
+
 interface SendMessageRequest {
   action: 'send_message' | 'test_connection';
   // For send_message
@@ -20,6 +27,33 @@ interface SendMessageRequest {
   instanceName?: string;
 }
 
+// UUID validation regex
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Phone number validation (Brazilian format)
+const PHONE_REGEX = /^[0-9]{10,15}$/;
+
+// Max message length for security
+const MAX_MESSAGE_LENGTH = 2000;
+const MAX_API_URL_LENGTH = 500;
+
+// Helper to sanitize string inputs
+function sanitizeString(input: string | undefined | null, maxLength: number): string | null {
+  if (!input || typeof input !== 'string') return null;
+  // Remove control characters and trim
+  return input.replace(/[\x00-\x1F\x7F]/g, '').trim().slice(0, maxLength);
+}
+
+// Helper to validate URL
+function isValidUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -31,7 +65,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(
         JSON.stringify({ success: false, error: "Não autorizado" }),
-        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
       );
     }
 
@@ -45,12 +79,20 @@ const handler = async (req: Request): Promise<Response> => {
     if (userError || !userData.user) {
       return new Response(
         JSON.stringify({ success: false, error: "Usuário não autenticado" }),
-        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
       );
     }
 
     const userId = userData.user.id;
     const body: SendMessageRequest = await req.json();
+
+    // Validate action field
+    if (!body.action || !['send_message', 'test_connection'].includes(body.action)) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Ação inválida" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
+      );
+    }
 
     // Get user's WhatsApp settings
     const { data: settings, error: settingsError } = await supabase
@@ -59,16 +101,24 @@ const handler = async (req: Request): Promise<Response> => {
       .eq("user_id", userId)
       .single();
 
-    if (body.action === "test_connection") {
+  if (body.action === "test_connection") {
       // Test connection to Evolution API
-      const apiUrl = body.apiUrl || settings?.evolution_api_url;
-      const apiKey = body.apiKey || settings?.evolution_api_key;
-      const instanceName = body.instanceName || settings?.evolution_instance_name;
+      const apiUrl = sanitizeString(body.apiUrl || settings?.evolution_api_url, MAX_API_URL_LENGTH);
+      const apiKey = sanitizeString(body.apiKey || settings?.evolution_api_key, 200);
+      const instanceName = sanitizeString(body.instanceName || settings?.evolution_instance_name, 100);
 
       if (!apiUrl || !apiKey) {
         return new Response(
           JSON.stringify({ success: false, error: "URL e API Key são obrigatórios" }),
-          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
+        );
+      }
+
+      // Validate URL format
+      if (!isValidUrl(apiUrl)) {
+        return new Response(
+          JSON.stringify({ success: false, error: "URL inválida" }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
         );
       }
 
@@ -80,7 +130,7 @@ const handler = async (req: Request): Promise<Response> => {
             success: false, 
             error: "URLs locais (localhost) não são acessíveis pela função em nuvem. Use a URL pública da sua Evolution API (ex: https://sua-instancia.evolution-api.com)" 
           }),
-          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
         );
       }
 
@@ -104,7 +154,7 @@ const handler = async (req: Request): Promise<Response> => {
               message: `Conectado! Status: ${data.instance?.state || 'OK'}`,
               data 
             }),
-            { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+            { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
           );
         } else {
           return new Response(
@@ -113,14 +163,14 @@ const handler = async (req: Request): Promise<Response> => {
               error: data.message || "Falha ao conectar com a Evolution API",
               data 
             }),
-            { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+            { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
           );
         }
       } catch (error: any) {
         console.error("Error testing connection:", error);
         return new Response(
           JSON.stringify({ success: false, error: `Erro de conexão: ${error?.message || 'Erro desconhecido'}` }),
-          { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
         );
       }
     }
@@ -129,28 +179,57 @@ const handler = async (req: Request): Promise<Response> => {
       if (!settings?.is_enabled) {
         return new Response(
           JSON.stringify({ success: false, error: "Notificações WhatsApp desativadas" }),
-          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
         );
       }
 
       if (!settings?.evolution_api_url || !settings?.evolution_api_key) {
         return new Response(
           JSON.stringify({ success: false, error: "Evolution API não configurada" }),
-          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
         );
       }
 
-      const { tenantId, propertyId, contractId, phoneNumber, message } = body;
+      // Validate and sanitize inputs
+      const tenantId = sanitizeString(body.tenantId, 36);
+      const propertyId = sanitizeString(body.propertyId, 36);
+      const contractId = sanitizeString(body.contractId, 36);
+      const phoneNumber = sanitizeString(body.phoneNumber, 20);
+      const message = sanitizeString(body.message, MAX_MESSAGE_LENGTH);
 
-      if (!tenantId || !propertyId || !phoneNumber || !message) {
+      // Validate UUIDs
+      if (!tenantId || !UUID_REGEX.test(tenantId)) {
+        return new Response(
+          JSON.stringify({ success: false, error: "ID de inquilino inválido" }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
+        );
+      }
+
+      if (!propertyId || !UUID_REGEX.test(propertyId)) {
+        return new Response(
+          JSON.stringify({ success: false, error: "ID de imóvel inválido" }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
+        );
+      }
+
+      if (!phoneNumber || !message) {
         return new Response(
           JSON.stringify({ success: false, error: "Dados incompletos" }),
-          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
+        );
+      }
+
+      // Validate phone number format (only digits)
+      const cleanPhone = phoneNumber.replace(/\D/g, "");
+      if (!PHONE_REGEX.test(cleanPhone)) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Número de telefone inválido" }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
         );
       }
 
       // Format phone number (remove non-digits, add country code if needed)
-      let formattedPhone = phoneNumber.replace(/\D/g, "");
+      let formattedPhone = cleanPhone;
       if (formattedPhone.length === 11 && formattedPhone.startsWith("9")) {
         formattedPhone = "55" + formattedPhone;
       } else if (formattedPhone.length === 10 || formattedPhone.length === 11) {
@@ -164,7 +243,7 @@ const handler = async (req: Request): Promise<Response> => {
           user_id: userId,
           tenant_id: tenantId,
           property_id: propertyId,
-          contract_id: contractId || null,
+          contract_id: contractId && UUID_REGEX.test(contractId) ? contractId : null,
           phone_number: phoneNumber,
           message_content: message,
           message_type: "payment_reminder",
@@ -177,7 +256,7 @@ const handler = async (req: Request): Promise<Response> => {
         console.error("Error creating message record:", insertError);
         return new Response(
           JSON.stringify({ success: false, error: "Erro ao registrar mensagem" }),
-          { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
         );
       }
 
@@ -213,7 +292,7 @@ const handler = async (req: Request): Promise<Response> => {
 
           return new Response(
             JSON.stringify({ success: true, message: "Mensagem enviada com sucesso!", data: evolutionData }),
-            { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+            { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
           );
         } else {
           // Update message status to failed
@@ -227,7 +306,7 @@ const handler = async (req: Request): Promise<Response> => {
 
           return new Response(
             JSON.stringify({ success: false, error: evolutionData.message || "Falha ao enviar mensagem" }),
-            { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+            { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
           );
         }
       } catch (error: any) {
@@ -244,21 +323,21 @@ const handler = async (req: Request): Promise<Response> => {
 
         return new Response(
           JSON.stringify({ success: false, error: `Erro ao enviar: ${error?.message || 'Erro desconhecido'}` }),
-          { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
         );
       }
     }
 
     return new Response(
       JSON.stringify({ success: false, error: "Ação inválida" }),
-      { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
     );
 
   } catch (error: any) {
     console.error("Error in whatsapp-send function:", error);
     return new Response(
       JSON.stringify({ success: false, error: error?.message || 'Erro interno' }),
-      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
     );
   }
 };
