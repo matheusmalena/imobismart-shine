@@ -1,5 +1,6 @@
 import { Property, PROPERTY_TYPE_LABELS, PROPERTY_STATUS_LABELS } from '@/types/property';
 import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 
 export interface ExportConfig {
   includeBasic: boolean;
@@ -394,5 +395,170 @@ export function useExportData() {
     toast.success('Dados exportados com sucesso!');
   };
 
-  return { exportToCSV, exportToJSON };
+  const exportToXLSX = (properties: Property[], config?: ExportConfig) => {
+    if (properties.length === 0) {
+      toast.error('Nenhum imóvel para exportar');
+      return;
+    }
+
+    // Default config - include all
+    const cfg: ExportConfig = config || {
+      includeBasic: true,
+      includeAddress: true,
+      includeFinancial: true,
+      includeCharacteristics: true,
+      includeAmenities: true,
+      includePerformance: true,
+    };
+
+    const summary = calculateSummary(properties);
+
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+
+    // Sheet 1: Summary
+    const summaryData = [
+      ['RELATÓRIO DE IMÓVEIS - ImobiSmart'],
+      [`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`],
+      [''],
+      ['RESUMO DO PORTFÓLIO'],
+      [''],
+      ['Métrica', 'Valor'],
+      ['Total de Imóveis', properties.length],
+      ['Valor Total do Portfólio', formatCurrency(summary.totalValue)],
+      ['Receita Mensal Total', formatCurrency(summary.totalRevenue)],
+      ['Custos Mensais Totais', formatCurrency(summary.totalCosts)],
+      ['Lucro Líquido Mensal', formatCurrency(summary.totalProfit)],
+      ['ROI Médio Anual', `${summary.avgROI.toFixed(2)}%`],
+      ['Taxa de Ocupação Média', `${summary.avgOccupancy.toFixed(1)}%`],
+    ];
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+    
+    // Set column widths for summary
+    wsSummary['!cols'] = [{ wch: 30 }, { wch: 25 }];
+    
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'Resumo');
+
+    // Sheet 2: Properties details
+    // Build headers based on config
+    const headers: string[] = [];
+    
+    if (cfg.includeBasic) {
+      headers.push('Nome', 'Tipo', 'Status');
+    }
+    if (cfg.includeAddress) {
+      headers.push('Endereço', 'Bairro', 'Cidade', 'Estado', 'CEP', 'Número', 'Complemento');
+    }
+    if (cfg.includeFinancial) {
+      headers.push(
+        'Valor do Imóvel',
+        'Receita Mensal',
+        'Condomínio',
+        'IPTU',
+        'Manutenção',
+        'Outros Custos',
+        'Custos Totais',
+        'Lucro Mensal',
+        'ROI Anual (%)'
+      );
+    }
+    if (cfg.includeCharacteristics) {
+      headers.push('Área (m²)', 'Quartos', 'Suítes', 'Banheiros', 'Vagas', 'Andar', 'Ano Construção', 'Descrição');
+    }
+    if (cfg.includeAmenities) {
+      headers.push('Piscina', 'Academia', 'Elevador', 'Varanda', 'Churrasqueira', 'Mobiliado');
+    }
+    if (cfg.includePerformance) {
+      headers.push('Taxa de Ocupação (%)', 'Data Aquisição', 'Data Cadastro');
+    }
+
+    const rows = properties.map(p => {
+      const costs = Number(p.condominium_fee || 0) + Number(p.iptu_fee || 0) + 
+                   Number(p.maintenance_fee || 0) + Number(p.other_costs || 0);
+      const profit = Number(p.monthly_revenue || 0) - costs;
+      const value = Number(p.property_value || 0);
+      const roi = value > 0 ? ((profit * 12) / value) * 100 : 0;
+
+      const row: (string | number)[] = [];
+
+      if (cfg.includeBasic) {
+        row.push(
+          p.name,
+          PROPERTY_TYPE_LABELS[p.property_type],
+          PROPERTY_STATUS_LABELS[p.status]
+        );
+      }
+      if (cfg.includeAddress) {
+        row.push(
+          p.address_street || '',
+          p.address_neighborhood || '',
+          p.address_city || '',
+          p.address_state || '',
+          p.address_zip || '',
+          p.address_number || '',
+          p.address_complement || ''
+        );
+      }
+      if (cfg.includeFinancial) {
+        row.push(
+          formatCurrency(Number(p.property_value || 0)),
+          formatCurrency(Number(p.monthly_revenue || 0)),
+          formatCurrency(Number(p.condominium_fee || 0)),
+          formatCurrency(Number(p.iptu_fee || 0)),
+          formatCurrency(Number(p.maintenance_fee || 0)),
+          formatCurrency(Number(p.other_costs || 0)),
+          formatCurrency(costs),
+          formatCurrency(profit),
+          roi.toFixed(2)
+        );
+      }
+      if (cfg.includeCharacteristics) {
+        row.push(
+          p.area_sqm || '',
+          p.bedrooms || 0,
+          p.suites || 0,
+          p.bathrooms || 0,
+          p.parking_spots || 0,
+          p.floor_number || '',
+          p.year_built || '',
+          p.description || ''
+        );
+      }
+      if (cfg.includeAmenities) {
+        row.push(
+          p.has_pool ? 'Sim' : 'Não',
+          p.has_gym ? 'Sim' : 'Não',
+          p.has_elevator ? 'Sim' : 'Não',
+          p.has_balcony ? 'Sim' : 'Não',
+          p.has_barbecue ? 'Sim' : 'Não',
+          p.is_furnished ? 'Sim' : 'Não'
+        );
+      }
+      if (cfg.includePerformance) {
+        row.push(
+          Number(p.occupancy_rate || 0).toFixed(1),
+          p.acquisition_date || '',
+          p.created_at ? new Date(p.created_at).toLocaleDateString('pt-BR') : ''
+        );
+      }
+
+      return row;
+    });
+
+    const wsData = [headers, ...rows];
+    const wsProperties = XLSX.utils.aoa_to_sheet(wsData);
+    
+    // Set column widths for properties sheet
+    wsProperties['!cols'] = headers.map(() => ({ wch: 18 }));
+    
+    XLSX.utils.book_append_sheet(wb, wsProperties, 'Imóveis');
+
+    // Generate file and download
+    const date = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(wb, `imoveis_imobismart_${date}.xlsx`);
+    
+    toast.success('Planilha Excel exportada com sucesso!');
+  };
+
+  return { exportToCSV, exportToJSON, exportToXLSX };
 }
