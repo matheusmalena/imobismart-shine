@@ -18,6 +18,7 @@ import {
 import {
   Crown,
   Check,
+  X,
   Sparkles,
   FileText,
   HelpCircle,
@@ -355,44 +356,44 @@ export default function Plans() {
                     </tr>
                     <tr>
                       <td className="py-3 px-2">Exportação CSV/Excel/JSON</td>
-                      <td className="text-center py-3 px-2 text-muted-foreground">—</td>
+                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
                       <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                       <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                       <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                     </tr>
                     <tr>
                       <td className="py-3 px-2">Análise avançada</td>
-                      <td className="text-center py-3 px-2 text-muted-foreground">—</td>
+                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
                       <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                       <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                       <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                     </tr>
                     <tr>
                       <td className="py-3 px-2">Relatórios PDF</td>
-                      <td className="text-center py-3 px-2 text-muted-foreground">—</td>
-                      <td className="text-center py-3 px-2 text-muted-foreground">—</td>
+                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
                       <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                       <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                     </tr>
                     <tr>
                       <td className="py-3 px-2">Recomendações IA</td>
-                      <td className="text-center py-3 px-2 text-muted-foreground">—</td>
-                      <td className="text-center py-3 px-2 text-muted-foreground">—</td>
+                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
                       <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                       <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                     </tr>
                     <tr>
                       <td className="py-3 px-2">Gestão de equipe</td>
-                      <td className="text-center py-3 px-2 text-muted-foreground">—</td>
-                      <td className="text-center py-3 px-2 text-muted-foreground">—</td>
-                      <td className="text-center py-3 px-2 text-muted-foreground">—</td>
+                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
                       <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                     </tr>
                     <tr>
                       <td className="py-3 px-2">Suporte prioritário</td>
-                      <td className="text-center py-3 px-2 text-muted-foreground">—</td>
-                      <td className="text-center py-3 px-2 text-muted-foreground">—</td>
-                      <td className="text-center py-3 px-2 text-muted-foreground">—</td>
+                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
                       <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                     </tr>
                   </tbody>
