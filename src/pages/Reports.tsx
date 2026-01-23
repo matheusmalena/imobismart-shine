@@ -5,7 +5,6 @@ import { useProperties } from '@/hooks/useProperties';
 import { useUserData } from '@/hooks/useUserData';
 import { useExportData } from '@/hooks/useExportData';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { LockedSection } from '@/components/dashboard/LockedSection';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,9 +25,12 @@ import {
   ClipboardList,
   Crown,
   Lock,
-  BarChart3,
   DollarSign,
   TrendingUp,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Filter,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -45,6 +47,7 @@ export default function Reports() {
   const [includeFinancial, setIncludeFinancial] = useState(true);
   const [includeCharacteristics, setIncludeCharacteristics] = useState(true);
   const [includePerformance, setIncludePerformance] = useState(true);
+  const [showPDFConfig, setShowPDFConfig] = useState(false);
 
   // Redirect if not authenticated
   if (!authLoading && !user) {
@@ -58,11 +61,12 @@ export default function Reports() {
       <DashboardLayout>
         <div className="space-y-6">
           <Skeleton className="h-10 w-48" />
-          <div className="grid gap-6 md:grid-cols-2">
-            <Skeleton className="h-48" />
-            <Skeleton className="h-48" />
+          <Skeleton className="h-20" />
+          <div className="grid gap-6 md:grid-cols-3">
+            <Skeleton className="h-80" />
+            <Skeleton className="h-80" />
+            <Skeleton className="h-80" />
           </div>
-          <Skeleton className="h-96" />
         </div>
       </DashboardLayout>
     );
@@ -77,13 +81,17 @@ export default function Reports() {
     }).format(value);
   };
 
+  const getPropertiesToExport = () => {
+    return selectedProperty === 'all' 
+      ? activeProperties 
+      : activeProperties.filter(p => p.id === selectedProperty);
+  };
+
   const generatePDFReport = async () => {
     setIsGenerating(true);
     
     try {
-      const propertiesToExport = selectedProperty === 'all' 
-        ? activeProperties 
-        : activeProperties.filter(p => p.id === selectedProperty);
+      const propertiesToExport = getPropertiesToExport();
 
       if (propertiesToExport.length === 0) {
         toast.error('Nenhum imóvel encontrado para gerar o relatório');
@@ -103,7 +111,7 @@ export default function Reports() {
             .header h1 { color: #10b981; margin: 0; }
             .header p { color: #666; margin-top: 10px; }
             .summary { background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
-            .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+            .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
             .summary-item { text-align: center; }
             .summary-item .value { font-size: 24px; font-weight: bold; color: #10b981; }
             .summary-item .label { font-size: 12px; color: #666; }
@@ -117,6 +125,8 @@ export default function Reports() {
             .property-item { font-size: 13px; }
             .property-item .label { color: #64748b; }
             .property-item .value { color: #1e293b; font-weight: 500; }
+            .progress-bar { background: #e2e8f0; border-radius: 4px; height: 8px; margin-top: 4px; }
+            .progress-fill { background: #10b981; border-radius: 4px; height: 100%; }
             .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #666; font-size: 12px; }
             @media print { body { padding: 20px; } }
           </style>
@@ -131,6 +141,10 @@ export default function Reports() {
       // Summary section
       const totalValue = propertiesToExport.reduce((sum, p) => sum + (p.property_value || 0), 0);
       const totalRevenue = propertiesToExport.reduce((sum, p) => sum + (p.monthly_revenue || 0), 0);
+      const totalCosts = propertiesToExport.reduce((sum, p) => 
+        sum + (p.condominium_fee || 0) + (p.iptu_fee || 0) + (p.maintenance_fee || 0) + (p.other_costs || 0), 0
+      );
+      const totalProfit = totalRevenue - totalCosts;
       const avgOccupancy = propertiesToExport.length > 0 
         ? propertiesToExport.reduce((sum, p) => sum + (p.occupancy_rate || 0), 0) / propertiesToExport.length 
         : 0;
@@ -144,11 +158,15 @@ export default function Reports() {
             </div>
             <div class="summary-item">
               <div class="value">${formatCurrency(totalValue)}</div>
-              <div class="label">Valor Total do Portfólio</div>
+              <div class="label">Valor do Portfólio</div>
             </div>
             <div class="summary-item">
-              <div class="value">${formatCurrency(totalRevenue)}/mês</div>
-              <div class="label">Receita Mensal</div>
+              <div class="value">${formatCurrency(totalProfit)}/mês</div>
+              <div class="label">Lucro Líquido</div>
+            </div>
+            <div class="summary-item">
+              <div class="value">${avgOccupancy.toFixed(0)}%</div>
+              <div class="label">Ocupação Média</div>
             </div>
           </div>
         </div>
@@ -158,7 +176,7 @@ export default function Reports() {
       for (const property of propertiesToExport) {
         const costs = (property.condominium_fee || 0) + (property.iptu_fee || 0) + (property.maintenance_fee || 0) + (property.other_costs || 0);
         const profit = (property.monthly_revenue || 0) - costs;
-        const roi = property.property_value ? ((property.monthly_revenue || 0) * 12 / property.property_value) * 100 : 0;
+        const roi = property.property_value ? ((profit * 12) / property.property_value) * 100 : 0;
 
         htmlContent += `
           <div class="property">
@@ -175,8 +193,12 @@ export default function Reports() {
               <div class="property-grid">
                 <div class="property-item"><span class="label">Valor do Imóvel:</span> <span class="value">${formatCurrency(property.property_value || 0)}</span></div>
                 <div class="property-item"><span class="label">Receita Mensal:</span> <span class="value">${formatCurrency(property.monthly_revenue || 0)}</span></div>
-                <div class="property-item"><span class="label">Custos Mensais:</span> <span class="value">${formatCurrency(costs)}</span></div>
-                <div class="property-item"><span class="label">Lucro Líquido:</span> <span class="value">${formatCurrency(profit)}</span></div>
+                <div class="property-item"><span class="label">Condomínio:</span> <span class="value">${formatCurrency(property.condominium_fee || 0)}</span></div>
+                <div class="property-item"><span class="label">IPTU:</span> <span class="value">${formatCurrency(property.iptu_fee || 0)}</span></div>
+                <div class="property-item"><span class="label">Manutenção:</span> <span class="value">${formatCurrency(property.maintenance_fee || 0)}</span></div>
+                <div class="property-item"><span class="label">Outros Custos:</span> <span class="value">${formatCurrency(property.other_costs || 0)}</span></div>
+                <div class="property-item"><span class="label">Custos Totais:</span> <span class="value">${formatCurrency(costs)}</span></div>
+                <div class="property-item"><span class="label">Lucro Líquido:</span> <span class="value" style="color: ${profit >= 0 ? '#10b981' : '#ef4444'}">${formatCurrency(profit)}</span></div>
                 <div class="property-item"><span class="label">ROI Anual:</span> <span class="value">${roi.toFixed(2)}%</span></div>
               </div>
             </div>
@@ -191,20 +213,42 @@ export default function Reports() {
                 <div class="property-item"><span class="label">Tipo:</span> <span class="value">${property.property_type}</span></div>
                 <div class="property-item"><span class="label">Área:</span> <span class="value">${property.area_sqm || 0} m²</span></div>
                 <div class="property-item"><span class="label">Quartos:</span> <span class="value">${property.bedrooms || 0}</span></div>
+                <div class="property-item"><span class="label">Suítes:</span> <span class="value">${property.suites || 0}</span></div>
                 <div class="property-item"><span class="label">Banheiros:</span> <span class="value">${property.bathrooms || 0}</span></div>
                 <div class="property-item"><span class="label">Vagas:</span> <span class="value">${property.parking_spots || 0}</span></div>
-                <div class="property-item"><span class="label">Status:</span> <span class="value">${property.status}</span></div>
+                <div class="property-item"><span class="label">Andar:</span> <span class="value">${property.floor_number || '-'}</span></div>
+                <div class="property-item"><span class="label">Ano:</span> <span class="value">${property.year_built || '-'}</span></div>
+              </div>
+              <div style="margin-top: 10px; font-size: 13px;">
+                <span class="label">Comodidades:</span> 
+                <span class="value">
+                  ${[
+                    property.has_pool && 'Piscina',
+                    property.has_gym && 'Academia',
+                    property.has_elevator && 'Elevador',
+                    property.has_balcony && 'Varanda',
+                    property.has_barbecue && 'Churrasqueira',
+                    property.is_furnished && 'Mobiliado',
+                  ].filter(Boolean).join(', ') || 'Nenhuma'}
+                </span>
               </div>
             </div>
           `;
         }
 
         if (includePerformance) {
+          const occupancy = property.occupancy_rate || 0;
           htmlContent += `
             <div class="property-section">
               <h4>📈 Performance</h4>
               <div class="property-grid">
-                <div class="property-item"><span class="label">Taxa de Ocupação:</span> <span class="value">${property.occupancy_rate || 0}%</span></div>
+                <div class="property-item">
+                  <span class="label">Taxa de Ocupação:</span> 
+                  <span class="value">${occupancy}%</span>
+                  <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${occupancy}%"></div>
+                  </div>
+                </div>
                 <div class="property-item"><span class="label">Status:</span> <span class="value">${property.status || 'Não definido'}</span></div>
               </div>
             </div>
@@ -217,6 +261,7 @@ export default function Reports() {
       htmlContent += `
           <div class="footer">
             <p>Relatório gerado automaticamente pelo ImobiSmart</p>
+            <p>www.imobismart.com.br</p>
           </div>
         </body>
         </html>
@@ -243,16 +288,12 @@ export default function Reports() {
   };
 
   const handleExportCSV = () => {
-    const propertiesToExport = selectedProperty === 'all' 
-      ? activeProperties 
-      : activeProperties.filter(p => p.id === selectedProperty);
+    const propertiesToExport = getPropertiesToExport();
     exportToCSV(propertiesToExport);
   };
 
   const handleExportJSON = () => {
-    const propertiesToExport = selectedProperty === 'all' 
-      ? activeProperties 
-      : activeProperties.filter(p => p.id === selectedProperty);
+    const propertiesToExport = getPropertiesToExport();
     exportToJSON(propertiesToExport);
   };
 
@@ -289,14 +330,6 @@ export default function Reports() {
                   </div>
                   <Badge variant="outline" className="ml-auto">Plus</Badge>
                 </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <BarChart3 className="h-5 w-5 text-primary mt-0.5" />
-                  <div>
-                    <p className="font-medium">Análises Detalhadas</p>
-                    <p className="text-sm text-muted-foreground">Métricas financeiras e de performance</p>
-                  </div>
-                  <Badge variant="outline" className="ml-auto">Plus</Badge>
-                </div>
               </div>
               <Button onClick={() => navigate('/settings')} size="lg" className="w-full">
                 <Crown className="mr-2 h-4 w-4" />
@@ -308,6 +341,31 @@ export default function Reports() {
       </DashboardLayout>
     );
   }
+
+  // Feature content items for each card
+  const csvFeatures = [
+    'Dados básicos e endereço completo',
+    'Financeiro com ROI e lucro calculado',
+    'Características físicas do imóvel',
+    'Comodidades e status',
+    'Resumo do portfólio no cabeçalho',
+  ];
+
+  const jsonFeatures = [
+    'Estrutura hierárquica organizada',
+    'Metadados e resumo do portfólio',
+    'Valores formatados e numéricos',
+    'Ideal para integrações e APIs',
+    'Agrupamento por categorias',
+  ];
+
+  const pdfFeatures = [
+    'Resumo executivo visual',
+    'Seções personalizáveis',
+    'Gráficos de performance',
+    'Layout pronto para impressão',
+    'Ideal para apresentações',
+  ];
 
   return (
     <DashboardLayout>
@@ -321,132 +379,218 @@ export default function Reports() {
           </Badge>
         </div>
 
-        {/* Quick Export Section - Pro+ */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card className="hover:shadow-md transition-shadow">
+        {/* Global Property Selector */}
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-3">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Label className="text-sm font-medium">Filtrar Imóveis</Label>
+              <Select value={selectedProperty} onValueChange={setSelectedProperty}>
+                <SelectTrigger className="w-[280px]">
+                  <SelectValue placeholder="Selecione os imóveis" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os imóveis ({activeProperties.length})</SelectItem>
+                  {activeProperties.map((property) => (
+                    <SelectItem key={property.id} value={property.id}>
+                      {property.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <span className="text-sm text-muted-foreground ml-2">
+                {selectedProperty === 'all' 
+                  ? `${activeProperties.length} imóveis selecionados` 
+                  : '1 imóvel selecionado'}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 3 Uniform Cards Grid */}
+        <div className="grid gap-4 md:grid-cols-3">
+          {/* CSV Card */}
+          <Card className="flex flex-col hover:shadow-md transition-shadow">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Download className="h-5 w-5 text-primary" />
-                Exportar CSV
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Download className="h-5 w-5 text-primary" />
+                  Exportar CSV
+                </CardTitle>
+                <Badge variant="outline" className="text-xs">Pro</Badge>
+              </div>
               <CardDescription>
                 Planilha compatível com Excel e Google Sheets
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Button onClick={handleExportCSV} className="w-full" variant="outline">
+            <CardContent className="flex-1 flex flex-col">
+              <div className="space-y-2 text-sm flex-1">
+                <p className="font-medium text-muted-foreground">Inclui:</p>
+                <ul className="space-y-1.5">
+                  {csvFeatures.map((feature, index) => (
+                    <li key={index} className="flex items-center gap-2 text-muted-foreground">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <Button onClick={handleExportCSV} className="w-full mt-4" variant="outline">
                 <Download className="mr-2 h-4 w-4" />
                 Baixar CSV
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-md transition-shadow">
+          {/* JSON Card */}
+          <Card className="flex flex-col hover:shadow-md transition-shadow">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <FileJson className="h-5 w-5 text-primary" />
-                Exportar JSON
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <FileJson className="h-5 w-5 text-primary" />
+                  Exportar JSON
+                </CardTitle>
+                <Badge variant="outline" className="text-xs">Pro</Badge>
+              </div>
               <CardDescription>
                 Formato estruturado para desenvolvedores
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Button onClick={handleExportJSON} className="w-full" variant="outline">
+            <CardContent className="flex-1 flex flex-col">
+              <div className="space-y-2 text-sm flex-1">
+                <p className="font-medium text-muted-foreground">Inclui:</p>
+                <ul className="space-y-1.5">
+                  {jsonFeatures.map((feature, index) => (
+                    <li key={index} className="flex items-center gap-2 text-muted-foreground">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <Button onClick={handleExportJSON} className="w-full mt-4" variant="outline">
                 <FileJson className="mr-2 h-4 w-4" />
                 Baixar JSON
               </Button>
             </CardContent>
           </Card>
+
+          {/* PDF Card */}
+          <Card className={`flex flex-col transition-shadow ${isPlus ? 'hover:shadow-md' : 'opacity-75'}`}>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <FileText className="h-5 w-5 text-primary" />
+                  Relatório PDF
+                </CardTitle>
+                <Badge variant="secondary" className="text-xs">Plus</Badge>
+              </div>
+              <CardDescription>
+                Relatório visual profissional
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1 flex flex-col">
+              <div className="space-y-2 text-sm flex-1">
+                <p className="font-medium text-muted-foreground">Inclui:</p>
+                <ul className="space-y-1.5">
+                  {pdfFeatures.map((feature, index) => (
+                    <li key={index} className="flex items-center gap-2 text-muted-foreground">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {isPlus ? (
+                <Button 
+                  onClick={() => setShowPDFConfig(!showPDFConfig)} 
+                  className="w-full mt-4" 
+                  variant={showPDFConfig ? "default" : "outline"}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  Configurar PDF
+                  {showPDFConfig ? (
+                    <ChevronUp className="ml-2 h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  )}
+                </Button>
+              ) : (
+                <Button 
+                  onClick={() => navigate('/settings')} 
+                  className="w-full mt-4" 
+                  variant="outline"
+                >
+                  <Lock className="mr-2 h-4 w-4" />
+                  Upgrade para Plus
+                </Button>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
-        {/* PDF Reports Section - Plus+ */}
-        <LockedSection
-          title="Relatórios PDF Personalizados"
-          description="Gere relatórios profissionais com dados financeiros, características e análises de performance"
-          requiredPlan="plus"
-          icon={<FileText className="h-6 w-6" />}
-          hasAccess={isPlus}
-        >
-          <Card>
+        {/* Expandable PDF Configuration Panel */}
+        {showPDFConfig && isPlus && (
+          <Card className="animate-in fade-in slide-in-from-top-2 duration-300">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-primary" />
-                Configuração do Relatório
+                Configuração do Relatório PDF
               </CardTitle>
               <CardDescription>
                 Personalize o conteúdo do seu relatório PDF
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Property Selection */}
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Selecionar Imóveis</Label>
-                  <Select value={selectedProperty} onValueChange={setSelectedProperty}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione os imóveis" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os imóveis ({activeProperties.length})</SelectItem>
-                      {activeProperties.map((property) => (
-                        <SelectItem key={property.id} value={property.id}>
-                          {property.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Tipo de Relatório</Label>
-                  <Select value={reportType} onValueChange={setReportType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="complete">Completo</SelectItem>
-                      <SelectItem value="financial">Financeiro</SelectItem>
-                      <SelectItem value="performance">Performance</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              {/* Report Type */}
+              <div className="space-y-2">
+                <Label>Tipo de Relatório</Label>
+                <Select value={reportType} onValueChange={setReportType}>
+                  <SelectTrigger className="w-full md:w-[280px]">
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="complete">Completo</SelectItem>
+                    <SelectItem value="financial">Financeiro</SelectItem>
+                    <SelectItem value="performance">Performance</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Content Options */}
               <div className="space-y-3">
                 <Label>Incluir no Relatório</Label>
                 <div className="grid gap-3 md:grid-cols-3">
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
                     <Checkbox 
                       id="financial" 
                       checked={includeFinancial}
                       onCheckedChange={(checked) => setIncludeFinancial(!!checked)}
                     />
-                    <Label htmlFor="financial" className="flex items-center gap-2 cursor-pointer">
-                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <Label htmlFor="financial" className="flex items-center gap-2 cursor-pointer flex-1">
+                      <DollarSign className="h-4 w-4 text-primary" />
                       Dados Financeiros
                     </Label>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
                     <Checkbox 
                       id="characteristics" 
                       checked={includeCharacteristics}
                       onCheckedChange={(checked) => setIncludeCharacteristics(!!checked)}
                     />
-                    <Label htmlFor="characteristics" className="flex items-center gap-2 cursor-pointer">
-                      <ClipboardList className="h-4 w-4 text-muted-foreground" />
+                    <Label htmlFor="characteristics" className="flex items-center gap-2 cursor-pointer flex-1">
+                      <ClipboardList className="h-4 w-4 text-primary" />
                       Características
                     </Label>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
                     <Checkbox 
                       id="performance" 
                       checked={includePerformance}
                       onCheckedChange={(checked) => setIncludePerformance(!!checked)}
                     />
-                    <Label htmlFor="performance" className="flex items-center gap-2 cursor-pointer">
-                      <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    <Label htmlFor="performance" className="flex items-center gap-2 cursor-pointer flex-1">
+                      <TrendingUp className="h-4 w-4 text-primary" />
                       Performance
                     </Label>
                   </div>
@@ -454,18 +598,19 @@ export default function Reports() {
               </div>
 
               {/* Generate Button */}
-              <Button 
-                onClick={generatePDFReport} 
-                disabled={isGenerating}
-                size="lg"
-                className="w-full md:w-auto"
-              >
-                <FileText className="mr-2 h-4 w-4" />
-                {isGenerating ? 'Gerando...' : 'Gerar Relatório PDF'}
-              </Button>
+              <div className="flex justify-end pt-2">
+                <Button 
+                  onClick={generatePDFReport} 
+                  disabled={isGenerating}
+                  size="lg"
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  {isGenerating ? 'Gerando...' : 'Gerar Relatório PDF'}
+                </Button>
+              </div>
             </CardContent>
           </Card>
-        </LockedSection>
+        )}
       </div>
     </DashboardLayout>
   );
