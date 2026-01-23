@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useOrganization, OrgMemberRole } from '@/hooks/useOrganization';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useUserData } from '@/hooks/useUserData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -79,7 +79,8 @@ const ROLE_COLORS: Record<OrgMemberRole, string> = {
 };
 
 export function TeamManagement() {
-  const { subscription } = useSubscription();
+  // Using centralized hook - isEnterprise is exclusive to Enterprise plan only
+  const { isEnterprise } = useUserData();
   const {
     organization,
     userRole,
@@ -103,9 +104,6 @@ export function TeamManagement() {
   const [orgName, setOrgName] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<OrgMemberRole>('operator');
-
-  // Check if user has Enterprise plan
-  const isEnterprise = subscription?.plan === 'enterprise';
 
   if (isLoading) {
     return (

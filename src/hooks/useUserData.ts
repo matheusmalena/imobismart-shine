@@ -89,8 +89,11 @@ export function useUserData() {
   const role = data?.role ?? null;
   const isAdmin = role === 'admin';
   const plan = subscription?.plan || 'starter';
-  const isPro = plan === 'pro' || plan === 'enterprise' || plan === 'plus';
-  const isEnterprise = plan === 'enterprise' || plan === 'plus';
+  // Flags granulares para cada nível de plano
+  const isStarter = plan === 'starter';
+  const isPro = plan === 'pro' || plan === 'plus' || plan === 'enterprise'; // Pro ou superior
+  const isPlus = plan === 'plus' || plan === 'enterprise'; // Plus ou superior
+  const isEnterprise = plan === 'enterprise'; // Apenas Enterprise (exclusivo)
 
   return {
     profile,
@@ -98,7 +101,9 @@ export function useUserData() {
     role,
     isAdmin,
     plan,
+    isStarter,
     isPro,
+    isPlus,
     isEnterprise,
     isLoading,
     error,

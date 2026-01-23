@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProperties } from '@/hooks/useProperties';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useUserData } from '@/hooks/useUserData';
 import { useExportData } from '@/hooks/useExportData';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -36,11 +36,8 @@ export default function Reports() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { activeProperties, isLoading } = useProperties();
-  const { subscription } = useSubscription();
+  const { isPlus } = useUserData();
   const { exportToCSV, exportToJSON } = useExportData();
-
-  const plan = subscription?.plan || 'starter';
-  const isEnterprise = plan === 'enterprise';
 
   const [selectedProperty, setSelectedProperty] = useState<string>('all');
   const [reportType, setReportType] = useState<string>('complete');
@@ -67,7 +64,7 @@ export default function Reports() {
   }
 
   // Show upgrade prompt for non-Plus users
-  if (!isEnterprise) {
+  if (!isPlus) {
     return (
       <DashboardLayout>
         <div className="max-w-2xl mx-auto py-12 animate-fade-in">

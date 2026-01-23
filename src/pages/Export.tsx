@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProperties } from '@/hooks/useProperties';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useUserData } from '@/hooks/useUserData';
 import { useExportData } from '@/hooks/useExportData';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -22,11 +22,8 @@ export default function Export() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { activeProperties, isLoading } = useProperties();
-  const { subscription } = useSubscription();
+  const { plan, isPro, isPlus } = useUserData();
   const { exportToCSV, exportToJSON } = useExportData();
-
-  const plan = subscription?.plan || 'starter';
-  const isPro = plan === 'pro' || plan === 'enterprise';
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -165,8 +162,8 @@ export default function Export() {
           </Card>
         </div>
 
-        {/* Upgrade to Plus prompt */}
-        {plan === 'pro' && (
+        {/* Upgrade to Plus prompt - show for Pro users who don't have Plus */}
+        {isPro && !isPlus && (
           <Card className="border-primary/30 bg-primary/5">
             <CardContent className="p-6">
               <div className="flex flex-col gap-6">

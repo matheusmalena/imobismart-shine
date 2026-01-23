@@ -60,7 +60,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   // Usando hook centralizado - elimina 3 requisições separadas
-  const { profile, isAdmin, isPro, isEnterprise } = useUserData();
+  const { profile, isAdmin, isPro, isPlus, isEnterprise } = useUserData();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const copilotRef = useRef<PortfolioCopilotRef>(null);
   const [aiQuestion, setAiQuestion] = useState('');
@@ -248,7 +248,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             >
               <ClipboardList className="h-5 w-5" />
               Relatórios PDF
-              {!isEnterprise && (
+              {!isPlus && (
                 <Badge variant="outline" className="ml-auto gap-1 text-xs bg-primary/10 border-primary/30 text-primary">
                   <Lock className="h-3 w-3" />
                   Plus
