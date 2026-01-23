@@ -6,6 +6,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useUserData } from '@/hooks/useUserData';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { PaymentHistory } from '@/components/subscription/PaymentHistory';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -328,6 +329,11 @@ export default function Subscription() {
             </Card>
           </motion.div>
         </div>
+
+        {/* Payment History */}
+        <motion.div variants={itemVariants}>
+          <PaymentHistory />
+        </motion.div>
 
         {/* Info Banner */}
         <motion.div variants={itemVariants}>
