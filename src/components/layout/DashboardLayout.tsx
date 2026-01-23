@@ -44,6 +44,7 @@ const navigation = [
   { name: 'Inquilinos', href: '/tenants', icon: Users },
   { name: 'Documentos', href: '/documents', icon: FileText },
   { name: 'WhatsApp', href: '/whatsapp', icon: MessageCircle },
+  { name: 'Assinatura', href: '/subscription', icon: CreditCard },
 ];
 
 const adminNavigation = [
