@@ -1,312 +1,361 @@
 
-# Plano: Simplificação do Menu e Melhoria da UI
 
-## Resumo das Alterações
+# Plano: Padronizar Cards de Relatórios e Melhorar Exportações
 
-Este plano implementa 4 mudanças principais para melhorar a experiência do usuário:
-
-1. Remover "Configurações" do menu lateral (já acessível via foto de perfil)
-2. Unificar "Exportar Dados" e "Relatórios PDF" em uma única página "Relatórios"
-3. Remover a barra de input da IA do header
-4. Aumentar o ícone da IA e adicionar frases rotativas para incentivar o uso
+## Objetivo
+Padronizar todos os tipos de relatório (CSV, JSON, PDF) com o mesmo visual de card, especificar claramente o conteúdo de cada formato e melhorar as funcionalidades de exportação.
 
 ---
 
-## Alteração 1: Remover Configurações do Menu
+## Nova Estrutura Visual
 
-**Arquivo:** `src/components/layout/DashboardLayout.tsx`
-
-Remover a linha de "Configurações" do array `navigation`:
-
-```typescript
-// Antes
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Imóveis', href: '/properties', icon: Home },
-  { name: 'Inquilinos', href: '/tenants', icon: Users },
-  { name: 'Documentos', href: '/documents', icon: FileText },
-  { name: 'WhatsApp', href: '/whatsapp', icon: MessageCircle },
-  { name: 'Configurações', href: '/settings', icon: Settings }, // REMOVER
-];
-
-// Depois
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Imóveis', href: '/properties', icon: Home },
-  { name: 'Inquilinos', href: '/tenants', icon: Users },
-  { name: 'Documentos', href: '/documents', icon: FileText },
-  { name: 'WhatsApp', href: '/whatsapp', icon: MessageCircle },
-];
-```
-
-**Nota:** Configurações permanece acessível via dropdown do perfil no rodapé da sidebar.
-
----
-
-## Alteração 2: Unificar Exportar Dados e Relatórios PDF
-
-### 2.1 Atualizar o Menu
-
-**Arquivo:** `src/components/layout/DashboardLayout.tsx`
-
-Substituir os dois links separados por um único link "Relatórios":
-
-```typescript
-// Remover os dois links separados (Exportar Dados e Relatórios PDF)
-// Adicionar um único link:
-<Link
-  to="/reports"
-  className={cn(
-    "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
-    location.pathname === '/reports'
-      ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
-      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-  )}
-  onClick={() => setSidebarOpen(false)}
->
-  <ClipboardList className="h-5 w-5" />
-  Relatórios
-  {!isPro && (
-    <Badge variant="outline" className="ml-auto gap-1 text-xs bg-sidebar-accent">
-      <Lock className="h-3 w-3" />
-      Upgrade
-    </Badge>
-  )}
-</Link>
-```
-
-### 2.2 Criar Nova Página Unificada
-
-**Arquivo:** `src/pages/Reports.tsx` (reescrever completamente)
-
-Nova estrutura com funcionalidades habilitadas por plano:
-
-- **Usuário Gratuito:** Vê card de upgrade com preview das funcionalidades
-- **Usuário Pro:** Acesso a CSV/JSON, vê seção de PDF com lock para Plus
-- **Usuário Plus+:** Acesso completo (CSV, JSON e PDF)
-
-Layout proposto:
+### Layout Proposto (3 Cards Uniformes)
 
 ```
 +--------------------------------------------------+
-|  Header: Relatórios                              |
+|  Header: Relatórios + Badge do Plano             |
 +--------------------------------------------------+
 |                                                  |
-|  SEÇÃO 1: Exportação Rápida (Pro+)               |
-|  [CSV Card]        [JSON Card]                   |
+|  GRID 3 COLUNAS                                  |
+|  +-------------+ +-------------+ +-------------+ |
+|  | CSV         | | JSON        | | PDF         | |
+|  | Planilha    | | Estruturado | | Profissional| |
+|  | [Pro]       | | [Pro]       | | [Plus]      | |
+|  |             | |             | |             | |
+|  | Conteúdo:   | | Conteúdo:   | | Conteúdo:   | |
+|  | - 31 campos | | - Hierárquico| | - Visual    | |
+|  | - Excel OK  | | - APIs      | | - Impressão | |
+|  |             | |             | |             | |
+|  | [Baixar]    | | [Baixar]    | | [Configurar]| |
+|  +-------------+ +-------------+ +-------------+ |
 |                                                  |
 +--------------------------------------------------+
 |                                                  |
-|  SEÇÃO 2: Relatórios PDF (Plus+)                 |
-|  - Configuração de relatório                     |
-|  - Seleção de imóvel                             |
-|  - Opções de conteúdo                            |
-|  - Botão gerar PDF                               |
+|  SEÇÃO: Configuração do PDF (expansível)         |
+|  (Aparece apenas quando Plus+ clica em "Configurar PDF") |
 |                                                  |
 +--------------------------------------------------+
 ```
 
-Lógica de acesso:
-- `!isPro`: Mostrar card de upgrade completo
-- `isPro && !isPlus`: Mostrar exportação CSV/JSON + seção PDF com lock
-- `isPlus`: Acesso total
-
-### 2.3 Remover Página Export
-
-**Arquivo:** `src/pages/Export.tsx` - Será deletado
-
-**Arquivo:** `src/App.tsx` - Remover rota `/export`
-
 ---
 
-## Alteração 3: Remover Barra de IA do Header
+## Alterações Detalhadas
 
-**Arquivo:** `src/components/layout/DashboardLayout.tsx`
+### 1. Refatorar Cards de Exportação
 
-Remover todo o bloco do AI Copilot Input do header (linhas 360-384):
+Criar 3 cards uniformes com:
+- Ícone e título
+- Badge de plano requerido (Pro/Plus)
+- Lista detalhada do conteúdo incluído
+- Botão de ação (Baixar ou Configurar)
 
-```typescript
-// REMOVER TODO ESTE BLOCO:
-{/* AI Copilot Input - Centered */}
-<div className="flex-1 flex justify-center px-4">
-  <div className="relative w-full max-w-xl">
-    ...
-  </div>
-</div>
+**Card CSV:**
+- Ícone: Download
+- Descrição: Planilha compatível com Excel
+- Conteúdo incluído:
+  - 31 campos de dados
+  - Informações básicas do imóvel
+  - Endereço completo
+  - Dados financeiros com cálculos (ROI, Lucro)
+  - Características físicas
+  - Comodidades
+- Plano: Pro
+
+**Card JSON:**
+- Ícone: FileJson
+- Descrição: Formato estruturado para integrações
+- Conteúdo incluído:
+  - Estrutura hierárquica organizada
+  - Agrupamento por categorias (endereco, financeiro, caracteristicas, comodidades)
+  - Campos calculados (custos totais, ROI, lucro)
+  - Ideal para desenvolvedores e APIs
+- Plano: Pro
+
+**Card PDF:**
+- Ícone: FileText
+- Descrição: Relatório visual profissional
+- Conteúdo incluído:
+  - Resumo executivo do portfólio
+  - Seções personalizáveis
+  - Layout pronto para impressão
+  - Ideal para apresentações
+- Plano: Plus
+
+### 2. Adicionar Seletor de Imóveis Global
+
+Mover o seletor de imóveis para fora dos cards, aplicando a todos os tipos de exportação:
+
+```
++--------------------------------------------------+
+|  Filtro: [Todos os imóveis v]                    |
++--------------------------------------------------+
 ```
 
-Também remover os estados e lógica relacionados:
-- `aiQuestion`, `setAiQuestion`
-- `placeholderIndex`, `isTyping`, `displayedPlaceholder`
-- `placeholderSuggestions`
-- `handleAskCopilot`, `handleAiKeyDown`
-- useEffect de animação do placeholder
+### 3. Melhorar Detalhes do Conteúdo
 
----
-
-## Alteração 4: Melhorar Ícone da IA com Frases Rotativas
-
-**Arquivo:** `src/components/ai/PortfolioCopilot.tsx`
-
-### 4.1 Aumentar Tamanho do Botão
-
-```typescript
-// Antes
-<Button
-  className={cn(
-    "fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50",
-    ...
-  )}
->
-  <Sparkles className="h-6 w-6" />
-</Button>
-
-// Depois
-<Button
-  className={cn(
-    "fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-xl z-50",
-    ...
-  )}
->
-  <Sparkles className="h-7 w-7" />
-</Button>
-```
-
-### 4.2 Adicionar Frases Rotativas Acima do Ícone
-
-Adicionar estado e lógica para frases animadas:
-
-```typescript
-// Novo array de frases de incentivo
-const AI_PROMPTS = [
-  "Pergunte sobre seu portfólio",
-  "Qual imóvel rende mais?",
-  "Analise sua ocupação",
-  "Descubra oportunidades",
-  "Tire suas dúvidas",
-];
-
-// Estado para controle da frase atual
-const [promptIndex, setPromptIndex] = useState(0);
-
-// useEffect para rotação das frases
-useEffect(() => {
-  const interval = setInterval(() => {
-    setPromptIndex((prev) => (prev + 1) % AI_PROMPTS.length);
-  }, 3000);
-  return () => clearInterval(interval);
-}, []);
-```
-
-### 4.3 Novo Layout do Botão com Tooltip Animado
+Adicionar lista visual do que cada exportação contém:
 
 ```tsx
-{/* Floating Button with Prompt */}
-<div className={cn(
-  "fixed bottom-6 right-6 flex flex-col items-end gap-2 z-50",
-  isOpen && "hidden"
-)}>
-  {/* Animated Prompt Bubble */}
-  <div className="bg-background border rounded-full px-4 py-2 shadow-lg animate-fade-in">
-    <p className="text-sm text-muted-foreground whitespace-nowrap">
-      {AI_PROMPTS[promptIndex]}
-    </p>
-  </div>
-  
-  {/* Button */}
-  <Button
-    onClick={() => setIsOpen(true)}
-    className={cn(
-      "h-16 w-16 rounded-full shadow-xl",
-      "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70",
-      "transition-all duration-300 hover:scale-110"
-    )}
-    size="icon"
-  >
-    <Sparkles className="h-7 w-7" />
-  </Button>
+// Exemplo de estrutura para cada card
+<div className="space-y-2 text-sm">
+  <p className="font-medium text-muted-foreground">Inclui:</p>
+  <ul className="space-y-1 text-muted-foreground">
+    <li className="flex items-center gap-2">
+      <CheckCircle className="h-3 w-3 text-primary" />
+      Dados básicos e endereço
+    </li>
+    <li className="flex items-center gap-2">
+      <CheckCircle className="h-3 w-3 text-primary" />
+      Financeiro com ROI calculado
+    </li>
+    ...
+  </ul>
 </div>
 ```
 
+### 4. Painel de Configuração PDF (Expansível)
+
+Quando o usuário Plus+ clicar em "Configurar PDF", mostrar um painel abaixo dos cards:
+
+```tsx
+{showPDFConfig && (
+  <Card>
+    <CardHeader>
+      <CardTitle>Configuração do Relatório PDF</CardTitle>
+    </CardHeader>
+    <CardContent>
+      {/* Opções de personalização */}
+    </CardContent>
+  </Card>
+)}
+```
+
+### 5. Melhorar Exportação CSV
+
+**Alterações no `useExportData.ts`:**
+
+- Adicionar resumo no início do arquivo (totais, médias)
+- Melhorar formatação de valores monetários
+- Adicionar cabeçalho com data de geração
+- Separar seções logicamente
+
+```typescript
+// Novo formato CSV com resumo
+const summaryRows = [
+  ['RELATÓRIO DE IMÓVEIS - ImobiSmart'],
+  [`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`],
+  [''],
+  ['RESUMO'],
+  [`Total de Imóveis: ${properties.length}`],
+  [`Valor Total do Portfólio: ${formatCurrency(totalValue)}`],
+  [`Receita Mensal Total: ${formatCurrency(totalRevenue)}`],
+  [`Lucro Líquido Mensal: ${formatCurrency(totalProfit)}`],
+  [`ROI Médio: ${avgROI.toFixed(2)}%`],
+  [''],
+  ['DETALHES POR IMÓVEL'],
+  [''],
+];
+```
+
+### 6. Melhorar Exportação JSON
+
+**Alterações no `useExportData.ts`:**
+
+- Adicionar metadados do relatório
+- Incluir resumo calculado
+- Estrutura mais clara
+
+```typescript
+// Novo formato JSON com metadados
+const exportData = {
+  metadata: {
+    gerado_em: new Date().toISOString(),
+    plataforma: 'ImobiSmart',
+    total_imoveis: properties.length,
+  },
+  resumo: {
+    valor_total_portfolio: totalValue,
+    receita_mensal_total: totalRevenue,
+    lucro_liquido_mensal: totalProfit,
+    roi_medio: avgROI,
+    ocupacao_media: avgOccupancy,
+  },
+  imoveis: [...],
+};
+```
+
+### 7. Melhorar Relatório PDF
+
+**Alterações no `Reports.tsx`:**
+
+- Adicionar mais opções de personalização
+- Melhorar visual do HTML gerado
+- Adicionar gráficos simples (barras de progresso)
+- Incluir comparativo de performance
+
 ---
 
-## Resumo de Arquivos a Modificar
+## Arquivos a Modificar
 
 | Arquivo | Ação |
 |---------|------|
-| `src/components/layout/DashboardLayout.tsx` | Remover Configurações do menu, unificar links de relatório, remover input IA do header |
-| `src/pages/Reports.tsx` | Reescrever com layout unificado e lógica por plano |
-| `src/pages/Export.tsx` | **DELETAR** |
-| `src/App.tsx` | Remover rota `/export` |
-| `src/components/ai/PortfolioCopilot.tsx` | Aumentar botão e adicionar frases rotativas |
+| `src/pages/Reports.tsx` | Refatorar layout com 3 cards uniformes, seletor global, painel expansível |
+| `src/hooks/useExportData.ts` | Adicionar resumos, metadados, melhorar formatação |
 
 ---
 
-## Fluxo de Acesso por Plano (Página Relatórios)
+## Detalhes de Implementação
 
-### Gratuito (Starter)
-- Vê card centralizado de upgrade
-- Preview das funcionalidades disponíveis
-- CTA: "Fazer Upgrade para Pro"
-
-### Pro
-- Acesso completo a CSV e JSON
-- Seção de PDF visível mas com LockedSection
-- CTA na seção PDF: "Fazer Upgrade para Plus"
-
-### Plus / Enterprise
-- Acesso total a todas as funcionalidades
-- CSV, JSON e geração de PDF
-
----
-
-## Detalhes Técnicos
-
-### Imports Necessários em Reports.tsx
-
-```typescript
-import { useUserData } from '@/hooks/useUserData';
-const { isPro, isPlus, plan } = useUserData();
-```
-
-### Lógica de Renderização Condicional
+### Nova Estrutura do Reports.tsx
 
 ```tsx
-// Não é Pro - mostra upgrade completo
-if (!isPro) {
-  return <UpgradeCard requiredPlan="Pro" />;
-}
+// Estado para controlar painel PDF
+const [showPDFConfig, setShowPDFConfig] = useState(false);
 
-// É Pro - mostra página com seções
 return (
-  <>
-    {/* Seção Export - sempre visível para Pro+ */}
-    <ExportSection />
-    
-    {/* Seção PDF - locked para Pro, open para Plus+ */}
-    <LockedSection hasAccess={isPlus} requiredPlan="Plus">
-      <PDFReportSection />
-    </LockedSection>
-  </>
+  <DashboardLayout>
+    {/* Header */}
+    <div className="flex items-center gap-3 mb-6">
+      <h1>Relatórios</h1>
+      <Badge>{plan}</Badge>
+    </div>
+
+    {/* Seletor Global de Imóveis */}
+    <Card className="mb-6">
+      <CardContent className="pt-4">
+        <Select value={selectedProperty} onValueChange={setSelectedProperty}>
+          ...
+        </Select>
+      </CardContent>
+    </Card>
+
+    {/* Grid de 3 Cards */}
+    <div className="grid gap-4 md:grid-cols-3">
+      {/* Card CSV */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Exportar CSV</CardTitle>
+          <Badge>Pro</Badge>
+        </CardHeader>
+        <CardContent>
+          <p>Planilha compatível com Excel</p>
+          <ul>Conteúdo incluído...</ul>
+          <Button onClick={handleExportCSV} disabled={!isPro}>
+            {!isPro && <Lock />}
+            Baixar CSV
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Card JSON */}
+      <Card>...</Card>
+
+      {/* Card PDF */}
+      <Card>
+        ...
+        <Button onClick={() => setShowPDFConfig(true)} disabled={!isPlus}>
+          {!isPlus && <Lock />}
+          Configurar PDF
+        </Button>
+      </Card>
+    </div>
+
+    {/* Painel de Configuração PDF (condicional) */}
+    {showPDFConfig && isPlus && (
+      <Card className="mt-6">
+        {/* Configurações existentes */}
+      </Card>
+    )}
+  </DashboardLayout>
 );
 ```
 
-### Simplificação do Header
+### Novo Formato useExportData.ts
 
-O header ficará mais limpo, contendo apenas:
-- Botão de menu mobile (hamburger)
-- Espaço flexível (sem input de IA)
-- ThemeToggle
+```typescript
+// Função auxiliar de formatação
+const formatCurrency = (value: number): string => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(value);
+};
 
-```tsx
-<header className="sticky top-0 z-30 h-16 bg-background/80 backdrop-blur-xl border-b border-border flex items-center justify-between px-4 lg:px-8">
-  <button className="lg:hidden ...">
-    <Menu className="h-5 w-5" />
-  </button>
-  
-  <div className="flex-1" /> {/* Spacer */}
-  
-  <ThemeToggle />
-</header>
+// Cálculo de métricas agregadas
+const calculateSummary = (properties: Property[]) => {
+  const totalValue = properties.reduce((sum, p) => sum + Number(p.property_value), 0);
+  const totalRevenue = properties.reduce((sum, p) => sum + Number(p.monthly_revenue), 0);
+  const totalCosts = properties.reduce((sum, p) => 
+    sum + Number(p.condominium_fee) + Number(p.iptu_fee) + 
+    Number(p.maintenance_fee) + Number(p.other_costs), 0
+  );
+  const totalProfit = totalRevenue - totalCosts;
+  const avgROI = properties.length > 0 
+    ? properties.reduce((sum, p) => {
+        const profit = Number(p.monthly_revenue) - (Number(p.condominium_fee) + 
+          Number(p.iptu_fee) + Number(p.maintenance_fee) + Number(p.other_costs));
+        return sum + (Number(p.property_value) > 0 
+          ? ((profit * 12) / Number(p.property_value)) * 100 
+          : 0);
+      }, 0) / properties.length
+    : 0;
+  const avgOccupancy = properties.length > 0
+    ? properties.reduce((sum, p) => sum + Number(p.occupancy_rate), 0) / properties.length
+    : 0;
+
+  return { totalValue, totalRevenue, totalCosts, totalProfit, avgROI, avgOccupancy };
+};
 ```
+
+---
+
+## Especificação de Conteúdo por Tipo
+
+### CSV (31+ campos)
+| Categoria | Campos |
+|-----------|--------|
+| **Básico** | Nome, Tipo, Status |
+| **Endereço** | Rua, Número, Complemento, Bairro, Cidade, Estado, CEP |
+| **Financeiro** | Valor Imóvel, Receita Mensal, Condomínio, IPTU, Manutenção, Outros Custos, Custos Totais, Lucro Mensal, ROI Anual |
+| **Características** | Área, Quartos, Suítes, Banheiros, Vagas, Andar, Ano Construção |
+| **Comodidades** | Piscina, Academia, Elevador, Varanda, Churrasqueira, Mobiliado |
+| **Outros** | Taxa Ocupação, Data Aquisição |
+
+### JSON (Estrutura Hierárquica)
+```
+{
+  metadata: { gerado_em, plataforma, total_imoveis }
+  resumo: { valor_total, receita_total, lucro_total, roi_medio, ocupacao_media }
+  imoveis: [
+    {
+      basico: { nome, tipo, status }
+      endereco: { rua, numero, ... }
+      financeiro: { valor, receita, custos: {...}, lucro, roi }
+      caracteristicas: { area, quartos, ... }
+      comodidades: { piscina, academia, ... }
+    }
+  ]
+}
+```
+
+### PDF (Seções Visuais)
+| Seção | Conteúdo |
+|-------|----------|
+| **Cabeçalho** | Logo, Data/Hora, Título |
+| **Resumo Executivo** | Total Imóveis, Valor Portfólio, Receita Mensal |
+| **Detalhes por Imóvel** | Card visual com nome, endereço, foto placeholder |
+| **Financeiro** | Receita, Custos detalhados, Lucro, ROI (se checkbox marcado) |
+| **Características** | Área, quartos, banheiros, etc. (se checkbox marcado) |
+| **Performance** | Ocupação, Status (se checkbox marcado) |
+| **Rodapé** | "Gerado por ImobiSmart" |
+
+---
+
+## Resultado Esperado
+
+1. **Visual Consistente**: Os 3 tipos de relatório terão o mesmo padrão visual de card
+2. **Clareza**: Cada card mostra exatamente o que será exportado
+3. **Hierarquia de Planos**: CSV/JSON para Pro+, PDF para Plus+
+4. **Exportações Melhoradas**: Incluem resumos, metadados e formatação profissional
+5. **UX Simplificada**: Seletor global de imóveis no topo, painel PDF expansível
 
