@@ -62,7 +62,7 @@ export function UnarchiveBlockedDialog({
         </AlertDialogHeader>
         <AlertDialogFooter className="gap-2 sm:gap-0">
           <AlertDialogCancel>Fechar</AlertDialogCancel>
-          <Link to="/settings">
+          <Link to="/plans">
             <AlertDialogAction asChild>
               <Button className="gap-2">
                 <ArrowUpCircle className="h-4 w-4" />
