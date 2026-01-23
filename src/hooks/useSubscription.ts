@@ -48,9 +48,14 @@ export function useSubscription() {
     },
   });
 
+  const refetch = () => {
+    queryClient.invalidateQueries({ queryKey: ['user-data', user?.id] });
+  };
+
   return {
     subscription,
     isLoading,
     cancelSubscription,
+    refetch,
   };
 }

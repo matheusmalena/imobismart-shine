@@ -613,6 +613,9 @@ export type Database = {
           created_at: string
           expires_at: string | null
           id: string
+          mp_payer_email: string | null
+          mp_subscription_id: string | null
+          payment_method: string | null
           plan: Database["public"]["Enums"]["subscription_plan"]
           started_at: string
           status: Database["public"]["Enums"]["subscription_status"]
@@ -623,6 +626,9 @@ export type Database = {
           created_at?: string
           expires_at?: string | null
           id?: string
+          mp_payer_email?: string | null
+          mp_subscription_id?: string | null
+          payment_method?: string | null
           plan?: Database["public"]["Enums"]["subscription_plan"]
           started_at?: string
           status?: Database["public"]["Enums"]["subscription_status"]
@@ -633,6 +639,9 @@ export type Database = {
           created_at?: string
           expires_at?: string | null
           id?: string
+          mp_payer_email?: string | null
+          mp_subscription_id?: string | null
+          payment_method?: string | null
           plan?: Database["public"]["Enums"]["subscription_plan"]
           started_at?: string
           status?: Database["public"]["Enums"]["subscription_status"]
