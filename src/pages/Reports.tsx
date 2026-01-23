@@ -23,6 +23,7 @@ import {
   Download,
   FileJson,
   FileText,
+  FileSpreadsheet,
   ClipboardList,
   Crown,
   Lock,
@@ -72,7 +73,7 @@ export default function Reports() {
   const { user, loading: authLoading } = useAuth();
   const { properties, isLoading: propertiesLoading } = useProperties();
   const { isPro, isPlus, isLoading: userLoading } = useUserData();
-  const { exportToCSV, exportToJSON } = useExportData();
+  const { exportToCSV, exportToJSON, exportToXLSX } = useExportData();
 
   // Global filter states
   const [selectedProperty, setSelectedProperty] = useState<string>('all');
@@ -81,11 +82,12 @@ export default function Reports() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Panel control
-  const [activePanel, setActivePanel] = useState<'csv' | 'json' | 'pdf' | null>(null);
+  const [activePanel, setActivePanel] = useState<'csv' | 'xlsx' | 'json' | 'pdf' | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Export configs (separate for each type)
   const [csvConfig, setCsvConfig] = useState<ExportConfig>(defaultConfig);
+  const [xlsxConfig, setXlsxConfig] = useState<ExportConfig>(defaultConfig);
   const [jsonConfig, setJsonConfig] = useState<ExportConfig>(defaultConfig);
   const [pdfConfig, setPdfConfig] = useState<ExportConfig>(defaultConfig);
 
@@ -365,8 +367,17 @@ export default function Reports() {
     setActivePanel(null);
   };
 
+  const handleExportXLSX = () => {
+    exportToXLSX(filteredProperties, xlsxConfig);
+    setActivePanel(null);
+  };
+
   const updateCsvConfig = (key: keyof ExportConfig, value: boolean) => {
     setCsvConfig(prev => ({ ...prev, [key]: value }));
+  };
+
+  const updateXlsxConfig = (key: keyof ExportConfig, value: boolean) => {
+    setXlsxConfig(prev => ({ ...prev, [key]: value }));
   };
 
   const updateJsonConfig = (key: keyof ExportConfig, value: boolean) => {
@@ -433,6 +444,14 @@ export default function Reports() {
     'Campos configuráveis',
     'Valores formatados em BRL',
     'ROI e lucro calculados',
+  ];
+
+  const xlsxFeatures = [
+    'Arquivo .xlsx nativo do Excel',
+    '2 abas: Resumo + Detalhes',
+    'Colunas com largura automática',
+    'Abre direto no Excel/Sheets',
+    'Formatação profissional',
   ];
 
   const jsonFeatures = [
@@ -561,8 +580,8 @@ export default function Reports() {
           </CardContent>
         </Card>
 
-        {/* 3 Uniform Cards Grid */}
-        <div className="grid gap-4 md:grid-cols-3">
+        {/* 4 Column Grid */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {/* CSV Card */}
           <Card className={`flex flex-col transition-all ${activePanel === 'csv' ? 'ring-2 ring-primary' : 'hover:shadow-md'}`}>
             <CardHeader className="pb-3">
@@ -571,13 +590,13 @@ export default function Reports() {
                   <div className="p-2 rounded-lg bg-primary/10">
                     <Download className="h-5 w-5 text-primary" />
                   </div>
-                  Exportar CSV
+                  CSV
                 </CardTitle>
                 <Badge variant="outline" className="text-xs">
                   Pro
                 </Badge>
               </div>
-              <CardDescription>Planilha compatível com Excel e Google Sheets</CardDescription>
+              <CardDescription>Texto separado por vírgulas</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col">
               <div className="space-y-2 text-sm flex-1">
@@ -597,7 +616,46 @@ export default function Reports() {
                 variant={activePanel === 'csv' ? 'default' : 'outline'}
               >
                 <Settings2 className="mr-2 h-4 w-4" />
-                {activePanel === 'csv' ? 'Fechar Configuração' : 'Configurar e Baixar'}
+                {activePanel === 'csv' ? 'Fechar' : 'Configurar'}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Excel Card */}
+          <Card className={`flex flex-col transition-all ${activePanel === 'xlsx' ? 'ring-2 ring-primary' : 'hover:shadow-md'}`}>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <div className="p-2 rounded-lg bg-green-500/10">
+                    <FileSpreadsheet className="h-5 w-5 text-green-600" />
+                  </div>
+                  Excel
+                </CardTitle>
+                <Badge variant="outline" className="text-xs">
+                  Pro
+                </Badge>
+              </div>
+              <CardDescription>Planilha .xlsx nativa</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1 flex flex-col">
+              <div className="space-y-2 text-sm flex-1">
+                <p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">Inclui:</p>
+                <ul className="space-y-1.5">
+                  {xlsxFeatures.map((feature, index) => (
+                    <li key={index} className="flex items-center gap-2 text-muted-foreground text-sm">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-green-600 flex-shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <Button
+                onClick={() => setActivePanel(activePanel === 'xlsx' ? null : 'xlsx')}
+                className="w-full mt-4"
+                variant={activePanel === 'xlsx' ? 'default' : 'outline'}
+              >
+                <Settings2 className="mr-2 h-4 w-4" />
+                {activePanel === 'xlsx' ? 'Fechar' : 'Configurar'}
               </Button>
             </CardContent>
           </Card>
@@ -610,13 +668,13 @@ export default function Reports() {
                   <div className="p-2 rounded-lg bg-primary/10">
                     <FileJson className="h-5 w-5 text-primary" />
                   </div>
-                  Exportar JSON
+                  JSON
                 </CardTitle>
                 <Badge variant="outline" className="text-xs">
                   Pro
                 </Badge>
               </div>
-              <CardDescription>Formato estruturado para desenvolvedores</CardDescription>
+              <CardDescription>Estruturado para devs</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col">
               <div className="space-y-2 text-sm flex-1">
@@ -636,7 +694,7 @@ export default function Reports() {
                 variant={activePanel === 'json' ? 'default' : 'outline'}
               >
                 <Settings2 className="mr-2 h-4 w-4" />
-                {activePanel === 'json' ? 'Fechar Configuração' : 'Configurar e Baixar'}
+                {activePanel === 'json' ? 'Fechar' : 'Configurar'}
               </Button>
             </CardContent>
           </Card>
@@ -649,7 +707,7 @@ export default function Reports() {
                   <div className="p-2 rounded-lg bg-primary/10">
                     <FileText className="h-5 w-5 text-primary" />
                   </div>
-                  Relatório PDF
+                  PDF
                 </CardTitle>
                 <Badge variant="secondary" className="text-xs">
                   Plus
@@ -676,7 +734,7 @@ export default function Reports() {
                   variant={activePanel === 'pdf' ? 'default' : 'outline'}
                 >
                   <Settings2 className="mr-2 h-4 w-4" />
-                  {activePanel === 'pdf' ? 'Fechar Configuração' : 'Configurar e Gerar'}
+                  {activePanel === 'pdf' ? 'Fechar' : 'Configurar'}
                 </Button>
               ) : (
                 <Button onClick={() => navigate('/settings')} className="w-full mt-4" variant="outline">
@@ -695,6 +753,17 @@ export default function Reports() {
             config={csvConfig}
             onConfigChange={updateCsvConfig}
             onExport={handleExportCSV}
+            onClose={() => setActivePanel(null)}
+            propertiesCount={filteredProperties.length}
+          />
+        )}
+
+        {activePanel === 'xlsx' && (
+          <ExportConfigPanel
+            type="xlsx"
+            config={xlsxConfig}
+            onConfigChange={updateXlsxConfig}
+            onExport={handleExportXLSX}
             onClose={() => setActivePanel(null)}
             propertiesCount={filteredProperties.length}
           />

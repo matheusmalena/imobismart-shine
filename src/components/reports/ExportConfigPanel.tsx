@@ -9,6 +9,7 @@ import {
   X,
   FileJson,
   FileText,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,7 @@ import { CategoryCard } from './CategoryCard';
 import { ExportConfig, countSelectedFields } from '@/hooks/useExportData';
 
 interface ExportConfigPanelProps {
-  type: 'csv' | 'json' | 'pdf';
+  type: 'csv' | 'xlsx' | 'json' | 'pdf';
   config: ExportConfig;
   onConfigChange: (key: keyof ExportConfig, value: boolean) => void;
   onExport: () => void;
@@ -78,6 +79,13 @@ const TYPE_CONFIG = {
     icon: Download,
     buttonText: 'Baixar CSV',
     buttonIcon: Download,
+  },
+  xlsx: {
+    title: 'Exportar Excel',
+    description: 'Selecione as categorias de dados para a planilha Excel',
+    icon: FileSpreadsheet,
+    buttonText: 'Baixar XLSX',
+    buttonIcon: FileSpreadsheet,
   },
   json: {
     title: 'Exportar JSON',
