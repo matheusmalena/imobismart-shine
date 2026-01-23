@@ -286,7 +286,7 @@ export const PortfolioCopilot = forwardRef<PortfolioCopilotRef>((_, ref) => {
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
-        toast.error("Você precisa estar logado para usar o Copiloto");
+        toast.error("Você precisa estar logado para usar o ImobiAI");
         setIsLoading(false);
         return;
       }
@@ -477,7 +477,7 @@ export const PortfolioCopilot = forwardRef<PortfolioCopilotRef>((_, ref) => {
           size="icon"
         >
           <Sparkles className="h-7 w-7" />
-          <span className="sr-only">Copiloto IA</span>
+          <span className="sr-only">ImobiAI</span>
         </Button>
       </div>
 
@@ -491,7 +491,7 @@ export const PortfolioCopilot = forwardRef<PortfolioCopilotRef>((_, ref) => {
                 <Bot className="h-5 w-5 text-primary-foreground" />
               </div>
               <div>
-                <h3 className="font-semibold text-sm">Copiloto IA</h3>
+                <h3 className="font-semibold text-sm">ImobiAI</h3>
                 <p className="text-xs text-muted-foreground">Seu parceiro de negócios</p>
               </div>
             </div>
@@ -525,7 +525,7 @@ export const PortfolioCopilot = forwardRef<PortfolioCopilotRef>((_, ref) => {
                 <div className="h-12 w-12 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 flex items-center justify-center mb-3">
                   <Sparkles className="h-6 w-6 text-primary" />
                 </div>
-                <h4 className="font-medium mb-1 text-sm">Copiloto IA</h4>
+                <h4 className="font-medium mb-1 text-sm">ImobiAI</h4>
                 <p className="text-xs text-muted-foreground mb-4">
                   Pergunte sobre seu portfólio
                 </p>
