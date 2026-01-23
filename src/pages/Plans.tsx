@@ -1,12 +1,13 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { usePlans } from '@/hooks/usePlans';
+import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Accordion,
@@ -23,6 +24,7 @@ import {
   ArrowLeft,
   Loader2,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -72,12 +74,31 @@ const FAQ_ITEMS = [
 
 export default function Plans() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
-  const { subscription, isLoading: subscriptionLoading } = useSubscription();
+  const { subscription, isLoading: subscriptionLoading, refetch: refetchSubscription } = useSubscription();
   const { activePlans, isLoading: plansLoading } = usePlans();
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   const currentPlan = subscription?.plan || 'starter';
   const isLoading = authLoading || subscriptionLoading || plansLoading;
+
+  // Handle return from Mercado Pago checkout
+  useEffect(() => {
+    const status = searchParams.get('status');
+    const plan = searchParams.get('plan');
+    
+    if (status === 'success' && plan) {
+      toast.success('Pagamento em processamento! Seu plano será ativado em breve.', {
+        description: 'Você receberá uma confirmação quando o pagamento for aprovado.',
+        duration: 6000,
+      });
+      // Refresh subscription data
+      refetchSubscription();
+      // Clear URL params
+      navigate('/plans', { replace: true });
+    }
+  }, [searchParams, navigate, refetchSubscription]);
 
   // Redirect if not authenticated
   if (!authLoading && !user) {
@@ -111,12 +132,47 @@ export default function Plans() {
     return 'Selecionar';
   };
 
-  const handleSelectPlan = (planId: string) => {
+  const handleSelectPlan = async (planId: string) => {
+    // Enterprise - WhatsApp contact
     if (planId === 'enterprise') {
-      window.open('mailto:contato@imobismart.com.br', '_blank');
-    } else {
-      // In a real app, this would trigger a payment flow
-      console.log('Selected plan:', planId);
+      window.open('https://wa.me/5511999999999?text=Olá! Tenho interesse no plano Enterprise do ImobiSmart.', '_blank');
+      return;
+    }
+
+    // Starter - no payment needed (downgrade)
+    if (planId === 'starter') {
+      toast.info('Para fazer downgrade para o plano Gratuito, entre em contato com nosso suporte.');
+      return;
+    }
+
+    // Pro or Plus - redirect to Mercado Pago checkout
+    if (planId === 'pro' || planId === 'plus') {
+      setLoadingPlan(planId);
+      
+      try {
+        const { data, error } = await supabase.functions.invoke('create-mp-subscription', {
+          body: { 
+            planId,
+            backUrl: window.location.origin,
+          },
+        });
+
+        if (error) {
+          throw new Error(error.message || 'Erro ao processar pagamento');
+        }
+
+        if (data?.checkoutUrl) {
+          window.location.href = data.checkoutUrl;
+        } else {
+          throw new Error('URL de checkout não recebida');
+        }
+      } catch (error) {
+        console.error('Checkout error:', error);
+        toast.error('Erro ao iniciar pagamento', {
+          description: error instanceof Error ? error.message : 'Tente novamente em alguns instantes.',
+        });
+        setLoadingPlan(null);
+      }
     }
   };
 
@@ -223,12 +279,17 @@ export default function Plans() {
                   className={`w-full mt-auto ${isCurrentPlan || plan.is_highlighted ? "shadow-lg" : ""}`}
                   variant={isCurrentPlan ? "secondary" : (plan.is_highlighted || isUpgrade) ? "default" : "outline"}
                   size="lg"
-                  disabled={isCurrentPlan}
+                  disabled={isCurrentPlan || loadingPlan === plan.id}
                   onClick={() => !isCurrentPlan && handleSelectPlan(plan.id)}
                 >
-                  {isCurrentPlan && <Check className="mr-2 h-4 w-4" />}
-                  {isUpgrade && !isCurrentPlan && <Crown className="mr-2 h-4 w-4" />}
-                  {getCtaText(plan.id, isCurrentPlan, isUpgrade, isDowngrade)}
+                  {loadingPlan === plan.id ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : isCurrentPlan ? (
+                    <Check className="mr-2 h-4 w-4" />
+                  ) : isUpgrade && !isCurrentPlan ? (
+                    <Crown className="mr-2 h-4 w-4" />
+                  ) : null}
+                  {loadingPlan === plan.id ? 'Processando...' : getCtaText(plan.id, isCurrentPlan, isUpgrade, isDowngrade)}
                 </Button>
               </motion.div>
             );

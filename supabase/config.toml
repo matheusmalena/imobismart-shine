@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.send-team-invite]
 verify_jwt = false
+
+[functions.create-mp-subscription]
+verify_jwt = false
+
+[functions.mercadopago-webhook]
+verify_jwt = false
