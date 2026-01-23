@@ -39,7 +39,7 @@ export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const { activeProperties, isLoading, metrics } = useProperties();
   // Usando hook centralizado - elimina requisições duplicadas
-  const { profile, plan, isPro, isEnterprise } = useUserData();
+  const { profile, plan, isPro, isPlus, isEnterprise } = useUserData();
   const { exportToCSV } = useExportData();
   
   const firstName = profile?.full_name?.split(' ')[0] || 'Investidor';
@@ -99,7 +99,8 @@ export default function Dashboard() {
 
   const getPlanLabel = () => {
     switch (plan) {
-      case 'enterprise': return 'Plus';
+      case 'enterprise': return 'Enterprise';
+      case 'plus': return 'Plus';
       case 'pro': return 'Pro';
       default: return 'Gratuito';
     }
@@ -413,7 +414,7 @@ export default function Dashboard() {
                         <FileText className="h-4 w-4 text-primary" />
                         <span className="text-sm">Relatório PDF</span>
                       </div>
-                      {isEnterprise ? (
+                      {isPlus ? (
                         <Badge variant="outline" className="text-success border-success/30">
                           Disponível
                         </Badge>
