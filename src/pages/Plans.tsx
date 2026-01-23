@@ -18,15 +18,34 @@ import {
   Crown,
   Check,
   Sparkles,
-  Building2,
-  BarChart3,
   FileText,
-  Users,
-  Zap,
   HelpCircle,
   ArrowLeft,
+  Loader2,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.5,
+      ease: [0.25, 0.46, 0.45, 0.94] as const,
+    },
+  },
+};
 
 const FAQ_ITEMS = [
   {
@@ -51,20 +70,6 @@ const FAQ_ITEMS = [
   },
 ];
 
-const PLAN_ICONS: Record<string, React.ReactNode> = {
-  starter: <Building2 className="h-6 w-6" />,
-  pro: <BarChart3 className="h-6 w-6" />,
-  plus: <Sparkles className="h-6 w-6" />,
-  enterprise: <Users className="h-6 w-6" />,
-};
-
-const PLAN_COLORS: Record<string, string> = {
-  starter: 'text-muted-foreground',
-  pro: 'text-primary',
-  plus: 'text-purple-500',
-  enterprise: 'text-amber-500',
-};
-
 export default function Plans() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -85,10 +90,8 @@ export default function Plans() {
       <DashboardLayout>
         <div className="space-y-8">
           <Skeleton className="h-32 max-w-xl mx-auto" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-[400px]" />
-            ))}
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         </div>
       </DashboardLayout>
@@ -100,10 +103,21 @@ export default function Plans() {
     return order.indexOf(planId);
   };
 
+  const getCtaText = (planId: string, isCurrentPlan: boolean, isUpgrade: boolean, isDowngrade: boolean) => {
+    if (isCurrentPlan) return 'Plano Atual';
+    if (planId === 'enterprise') return 'Falar com Vendas';
+    if (isUpgrade) return 'Fazer Upgrade';
+    if (isDowngrade) return 'Fazer Downgrade';
+    return 'Selecionar';
+  };
+
   const handleSelectPlan = (planId: string) => {
-    // In a real app, this would trigger a payment flow
-    console.log('Selected plan:', planId);
-    // For now, just show that it's not implemented
+    if (planId === 'enterprise') {
+      window.open('mailto:contato@imobismart.com.br', '_blank');
+    } else {
+      // In a real app, this would trigger a payment flow
+      console.log('Selected plan:', planId);
+    }
   };
 
   return (
@@ -115,35 +129,34 @@ export default function Plans() {
           Voltar
         </Button>
 
-        {/* Header */}
-        <motion.div 
+        {/* Header - Same style as landing page */}
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center py-6"
+          transition={{ duration: 0.6 }}
+          className="text-center mb-8"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
-            <Crown className="h-4 w-4" />
-            Escolha seu Plano
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
+            <Sparkles className="h-4 w-4" />
+            Planos Flexíveis
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-3">
-            Desbloqueie todo o potencial do ImobiSmart
+          <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
+            Escolha o plano ideal para sua carteira de imóveis
           </h1>
-          <p className="text-muted-foreground max-w-xl mx-auto text-lg">
-            Compare os planos e escolha o melhor para gerenciar sua carteira de imóveis
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            Comece grátis e evolua conforme seu portfólio cresce. Sem surpresas.
           </p>
         </motion.div>
 
-        {/* Plans Grid */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto"
+        {/* Plans Grid - Same style as landing page */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-[1400px] mx-auto"
         >
-          {activePlans.map((plan, index) => {
+          {activePlans.map((plan) => {
             const isCurrentPlan = plan.id === currentPlan;
-            const isPopular = plan.is_highlighted;
             const planIndex = getPlanIndex(plan.id);
             const currentPlanIndex = getPlanIndex(currentPlan);
             const isUpgrade = planIndex > currentPlanIndex;
@@ -153,120 +166,70 @@ export default function Plans() {
             return (
               <motion.div
                 key={plan.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
+                variants={itemVariants}
+                className={`relative flex flex-col bg-card rounded-2xl p-6 border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+                  isCurrentPlan
+                    ? "border-primary shadow-lg shadow-primary/15 ring-2 ring-primary/20 lg:scale-105 z-10"
+                    : plan.is_highlighted && !isCurrentPlan
+                    ? "border-primary/50 shadow-lg shadow-primary/10 ring-1 ring-primary/30"
+                    : "border-border/50 shadow-card hover:border-primary/30"
+                }`}
               >
-                <Card 
-                  className={cn(
-                    "relative h-full flex flex-col transition-all duration-300",
-                    isCurrentPlan && "ring-2 ring-primary shadow-lg",
-                    isPopular && !isCurrentPlan && "ring-2 ring-primary/50",
-                    "hover:shadow-xl hover:-translate-y-1"
-                  )}
-                >
-                  {/* Badges */}
-                  <div className="absolute -top-3 left-0 right-0 flex justify-center gap-2">
-                    {isCurrentPlan && (
-                      <Badge className="bg-primary text-primary-foreground shadow-md">
-                        Plano Atual
-                      </Badge>
-                    )}
-                    {isPopular && !isCurrentPlan && (
-                      <Badge variant="secondary" className="shadow-md">
-                        <Zap className="h-3 w-3 mr-1" />
-                        Mais Popular
-                      </Badge>
+                {/* Badges */}
+                {isCurrentPlan ? (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold shadow-lg">
+                      <Check className="h-3.5 w-3.5" />
+                      Plano Atual
+                    </span>
+                  </div>
+                ) : plan.is_highlighted ? (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold shadow-lg">
+                      <Crown className="h-3.5 w-3.5" />
+                      Mais Popular
+                    </span>
+                  </div>
+                ) : null}
+
+                {/* Plan Content */}
+                <div className="text-center mb-6 pt-2">
+                  <h3 className="text-lg font-bold text-card-foreground mb-2">{plan.name}</h3>
+                  <p className="text-xs text-muted-foreground mb-4 min-h-[32px]">{plan.description}</p>
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-3xl md:text-4xl font-bold text-foreground">
+                      {plan.price_label.includes('consulta') ? plan.price_label : `R$ ${plan.price}`}
+                    </span>
+                    {!plan.price_label.includes('consulta') && plan.price > 0 && (
+                      <span className="text-sm text-muted-foreground">/mês</span>
                     )}
                   </div>
+                </div>
 
-                  <CardHeader className="text-center pb-4 pt-8">
-                    <div className={cn(
-                      "mx-auto p-3 rounded-full bg-muted mb-3",
-                      PLAN_COLORS[plan.id]
-                    )}>
-                      {PLAN_ICONS[plan.id] || <Building2 className="h-6 w-6" />}
-                    </div>
-                    <CardTitle className="text-xl">{plan.name}</CardTitle>
-                    <CardDescription className="min-h-[40px]">
-                      {plan.description}
-                    </CardDescription>
-                  </CardHeader>
+                {/* Features */}
+                <ul className="space-y-3 mb-6 flex-grow">
+                  {features.map((feature, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <div className="p-0.5 rounded-full bg-primary/10 mt-0.5 shrink-0">
+                        <Check className="h-3.5 w-3.5 text-primary" />
+                      </div>
+                      <span className="text-sm text-muted-foreground leading-tight">{String(feature)}</span>
+                    </li>
+                  ))}
+                </ul>
 
-                  <CardContent className="flex-1 flex flex-col">
-                    {/* Price */}
-                    <div className="text-center mb-6">
-                      {plan.price > 0 ? (
-                        <>
-                          <span className="text-4xl font-bold">
-                            R$ {plan.price}
-                          </span>
-                          <span className="text-muted-foreground">/mês</span>
-                        </>
-                      ) : (
-                        <span className="text-4xl font-bold">Grátis</span>
-                      )}
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {plan.property_limit === 999 
-                          ? 'Imóveis ilimitados' 
-                          : `Até ${plan.property_limit} imóveis`}
-                      </p>
-                    </div>
-
-                    {/* Features */}
-                    <div className="flex-1 space-y-3 mb-6">
-                      {features.map((feature, i) => (
-                        <div key={i} className="flex items-start gap-2">
-                          <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                          <span className="text-sm text-muted-foreground">
-                            {String(feature)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* CTA Button */}
-                    <div className="mt-auto">
-                      {isCurrentPlan ? (
-                        <Button disabled className="w-full" variant="secondary">
-                          <Check className="mr-2 h-4 w-4" />
-                          Plano Atual
-                        </Button>
-                      ) : plan.id === 'enterprise' ? (
-                        <Button 
-                          className="w-full" 
-                          variant="outline"
-                          onClick={() => window.open('mailto:contato@imobismart.com.br', '_blank')}
-                        >
-                          Falar com Vendas
-                        </Button>
-                      ) : isUpgrade ? (
-                        <Button 
-                          className="w-full gap-2" 
-                          onClick={() => handleSelectPlan(plan.id)}
-                        >
-                          <Crown className="h-4 w-4" />
-                          Fazer Upgrade
-                        </Button>
-                      ) : isDowngrade ? (
-                        <Button 
-                          className="w-full" 
-                          variant="outline"
-                          onClick={() => handleSelectPlan(plan.id)}
-                        >
-                          Fazer Downgrade
-                        </Button>
-                      ) : (
-                        <Button 
-                          className="w-full" 
-                          onClick={() => handleSelectPlan(plan.id)}
-                        >
-                          Selecionar
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* CTA Button */}
+                <Button
+                  className={`w-full mt-auto ${isCurrentPlan || plan.is_highlighted ? "shadow-lg" : ""}`}
+                  variant={isCurrentPlan ? "secondary" : (plan.is_highlighted || isUpgrade) ? "default" : "outline"}
+                  size="lg"
+                  disabled={isCurrentPlan}
+                  onClick={() => !isCurrentPlan && handleSelectPlan(plan.id)}
+                >
+                  {isCurrentPlan && <Check className="mr-2 h-4 w-4" />}
+                  {isUpgrade && !isCurrentPlan && <Crown className="mr-2 h-4 w-4" />}
+                  {getCtaText(plan.id, isCurrentPlan, isUpgrade, isDowngrade)}
+                </Button>
               </motion.div>
             );
           })}
