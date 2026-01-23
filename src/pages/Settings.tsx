@@ -5,7 +5,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useUserRole } from '@/hooks/useUserRole';
-import { PlanComparison } from '@/components/settings/PlanComparison';
 import { TwoFactorSetup } from '@/components/settings/TwoFactorSetup';
 import { ProfilePhotoUpload } from '@/components/settings/ProfilePhotoUpload';
 import { Button } from '@/components/ui/button';
@@ -26,13 +25,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { User, Mail, Crown, Calendar, CreditCard, AlertTriangle, Shield, ArrowUpRight, Lock, Camera, Phone } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -82,7 +74,7 @@ export default function Settings() {
   const [fullName, setFullName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [isEditing, setIsEditing] = useState(false);
-  const [showPlanDialog, setShowPlanDialog] = useState(false);
+  
 
   const isLoading = authLoading || profileLoading || subscriptionLoading || roleLoading;
 
@@ -101,11 +93,6 @@ export default function Settings() {
     await cancelSubscription.mutateAsync();
   };
 
-  const handleSelectPlan = (planId: string) => {
-    // In a real app, this would redirect to a payment flow
-    toast.info(`Para alterar para o plano ${planId}, entre em contato com nosso suporte.`);
-    setShowPlanDialog(false);
-  };
 
   if (isLoading) {
     return (
@@ -321,7 +308,7 @@ export default function Settings() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setShowPlanDialog(true)}
+                    onClick={() => navigate('/plans')}
                     className="flex items-center gap-1"
                   >
                     <ArrowUpRight className="h-4 w-4" />
@@ -388,7 +375,7 @@ export default function Settings() {
                     <p className="text-sm text-destructive">
                       Sua assinatura foi cancelada.
                     </p>
-                    <Button size="sm" onClick={() => setShowPlanDialog(true)}>
+                    <Button size="sm" onClick={() => navigate('/plans')}>
                       Reativar Plano
                     </Button>
                   </div>
@@ -402,21 +389,6 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {/* Plan Comparison Dialog */}
-        <Dialog open={showPlanDialog} onOpenChange={setShowPlanDialog}>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Escolha seu Plano</DialogTitle>
-              <DialogDescription>
-                Compare os planos e escolha o melhor para você
-              </DialogDescription>
-            </DialogHeader>
-            <PlanComparison
-              currentPlan={mockSubscription?.plan || 'starter'}
-              onSelectPlan={handleSelectPlan}
-            />
-          </DialogContent>
-        </Dialog>
       </div>
     </DashboardLayout>
   );
