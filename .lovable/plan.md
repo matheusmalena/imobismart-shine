@@ -1,319 +1,357 @@
 
-
-# Plano: Relatórios Completos com Filtros e Configurações Detalhadas
+# Plano: Preview Visual de Relatório + Página Dedicada de Planos
 
 ## Objetivo
-Adicionar filtros e configuração de relatório para CSV e JSON (igual ao PDF), além de melhorar significativamente a apresentação visual com explicações detalhadas sobre o conteúdo de cada tipo de exportação.
+1. Adicionar preview visual do relatório antes de exportar, mostrando como ficará o documento final
+2. Criar uma página dedicada de planos (`/plans`) com visual atrativo que será o destino de todos os botões de upgrade
 
 ---
 
-## Nova Estrutura Visual
+## Parte 1: Página Dedicada de Planos
 
-### Layout Proposto
+### Nova Rota
+Criar `/plans` como destino de todos os botões de upgrade ao invés de `/settings`.
+
+### Estrutura da Página
 
 ```
 +------------------------------------------------------------------+
-|  Header: Relatórios + Badge do Plano                             |
+|  Header com título e descrição atrativa                          |
 +------------------------------------------------------------------+
 |                                                                  |
-|  SEÇÃO: FILTROS GLOBAIS (Card bonito com ícones)                 |
-|  +------------------------------------------------------------+  |
-|  | Imóvel: [Dropdown]                                         |  |
-|  | Status: [Alugado] [Disponível] [Manutenção] [Todos]        |  |
-|  | Tipo:   [Apartamento] [Casa] [Comercial] [Todos]           |  |
-|  +------------------------------------------------------------+  |
+|  Grid 4 colunas com cards dos planos (estilo landing page)       |
+|  +------------+ +------------+ +------------+ +------------+     |
+|  | Gratuito   | | Pro        | | Plus       | | Enterprise |     |
+|  | R$ 0       | | R$ 49      | | R$ 99      | | Consulte   |     |
+|  | [Popular]  | |            | |            | |            |     |
+|  |            | |            | |            | |            |     |
+|  | Features   | | Features   | | Features   | | Features   |     |
+|  |            | |            | |            | |            |     |
+|  | [Atual]    | | [Upgrade]  | | [Upgrade]  | | [Contato]  |     |
+|  +------------+ +------------+ +------------+ +------------+     |
 |                                                                  |
-|  GRID 3 COLUNAS - CARDS DE TIPO DE RELATÓRIO                     |
-|  +------------------+ +------------------+ +------------------+  |
-|  | CSV              | | JSON             | | PDF              |  |
-|  | [ícone grande]   | | [ícone grande]   | | [ícone grande]   |  |
-|  | Planilha Excel   | | Estruturado      | | Profissional     |  |
-|  | [Badge Pro]      | | [Badge Pro]      | | [Badge Plus]     |  |
-|  |                  | |                  | |                  |  |
-|  | [Configurar]     | | [Configurar]     | | [Configurar]     |  |
-|  +------------------+ +------------------+ +------------------+  |
+|  Comparativo de recursos (tabela expandida opcional)             |
 |                                                                  |
-|  PAINEL EXPANSÍVEL (Quando clica em Configurar)                  |
-|  +------------------------------------------------------------+  |
-|  | CONFIGURAÇÃO DO RELATÓRIO CSV                              |  |
-|  |                                                             |  |
-|  | O QUE É INCLUÍDO (Explicação visual bonita)                 |  |
-|  | +--------+ +--------+ +--------+ +--------+                 |  |
-|  | |Básico  | |Endereço| |Financeir| |Caract. |                |  |
-|  | |[check] | |[check] | |[check] | |[check] |                 |  |
-|  | |Nome    | |Rua     | |Valor   | |Quartos |                 |  |
-|  | |Tipo    | |Cidade  | |Receita | |Área    |                 |  |
-|  | |Status  | |Estado  | |Custos  | |Vagas   |                 |  |
-|  | +--------+ +--------+ +--------+ +--------+                 |  |
-|  |                                                             |  |
-|  | [Baixar CSV]                                                |  |
-|  +------------------------------------------------------------+  |
-|                                                                  |
+|  FAQ sobre planos                                                |
 +------------------------------------------------------------------+
 ```
+
+### Características Visuais
+- Header com gradiente e ícone animado
+- Cards com hover effects (elevação, borda primary)
+- Badge "Plano Atual" destacado no card do usuário
+- Badge "Mais Popular" no plano Pro
+- Animações com Framer Motion
+- Seção de comparativo de recursos
+- FAQ integrado sobre pagamentos
+
+### Arquivos a Criar/Modificar
+| Arquivo | Ação |
+|---------|------|
+| `src/pages/Plans.tsx` | Criar página dedicada de planos |
+| `src/App.tsx` | Adicionar rota `/plans` |
+
+### Atualizar Redirecionamentos
+Modificar todos os botões de upgrade para apontar para `/plans`:
+
+| Arquivo | Linha | Mudança |
+|---------|-------|---------|
+| `src/pages/Reports.tsx` | 429, 740 | `/settings` → `/plans` |
+| `src/components/dashboard/ProFeaturesCard.tsx` | 104 | `/settings` → `/plans` |
+| `src/components/dashboard/PlusAICard.tsx` | 109 | `/settings` → `/plans` |
+| `src/components/dashboard/LockedSection.tsx` | 64 | `/settings` → `/plans` |
+| `src/pages/Dashboard.tsx` | 163 | `/settings` → `/plans` |
+| `src/components/properties/PropertyLimitBanner.tsx` | 52 | `/settings` → `/plans` |
+| `src/components/properties/UnarchiveBlockedDialog.tsx` | 65 | `/settings` → `/plans` |
 
 ---
 
-## Detalhes da Implementação
+## Parte 2: Preview Visual do Relatório
 
-### 1. Adicionar Mais Estados para Controle
+### Funcionamento
+Quando o usuário configurar um relatório e clicar para exportar, mostrar um modal com preview antes do download.
+
+### Tipos de Preview
+
+**CSV/XLSX Preview:**
+```
++------------------------------------------------------------------+
+| Modal: Prévia do Relatório CSV                                   |
++------------------------------------------------------------------+
+|                                                                  |
+|  RESUMO DO PORTFÓLIO                                             |
+|  +------------------------------------------------------------+  |
+|  | Total: 5 imóveis | Valor: R$ 2.500.000 | ROI: 8.5%         |  |
+|  +------------------------------------------------------------+  |
+|                                                                  |
+|  PRÉVIA DOS DADOS (tabela simulada)                              |
+|  +------------------------------------------------------------+  |
+|  | Nome        | Tipo      | Valor       | Receita   | ROI    |  |
+|  |-------------|-----------|-------------|-----------|--------|  |
+|  | Apto Centro | Apartamento| R$ 500.000 | R$ 3.500  | 8.4%   |  |
+|  | Casa Praia  | Casa      | R$ 800.000 | R$ 5.000  | 7.5%   |  |
+|  | ...         | ...       | ...        | ...       | ...    |  |
+|  +------------------------------------------------------------+  |
+|  Mostrando 3 de 5 imóveis                                        |
+|                                                                  |
+|  CAMPOS INCLUÍDOS: 25 campos selecionados                        |
+|  [Básico ✓] [Endereço ✓] [Financeiro ✓] [Características]        |
+|                                                                  |
+|                     [Cancelar]  [Confirmar Download]             |
++------------------------------------------------------------------+
+```
+
+**JSON Preview:**
+```
++------------------------------------------------------------------+
+| Modal: Prévia do Relatório JSON                                  |
++------------------------------------------------------------------+
+|                                                                  |
+|  ESTRUTURA DO ARQUIVO                                            |
+|  +------------------------------------------------------------+  |
+|  | {                                                           |  |
+|  |   "metadata": {                                             |  |
+|  |     "gerado_em": "2025-01-23T...",                          |  |
+|  |     "total_imoveis": 5                                      |  |
+|  |   },                                                        |  |
+|  |   "resumo": {                                               |  |
+|  |     "valor_total_portfolio": 2500000,                       |  |
+|  |     "roi_medio": 8.5                                        |  |
+|  |   },                                                        |  |
+|  |   "imoveis": [...]                                          |  |
+|  | }                                                           |  |
+|  +------------------------------------------------------------+  |
+|                                                                  |
+|                     [Cancelar]  [Confirmar Download]             |
++------------------------------------------------------------------+
+```
+
+**PDF Preview:**
+```
++------------------------------------------------------------------+
+| Modal: Prévia do Relatório PDF                                   |
++------------------------------------------------------------------+
+|                                                                  |
+|  VISUALIZAÇÃO DO DOCUMENTO                                       |
+|  +------------------------------------------------------------+  |
+|  |                                                             |  |
+|  |  [iframe com HTML do PDF renderizado em miniatura]          |  |
+|  |                                                             |  |
+|  +------------------------------------------------------------+  |
+|                                                                  |
+|  Seções incluídas: Financeiro, Características, Performance      |
+|                                                                  |
+|                     [Cancelar]  [Gerar PDF]                      |
++------------------------------------------------------------------+
+```
+
+### Componente de Preview
+Criar componente `ReportPreviewDialog` que:
+- Recebe tipo de relatório (csv, xlsx, json, pdf)
+- Recebe dados filtrados e configuração
+- Mostra preview apropriado para cada tipo
+- Permite confirmar ou cancelar exportação
+
+### Fluxo do Usuário
+1. Usuário configura relatório (seleciona campos)
+2. Clica em "Baixar CSV/XLSX/JSON/PDF"
+3. Modal de preview aparece com visualização
+4. Usuário confirma → arquivo é gerado
+5. Usuário cancela → volta para configuração
+
+---
+
+## Detalhes Técnicos
+
+### Nova Página de Planos (`src/pages/Plans.tsx`)
 
 ```typescript
-// Estados para controle de painéis
-const [activeConfigPanel, setActiveConfigPanel] = useState<'csv' | 'json' | 'pdf' | null>(null);
+export default function Plans() {
+  const navigate = useNavigate();
+  const { activePlans, isLoading } = usePlans();
+  const { subscription } = useSubscription();
+  
+  const currentPlan = subscription?.plan || 'starter';
 
-// Estados para filtros avançados
-const [selectedStatus, setSelectedStatus] = useState<string>('all');
-const [selectedType, setSelectedType] = useState<string>('all');
+  return (
+    <DashboardLayout>
+      <div className="space-y-8">
+        {/* Header atrativo */}
+        <div className="text-center py-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+            <Crown className="h-4 w-4" />
+            Escolha seu Plano
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">
+            Desbloqueie todo o potencial do ImobiSmart
+          </h1>
+          <p className="text-muted-foreground max-w-xl mx-auto">
+            Compare os planos e escolha o melhor para gerenciar sua carteira de imóveis
+          </p>
+        </div>
 
-// Estados para seleção de campos (CSV e JSON)
-const [csvIncludeBasic, setCsvIncludeBasic] = useState(true);
-const [csvIncludeAddress, setCsvIncludeAddress] = useState(true);
-const [csvIncludeFinancial, setCsvIncludeFinancial] = useState(true);
-const [csvIncludeCharacteristics, setCsvIncludeCharacteristics] = useState(true);
-const [csvIncludeAmenities, setCsvIncludeAmenities] = useState(true);
-const [csvIncludePerformance, setCsvIncludePerformance] = useState(true);
+        {/* Grid de planos com animações */}
+        <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {activePlans.map((plan) => (
+            <PlanCard 
+              key={plan.id}
+              plan={plan}
+              isCurrentPlan={plan.id === currentPlan}
+              onSelect={() => handleSelectPlan(plan.id)}
+            />
+          ))}
+        </motion.div>
 
-// Mesmos estados para JSON
-const [jsonIncludeBasic, setJsonIncludeBasic] = useState(true);
-// ... etc
+        {/* Comparativo de recursos */}
+        <FeatureComparisonTable plans={activePlans} />
+
+        {/* FAQ */}
+        <PlansFAQ />
+      </div>
+    </DashboardLayout>
+  );
+}
 ```
 
-### 2. Seção de Filtros Globais Melhorada
-
-Card no topo com filtros visuais bonitos:
-
-- Seletor de imóvel (dropdown com busca)
-- Badges clicáveis para Status (Alugado, Disponível, Em Manutenção, Todos)
-- Badges clicáveis para Tipo (Apartamento, Casa, Comercial, etc.)
-- Contador de imóveis filtrados
-
-### 3. Cards de Tipo de Relatório Redesenhados
-
-Cada card terá:
-- Ícone grande centralizado com cor de destaque
-- Título e descrição clara
-- Badge de plano requerido
-- Botão "Configurar e Baixar" que abre painel expansível
-
-### 4. Painéis de Configuração Expansíveis (um por tipo)
-
-Quando o usuário clica em "Configurar" em um card, abre um painel abaixo com:
-
-**Estrutura Visual do Painel:**
-
-```
-+------------------------------------------------------------------+
-| CONFIGURAÇÃO DO RELATÓRIO [CSV/JSON/PDF]                         |
-+------------------------------------------------------------------+
-|                                                                   |
-| O QUE SERÁ INCLUÍDO NO RELATÓRIO                                  |
-| (Selecione as categorias de dados que deseja exportar)            |
-|                                                                   |
-| +-------------------+ +-------------------+ +-------------------+  |
-| | ✓ DADOS BÁSICOS   | | ✓ ENDEREÇO        | | ✓ FINANCEIRO      |  |
-| |                   | |                   | |                   |  |
-| | • Nome do imóvel  | | • Rua e número    | | • Valor do imóvel |  |
-| | • Tipo de imóvel  | | • Bairro          | | • Receita mensal  |  |
-| | • Status atual    | | • Cidade/Estado   | | • Custos (4 tipos)|  |
-| |                   | | • CEP             | | • Lucro calculado |  |
-| |                   | |                   | | • ROI anual       |  |
-| +-------------------+ +-------------------+ +-------------------+  |
-|                                                                   |
-| +-------------------+ +-------------------+ +-------------------+  |
-| | ✓ CARACTERÍSTICAS | | ✓ COMODIDADES     | | ✓ PERFORMANCE     |  |
-| |                   | |                   | |                   |  |
-| | • Área (m²)       | | • Piscina         | | • Taxa ocupação   |  |
-| | • Quartos/Suítes  | | • Academia        | | • Data aquisição  |  |
-| | • Banheiros       | | • Elevador        | | • Datas sistema   |  |
-| | • Vagas           | | • Varanda         | |                   |  |
-| | • Andar/Ano       | | • Churrasqueira   | |                   |  |
-| +-------------------+ +-------------------+ +-------------------+  |
-|                                                                   |
-| RESUMO DA EXPORTAÇÃO                                              |
-| ┌─────────────────────────────────────────────────────────────┐   |
-| │ 5 imóveis selecionados | 25 campos | ~15 KB estimado        │   |
-| └─────────────────────────────────────────────────────────────┘   |
-|                                                                   |
-|                              [Baixar CSV] [Cancelar]              |
-+------------------------------------------------------------------+
-```
-
-### 5. Categorias de Campos Detalhadas
-
-**Dados Básicos (3 campos):**
-- Nome do imóvel
-- Tipo (Apartamento, Casa, etc.)
-- Status (Alugado, Disponível, etc.)
-
-**Endereço (7 campos):**
-- Rua, Número, Complemento
-- Bairro, Cidade, Estado, CEP
-
-**Financeiro (9 campos):**
-- Valor do imóvel
-- Receita mensal
-- Condomínio, IPTU, Manutenção, Outros custos
-- Custos totais (calculado)
-- Lucro mensal (calculado)
-- ROI anual (calculado)
-
-**Características (8 campos):**
-- Área (m²)
-- Quartos, Suítes, Banheiros
-- Vagas de garagem
-- Andar, Ano de construção
-
-**Comodidades (6 campos):**
-- Piscina, Academia, Elevador
-- Varanda, Churrasqueira, Mobiliado
-
-**Performance (3 campos):**
-- Taxa de ocupação
-- Data de aquisição
-- Datas do sistema
-
-### 6. Atualizar useExportData.ts
-
-Modificar as funções para aceitar configurações de campos:
+### Componente de Preview (`src/components/reports/ReportPreviewDialog.tsx`)
 
 ```typescript
-interface ExportConfig {
-  includeBasic: boolean;
-  includeAddress: boolean;
-  includeFinancial: boolean;
-  includeCharacteristics: boolean;
-  includeAmenities: boolean;
-  includePerformance: boolean;
+interface ReportPreviewDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  type: 'csv' | 'xlsx' | 'json' | 'pdf';
+  properties: Property[];
+  config: ExportConfig;
+  onConfirm: () => void;
 }
 
-const exportToCSV = (properties: Property[], config: ExportConfig) => {
-  // Construir headers e rows baseado na config
-  const headers: string[] = [];
-  
-  if (config.includeBasic) {
-    headers.push('Nome', 'Tipo', 'Status');
-  }
-  if (config.includeAddress) {
-    headers.push('Endereço Completo', 'Cidade', 'Estado', 'CEP');
-  }
-  // ... etc
-};
+export function ReportPreviewDialog({
+  open,
+  onOpenChange,
+  type,
+  properties,
+  config,
+  onConfirm
+}: ReportPreviewDialogProps) {
+  // Renderiza preview baseado no tipo
+  const renderPreview = () => {
+    switch (type) {
+      case 'csv':
+      case 'xlsx':
+        return <SpreadsheetPreview properties={properties} config={config} />;
+      case 'json':
+        return <JSONPreview properties={properties} config={config} />;
+      case 'pdf':
+        return <PDFPreview properties={properties} config={config} />;
+    }
+  };
 
-const exportToJSON = (properties: Property[], config: ExportConfig) => {
-  // Similar, incluir apenas seções selecionadas
-};
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Prévia do Relatório {type.toUpperCase()}</DialogTitle>
+          <DialogDescription>
+            Confira como seu relatório ficará antes de baixar
+          </DialogDescription>
+        </DialogHeader>
+        
+        {renderPreview()}
+        
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button onClick={onConfirm}>
+            <Download className="mr-2 h-4 w-4" />
+            Confirmar Download
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+### Componente SpreadsheetPreview
+
+```typescript
+function SpreadsheetPreview({ properties, config }: PreviewProps) {
+  const summary = calculateSummary(properties);
+  const previewData = properties.slice(0, 3);
+
+  return (
+    <div className="space-y-4">
+      {/* Resumo */}
+      <div className="grid grid-cols-4 gap-3">
+        <MetricBox label="Total Imóveis" value={properties.length} />
+        <MetricBox label="Valor Portfólio" value={formatCurrency(summary.totalValue)} />
+        <MetricBox label="Receita Mensal" value={formatCurrency(summary.totalRevenue)} />
+        <MetricBox label="ROI Médio" value={`${summary.avgROI.toFixed(1)}%`} />
+      </div>
+
+      {/* Tabela de preview */}
+      <div className="border rounded-lg overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {config.includeBasic && <TableHead>Nome</TableHead>}
+              {config.includeBasic && <TableHead>Tipo</TableHead>}
+              {config.includeFinancial && <TableHead>Valor</TableHead>}
+              {config.includeFinancial && <TableHead>Receita</TableHead>}
+              {config.includeFinancial && <TableHead>ROI</TableHead>}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {previewData.map((property) => (
+              <TableRow key={property.id}>
+                {/* Células baseadas na config */}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        <div className="p-2 bg-muted text-xs text-center text-muted-foreground">
+          Mostrando {previewData.length} de {properties.length} imóveis
+        </div>
+      </div>
+
+      {/* Campos selecionados */}
+      <div className="flex flex-wrap gap-2">
+        {config.includeBasic && <Badge>Básico</Badge>}
+        {config.includeAddress && <Badge>Endereço</Badge>}
+        {config.includeFinancial && <Badge>Financeiro</Badge>}
+        {config.includeCharacteristics && <Badge>Características</Badge>}
+        {config.includeAmenities && <Badge>Comodidades</Badge>}
+        {config.includePerformance && <Badge>Performance</Badge>}
+      </div>
+    </div>
+  );
+}
 ```
 
 ---
 
-## Arquivos a Modificar
+## Arquivos a Criar/Modificar
 
 | Arquivo | Ação |
 |---------|------|
-| `src/pages/Reports.tsx` | Refatorar completamente com nova UI de filtros, painéis expansíveis e explicações detalhadas |
-| `src/hooks/useExportData.ts` | Adicionar suporte para exportação configurável com seleção de campos |
-
----
-
-## Componentes Visuais Detalhados
-
-### Card de Categoria Selecionável
-
-```tsx
-// Componente para cada categoria de dados
-<div 
-  className={cn(
-    "p-4 rounded-lg border-2 transition-all cursor-pointer",
-    isSelected 
-      ? "border-primary bg-primary/5" 
-      : "border-border hover:border-primary/50"
-  )}
-  onClick={() => toggleCategory()}
->
-  <div className="flex items-center justify-between mb-3">
-    <div className="flex items-center gap-2">
-      <Icon className="h-5 w-5 text-primary" />
-      <span className="font-medium">Dados Básicos</span>
-    </div>
-    <Checkbox checked={isSelected} />
-  </div>
-  <ul className="text-sm text-muted-foreground space-y-1">
-    <li>• Nome do imóvel</li>
-    <li>• Tipo de imóvel</li>
-    <li>• Status atual</li>
-  </ul>
-  <div className="mt-2 text-xs text-muted-foreground">
-    3 campos
-  </div>
-</div>
-```
-
-### Filtros de Status e Tipo
-
-```tsx
-// Badges clicáveis para filtros
-<div className="flex flex-wrap gap-2">
-  {statusOptions.map((status) => (
-    <Badge
-      key={status.value}
-      variant={selectedStatus === status.value ? "default" : "outline"}
-      className="cursor-pointer transition-colors"
-      onClick={() => setSelectedStatus(status.value)}
-    >
-      <status.icon className="h-3 w-3 mr-1" />
-      {status.label}
-    </Badge>
-  ))}
-</div>
-```
-
-### Resumo da Exportação
-
-```tsx
-// Box com resumo antes de exportar
-<div className="bg-muted/50 rounded-lg p-4 flex items-center justify-between">
-  <div className="flex items-center gap-4 text-sm">
-    <span className="flex items-center gap-1">
-      <Home className="h-4 w-4" />
-      {filteredProperties.length} imóveis
-    </span>
-    <span className="flex items-center gap-1">
-      <ClipboardList className="h-4 w-4" />
-      {selectedFieldsCount} campos
-    </span>
-  </div>
-  <div className="flex gap-2">
-    <Button variant="outline" onClick={closePanel}>
-      Cancelar
-    </Button>
-    <Button onClick={handleExport}>
-      <Download className="mr-2 h-4 w-4" />
-      Baixar {exportType.toUpperCase()}
-    </Button>
-  </div>
-</div>
-```
-
----
-
-## Experiência do Usuário
-
-1. **Usuário abre a página** → Vê os 3 cards de tipo de relatório
-2. **Aplica filtros globais** → Seleciona status "Alugado" e tipo "Apartamento"
-3. **Clica em "Configurar CSV"** → Painel expansível abre com categorias
-4. **Seleciona categorias** → Desabilita "Comodidades" se não precisar
-5. **Vê resumo** → "5 imóveis | 25 campos selecionados"
-6. **Clica em Baixar** → Arquivo gerado apenas com dados selecionados
+| `src/pages/Plans.tsx` | **CRIAR** - Página dedicada de planos |
+| `src/components/reports/ReportPreviewDialog.tsx` | **CRIAR** - Modal de preview |
+| `src/App.tsx` | Adicionar rota `/plans` |
+| `src/pages/Reports.tsx` | Integrar preview antes de exportar |
+| `src/components/dashboard/ProFeaturesCard.tsx` | Atualizar redirect |
+| `src/components/dashboard/PlusAICard.tsx` | Atualizar redirect |
+| `src/components/dashboard/LockedSection.tsx` | Atualizar redirect |
+| `src/pages/Dashboard.tsx` | Atualizar redirect |
+| `src/components/properties/PropertyLimitBanner.tsx` | Atualizar redirect |
+| `src/components/properties/UnarchiveBlockedDialog.tsx` | Atualizar redirect |
 
 ---
 
 ## Resultado Esperado
 
-1. Interface muito mais bonita e profissional
-2. Explicações claras do que cada tipo de relatório inclui
-3. Controle total sobre os dados exportados
-4. Filtros avançados por status e tipo de imóvel
-5. Experiência consistente entre CSV, JSON e PDF
-6. Feedback visual sobre a quantidade de dados que será exportada
-
+1. **Página de Planos Dedicada**: Visual atrativo com animações, comparativo de recursos e CTAs claros
+2. **Preview Visual**: Usuários veem exatamente como o relatório ficará antes de baixar
+3. **Navegação Consistente**: Todos os botões de upgrade levam para a página de planos
+4. **Experiência Premium**: Visual profissional que incentiva upgrades
+5. **Transparência**: Usuário tem controle total sobre o que será exportado
