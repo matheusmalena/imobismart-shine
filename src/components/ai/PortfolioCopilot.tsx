@@ -29,6 +29,15 @@ const QUICK_SUGGESTIONS = [
   "Taxa de ocupação",
 ];
 
+// Rotating prompts to encourage AI usage
+const AI_PROMPTS = [
+  "Pergunte sobre seu portfólio",
+  "Qual imóvel rende mais?",
+  "Analise sua ocupação",
+  "Descubra oportunidades",
+  "Tire suas dúvidas",
+];
+
 // Typing indicator component with pulse animation
 const TypingIndicator = () => (
   <div className="flex items-center gap-1.5 py-1 px-1">
@@ -95,8 +104,20 @@ export const PortfolioCopilot = forwardRef<PortfolioCopilotRef>((_, ref) => {
   const [userId, setUserId] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
+  const [promptIndex, setPromptIndex] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Rotate AI prompts
+  useEffect(() => {
+    if (isOpen) return; // Don't rotate when chat is open
+    
+    const interval = setInterval(() => {
+      setPromptIndex((prev) => (prev + 1) % AI_PROMPTS.length);
+    }, 3000);
+    
+    return () => clearInterval(interval);
+  }, [isOpen]);
 
   // Handle action button clicks
   const handleAction = useCallback((action: ActionButton) => {
@@ -433,20 +454,32 @@ export const PortfolioCopilot = forwardRef<PortfolioCopilotRef>((_, ref) => {
 
   return (
     <>
-      {/* Floating Button */}
-      <Button
-        onClick={() => setIsOpen(true)}
-        className={cn(
-          "fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50",
-          "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70",
-          "transition-all duration-300 hover:scale-110",
-          isOpen && "hidden"
-        )}
-        size="icon"
-      >
-        <Sparkles className="h-6 w-6" />
-        <span className="sr-only">Copiloto IA</span>
-      </Button>
+      {/* Floating Button with Rotating Prompt */}
+      <div className={cn(
+        "fixed bottom-6 right-6 flex flex-col items-end gap-2 z-50",
+        isOpen && "hidden"
+      )}>
+        {/* Animated Prompt Bubble */}
+        <div className="bg-background border rounded-full px-4 py-2 shadow-lg animate-fade-in">
+          <p className="text-sm text-muted-foreground whitespace-nowrap">
+            {AI_PROMPTS[promptIndex]}
+          </p>
+        </div>
+        
+        {/* Button */}
+        <Button
+          onClick={() => setIsOpen(true)}
+          className={cn(
+            "h-16 w-16 rounded-full shadow-xl",
+            "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70",
+            "transition-all duration-300 hover:scale-110"
+          )}
+          size="icon"
+        >
+          <Sparkles className="h-7 w-7" />
+          <span className="sr-only">Copiloto IA</span>
+        </Button>
+      </div>
 
       {/* Chat Panel */}
       {isOpen && (
@@ -502,9 +535,8 @@ export const PortfolioCopilot = forwardRef<PortfolioCopilotRef>((_, ref) => {
                       key={suggestion}
                       variant="outline"
                       size="sm"
-                      className="text-xs h-7 rounded-full hover:bg-primary hover:text-primary-foreground transition-colors"
+                      className="text-xs h-7"
                       onClick={() => handleQuickSuggestion(suggestion)}
-                      disabled={isLoading}
                     >
                       {suggestion}
                     </Button>
@@ -515,7 +547,7 @@ export const PortfolioCopilot = forwardRef<PortfolioCopilotRef>((_, ref) => {
               <div className="space-y-4">
                 {messages.map((message) => {
                   const { text, actions } = message.role === "assistant" 
-                    ? parseActions(message.content) 
+                    ? parseActions(message.content)
                     : { text: message.content, actions: [] };
                   
                   return (
@@ -523,47 +555,42 @@ export const PortfolioCopilot = forwardRef<PortfolioCopilotRef>((_, ref) => {
                       key={message.id}
                       className={cn(
                         "flex gap-3",
-                        message.role === "user" && "flex-row-reverse"
+                        message.role === "user" ? "justify-end" : "justify-start"
                       )}
                     >
-                      {message.role === "user" ? (
-                        <Avatar className="h-8 w-8 shrink-0">
-                          <AvatarImage src={userProfile?.avatar_url || undefined} />
-                          <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                            {userProfile?.full_name?.charAt(0)?.toUpperCase() || "U"}
+                      {message.role === "assistant" && (
+                        <Avatar className="h-8 w-8 flex-shrink-0">
+                          <AvatarFallback className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-xs">
+                            <Bot className="h-4 w-4" />
                           </AvatarFallback>
                         </Avatar>
-                      ) : (
-                        <div className="h-8 w-8 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 flex items-center justify-center shrink-0">
-                          <Bot className="h-4 w-4 text-primary" />
-                        </div>
                       )}
                       <div className="flex flex-col gap-2 max-w-[80%]">
                         <div
                           className={cn(
-                            "rounded-2xl px-4 py-3 text-sm",
+                            "rounded-2xl px-4 py-2.5 text-sm",
                             message.role === "user"
-                              ? "bg-primary text-primary-foreground rounded-tr-sm"
-                              : "bg-muted rounded-tl-sm"
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted"
                           )}
                         >
-                          {text || <TypingIndicator />}
+                          {text || (message.role === "assistant" && isLoading ? <TypingIndicator /> : null)}
                         </div>
                         
                         {/* Action buttons */}
                         {actions.length > 0 && (
                           <div className="flex flex-wrap gap-2">
-                            {actions.map((action, index) => {
-                              const Icon = getActionIcon(action.type);
+                            {actions.map((action, idx) => {
+                              const IconComponent = getActionIcon(action.type);
                               return (
                                 <Button
-                                  key={index}
+                                  key={idx}
                                   variant="outline"
                                   size="sm"
-                                  className="h-8 text-xs rounded-full gap-1.5 hover:bg-primary hover:text-primary-foreground transition-colors"
+                                  className="text-xs h-7 gap-1"
                                   onClick={() => handleAction(action)}
                                 >
-                                  <Icon className="h-3.5 w-3.5" />
+                                  <IconComponent className="h-3 w-3" />
                                   {action.label}
                                 </Button>
                               );
@@ -571,17 +598,25 @@ export const PortfolioCopilot = forwardRef<PortfolioCopilotRef>((_, ref) => {
                           </div>
                         )}
                       </div>
+                      {message.role === "user" && (
+                        <Avatar className="h-8 w-8 flex-shrink-0">
+                          <AvatarImage src={userProfile?.avatar_url || undefined} />
+                          <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
+                            {userProfile?.full_name?.[0] || "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
                     </div>
                   );
                 })}
-                
-                {/* Show typing indicator when loading and last message is from user */}
-                {isLoading && messages.length > 0 && messages[messages.length - 1]?.role === "user" && (
-                  <div className="flex gap-3">
-                    <div className="h-8 w-8 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 flex items-center justify-center shrink-0">
-                      <Bot className="h-4 w-4 text-primary" />
-                    </div>
-                    <div className="rounded-2xl px-4 py-3 bg-muted rounded-tl-sm">
+                {isLoading && messages[messages.length - 1]?.role === "user" && (
+                  <div className="flex gap-3 justify-start">
+                    <Avatar className="h-8 w-8 flex-shrink-0">
+                      <AvatarFallback className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-xs">
+                        <Bot className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="rounded-2xl px-4 py-2.5 text-sm bg-muted">
                       <TypingIndicator />
                     </div>
                   </div>
@@ -592,21 +627,21 @@ export const PortfolioCopilot = forwardRef<PortfolioCopilotRef>((_, ref) => {
 
           {/* Input */}
           <div className="p-4 border-t bg-muted/30">
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <Input
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Pergunte sobre seus imóveis..."
+                placeholder="Digite sua pergunta..."
+                className="flex-1 h-10 bg-background"
                 disabled={isLoading}
-                className="flex-1 rounded-full bg-background"
               />
               <Button
                 onClick={handleSend}
                 disabled={!input.trim() || isLoading}
                 size="icon"
-                className="rounded-full shrink-0"
+                className="h-10 w-10 rounded-full"
               >
                 <Send className="h-4 w-4" />
               </Button>
