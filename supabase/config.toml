@@ -12,5 +12,8 @@ verify_jwt = false
 [functions.create-mp-subscription]
 verify_jwt = false
 
+[functions.get-mp-payments]
+verify_jwt = false
+
 [functions.mercadopago-webhook]
 verify_jwt = false
