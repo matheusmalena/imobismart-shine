@@ -1,185 +1,312 @@
 
-# Plano de Reestruturação dos Planos de Assinatura
+# Plano: Simplificação do Menu e Melhoria da UI
 
-## Resumo Executivo
+## Resumo das Alterações
 
-A plataforma possui 4 planos definidos no banco de dados: **Gratuito (starter)**, **Pro**, **Plus** e **Enterprise**. No entanto, existem inconsistências significativas na implementação que precisam ser corrigidas para que cada plano funcione corretamente com suas funcionalidades específicas.
+Este plano implementa 4 mudanças principais para melhorar a experiência do usuário:
 
----
-
-## Problemas Identificados
-
-### 1. Inconsistência de Nomenclatura
-O código usa `isEnterprise` para verificar planos **Plus E Enterprise** juntos, o que causa confusão:
-- `isEnterprise = plan === 'enterprise' || plan === 'plus'`
-- Isso faz com que recursos "Plus" sejam rotulados como "Enterprise" na UI
-
-### 2. Team Management só aceita 'enterprise'
-O componente `TeamManagement.tsx` verifica apenas `subscription?.plan === 'enterprise'`, excluindo usuários Plus que deveriam ter algum nível de acesso.
-
-### 3. Falta de granularidade entre Plus e Enterprise
-Atualmente Plus e Enterprise são tratados igualmente para a maioria das funcionalidades, mas Enterprise deveria ter recursos exclusivos como:
-- Múltiplos usuários/equipe
-- Integrações personalizadas
-- Gerente de conta dedicado
-
-### 4. Labels incorretas no Dashboard
-O método `getPlanLabel()` retorna "Plus" para plano 'enterprise' em vez de "Enterprise".
+1. Remover "Configurações" do menu lateral (já acessível via foto de perfil)
+2. Unificar "Exportar Dados" e "Relatórios PDF" em uma única página "Relatórios"
+3. Remover a barra de input da IA do header
+4. Aumentar o ícone da IA e adicionar frases rotativas para incentivar o uso
 
 ---
 
-## Matriz de Funcionalidades por Plano
+## Alteração 1: Remover Configurações do Menu
 
-| Funcionalidade | Gratuito | Pro | Plus | Enterprise |
-|----------------|----------|-----|------|------------|
-| **Limite de Imóveis** | 2 | 25 | 50 | Ilimitado |
-| **Dashboard Básico** | ✅ | ✅ | ✅ | ✅ |
-| **Métricas Avançadas (ROI, Valor Portfólio)** | ❌ | ✅ | ✅ | ✅ |
-| **Insights e Alertas** | ❌ | ✅ | ✅ | ✅ |
-| **Exportar CSV/JSON** | ❌ | ✅ | ✅ | ✅ |
-| **Relatórios PDF** | ❌ | ❌ | ✅ | ✅ |
-| **IA com Recomendações Mensais** | ❌ | ❌ | ✅ | ✅ |
-| **Múltiplos Usuários/Equipe** | ❌ | ❌ | ❌ | ✅ |
-| **Suporte Prioritário** | ❌ | ✅ | ✅ | ✅ |
-| **Suporte 24/7** | ❌ | ❌ | ✅ | ✅ |
-| **Gerente Dedicado** | ❌ | ❌ | ❌ | ✅ |
+**Arquivo:** `src/components/layout/DashboardLayout.tsx`
 
----
-
-## Alterações Planejadas
-
-### Etapa 1: Atualizar Hook `useUserData.ts`
-
-Adicionar flags mais granulares para cada nível de plano:
+Remover a linha de "Configurações" do array `navigation`:
 
 ```typescript
-const plan = subscription?.plan || 'starter';
-const isStarter = plan === 'starter';
-const isPro = plan === 'pro' || plan === 'plus' || plan === 'enterprise';
-const isPlus = plan === 'plus' || plan === 'enterprise';
-const isEnterprise = plan === 'enterprise';
+// Antes
+const navigation = [
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Imóveis', href: '/properties', icon: Home },
+  { name: 'Inquilinos', href: '/tenants', icon: Users },
+  { name: 'Documentos', href: '/documents', icon: FileText },
+  { name: 'WhatsApp', href: '/whatsapp', icon: MessageCircle },
+  { name: 'Configurações', href: '/settings', icon: Settings }, // REMOVER
+];
+
+// Depois
+const navigation = [
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Imóveis', href: '/properties', icon: Home },
+  { name: 'Inquilinos', href: '/tenants', icon: Users },
+  { name: 'Documentos', href: '/documents', icon: FileText },
+  { name: 'WhatsApp', href: '/whatsapp', icon: MessageCircle },
+];
 ```
 
-Isso permite verificações precisas:
-- `isPro` - tem Pro ou superior
-- `isPlus` - tem Plus ou superior
-- `isEnterprise` - tem apenas Enterprise (exclusivo)
-
-### Etapa 2: Corrigir `DashboardLayout.tsx`
-
-- Manter `!isPro` para badge de Export
-- Usar `!isPlus` para badge de Relatórios PDF
-- Usar `!isEnterprise` para badge de Equipe
-
-### Etapa 3: Atualizar `Dashboard.tsx`
-
-- Corrigir `getPlanLabel()` para mostrar o nome correto de cada plano
-- Adicionar seção exclusiva Plus para IA com recomendações
-- Separar claramente recursos Pro vs Plus
-
-### Etapa 4: Corrigir `Export.tsx`
-
-- Atualizar para usar `useUserData` com as novas flags
-- Manter acesso para Pro+
-
-### Etapa 5: Corrigir `Reports.tsx`
-
-- Usar `isPlus` em vez de `isEnterprise`
-- Mostrar "Disponível no Plano Plus" corretamente
-
-### Etapa 6: Atualizar `TeamManagement.tsx`
-
-- Usar verificação `isEnterprise` (apenas enterprise verdadeiro)
-- Manter exclusivo para Enterprise
-
-### Etapa 7: Atualizar `Settings.tsx` (comparação de planos)
-
-- Garantir que a comparação mostre corretamente as diferenças
+**Nota:** Configurações permanece acessível via dropdown do perfil no rodapé da sidebar.
 
 ---
 
-## Detalhes Técnicos
+## Alteração 2: Unificar Exportar Dados e Relatórios PDF
 
-### Arquivo: `src/hooks/useUserData.ts`
+### 2.1 Atualizar o Menu
 
-Adicionar novas propriedades retornadas:
-- `isStarter`: boolean
-- `isPlus`: boolean (novo - Plus ou Enterprise)
-- Ajustar `isEnterprise` para ser exclusivo
+**Arquivo:** `src/components/layout/DashboardLayout.tsx`
 
-### Arquivo: `src/components/layout/DashboardLayout.tsx`
+Substituir os dois links separados por um único link "Relatórios":
 
-Atualizar imports e verificações de badges:
-- Export: `!isPro`
-- Relatórios PDF: `!isPlus`
-- Equipe: `!isEnterprise`
-
-### Arquivo: `src/pages/Dashboard.tsx`
-
-Atualizar `getPlanLabel()`:
 ```typescript
-const getPlanLabel = () => {
-  switch (plan) {
-    case 'enterprise': return 'Enterprise';
-    case 'plus': return 'Plus';
-    case 'pro': return 'Pro';
-    default: return 'Gratuito';
-  }
-};
+// Remover os dois links separados (Exportar Dados e Relatórios PDF)
+// Adicionar um único link:
+<Link
+  to="/reports"
+  className={cn(
+    "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+    location.pathname === '/reports'
+      ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
+      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+  )}
+  onClick={() => setSidebarOpen(false)}
+>
+  <ClipboardList className="h-5 w-5" />
+  Relatórios
+  {!isPro && (
+    <Badge variant="outline" className="ml-auto gap-1 text-xs bg-sidebar-accent">
+      <Lock className="h-3 w-3" />
+      Upgrade
+    </Badge>
+  )}
+</Link>
 ```
 
-Adicionar seção de recursos Plus quando aplicável.
+### 2.2 Criar Nova Página Unificada
 
-### Arquivo: `src/pages/Export.tsx`
+**Arquivo:** `src/pages/Reports.tsx` (reescrever completamente)
 
-- Substituir hook useSubscription por useUserData
-- Usar isPro para verificação
+Nova estrutura com funcionalidades habilitadas por plano:
 
-### Arquivo: `src/pages/Reports.tsx`
+- **Usuário Gratuito:** Vê card de upgrade com preview das funcionalidades
+- **Usuário Pro:** Acesso a CSV/JSON, vê seção de PDF com lock para Plus
+- **Usuário Plus+:** Acesso completo (CSV, JSON e PDF)
 
-- Substituir hook useSubscription por useUserData
-- Usar isPlus para verificação
-- Atualizar texto de upgrade para "Plus"
+Layout proposto:
 
-### Arquivo: `src/components/team/TeamManagement.tsx`
+```
++--------------------------------------------------+
+|  Header: Relatórios                              |
++--------------------------------------------------+
+|                                                  |
+|  SEÇÃO 1: Exportação Rápida (Pro+)               |
+|  [CSV Card]        [JSON Card]                   |
+|                                                  |
++--------------------------------------------------+
+|                                                  |
+|  SEÇÃO 2: Relatórios PDF (Plus+)                 |
+|  - Configuração de relatório                     |
+|  - Seleção de imóvel                             |
+|  - Opções de conteúdo                            |
+|  - Botão gerar PDF                               |
+|                                                  |
++--------------------------------------------------+
+```
 
-- Usar useUserData com isEnterprise (exclusivo)
-- Manter como recurso apenas Enterprise
+Lógica de acesso:
+- `!isPro`: Mostrar card de upgrade completo
+- `isPro && !isPlus`: Mostrar exportação CSV/JSON + seção PDF com lock
+- `isPlus`: Acesso total
+
+### 2.3 Remover Página Export
+
+**Arquivo:** `src/pages/Export.tsx` - Será deletado
+
+**Arquivo:** `src/App.tsx` - Remover rota `/export`
 
 ---
 
-## Testes de Verificação
+## Alteração 3: Remover Barra de IA do Header
 
-Após implementação, validar:
+**Arquivo:** `src/components/layout/DashboardLayout.tsx`
 
-1. **Usuário Gratuito (starter)**:
-   - Vê badges de lock em Export, Relatórios, Equipe
-   - Limite de 2 imóveis
-   - Métricas avançadas bloqueadas
+Remover todo o bloco do AI Copilot Input do header (linhas 360-384):
 
-2. **Usuário Pro**:
-   - Acesso a Export e Insights
-   - Vê badge de lock em Relatórios e Equipe
-   - Limite de 25 imóveis
+```typescript
+// REMOVER TODO ESTE BLOCO:
+{/* AI Copilot Input - Centered */}
+<div className="flex-1 flex justify-center px-4">
+  <div className="relative w-full max-w-xl">
+    ...
+  </div>
+</div>
+```
 
-3. **Usuário Plus**:
-   - Acesso a Export, Insights, Relatórios PDF
-   - Vê badge de lock apenas em Equipe
-   - Limite de 50 imóveis
+Também remover os estados e lógica relacionados:
+- `aiQuestion`, `setAiQuestion`
+- `placeholderIndex`, `isTyping`, `displayedPlaceholder`
+- `placeholderSuggestions`
+- `handleAskCopilot`, `handleAiKeyDown`
+- useEffect de animação do placeholder
 
-4. **Usuário Enterprise**:
-   - Acesso completo a todas funcionalidades
-   - Gerenciamento de equipe disponível
-   - Imóveis ilimitados
+---
+
+## Alteração 4: Melhorar Ícone da IA com Frases Rotativas
+
+**Arquivo:** `src/components/ai/PortfolioCopilot.tsx`
+
+### 4.1 Aumentar Tamanho do Botão
+
+```typescript
+// Antes
+<Button
+  className={cn(
+    "fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50",
+    ...
+  )}
+>
+  <Sparkles className="h-6 w-6" />
+</Button>
+
+// Depois
+<Button
+  className={cn(
+    "fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-xl z-50",
+    ...
+  )}
+>
+  <Sparkles className="h-7 w-7" />
+</Button>
+```
+
+### 4.2 Adicionar Frases Rotativas Acima do Ícone
+
+Adicionar estado e lógica para frases animadas:
+
+```typescript
+// Novo array de frases de incentivo
+const AI_PROMPTS = [
+  "Pergunte sobre seu portfólio",
+  "Qual imóvel rende mais?",
+  "Analise sua ocupação",
+  "Descubra oportunidades",
+  "Tire suas dúvidas",
+];
+
+// Estado para controle da frase atual
+const [promptIndex, setPromptIndex] = useState(0);
+
+// useEffect para rotação das frases
+useEffect(() => {
+  const interval = setInterval(() => {
+    setPromptIndex((prev) => (prev + 1) % AI_PROMPTS.length);
+  }, 3000);
+  return () => clearInterval(interval);
+}, []);
+```
+
+### 4.3 Novo Layout do Botão com Tooltip Animado
+
+```tsx
+{/* Floating Button with Prompt */}
+<div className={cn(
+  "fixed bottom-6 right-6 flex flex-col items-end gap-2 z-50",
+  isOpen && "hidden"
+)}>
+  {/* Animated Prompt Bubble */}
+  <div className="bg-background border rounded-full px-4 py-2 shadow-lg animate-fade-in">
+    <p className="text-sm text-muted-foreground whitespace-nowrap">
+      {AI_PROMPTS[promptIndex]}
+    </p>
+  </div>
+  
+  {/* Button */}
+  <Button
+    onClick={() => setIsOpen(true)}
+    className={cn(
+      "h-16 w-16 rounded-full shadow-xl",
+      "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70",
+      "transition-all duration-300 hover:scale-110"
+    )}
+    size="icon"
+  >
+    <Sparkles className="h-7 w-7" />
+  </Button>
+</div>
+```
 
 ---
 
 ## Resumo de Arquivos a Modificar
 
-1. `src/hooks/useUserData.ts` - Adicionar isStarter e isPlus
-2. `src/components/layout/DashboardLayout.tsx` - Ajustar verificações de badges
-3. `src/pages/Dashboard.tsx` - Corrigir labels e adicionar seções Plus
-4. `src/pages/Export.tsx` - Usar useUserData
-5. `src/pages/Reports.tsx` - Usar isPlus em vez de isEnterprise
-6. `src/components/team/TeamManagement.tsx` - Manter isEnterprise exclusivo
-7. `src/pages/Settings.tsx` - Revisar comparação de planos (se necessário)
+| Arquivo | Ação |
+|---------|------|
+| `src/components/layout/DashboardLayout.tsx` | Remover Configurações do menu, unificar links de relatório, remover input IA do header |
+| `src/pages/Reports.tsx` | Reescrever com layout unificado e lógica por plano |
+| `src/pages/Export.tsx` | **DELETAR** |
+| `src/App.tsx` | Remover rota `/export` |
+| `src/components/ai/PortfolioCopilot.tsx` | Aumentar botão e adicionar frases rotativas |
+
+---
+
+## Fluxo de Acesso por Plano (Página Relatórios)
+
+### Gratuito (Starter)
+- Vê card centralizado de upgrade
+- Preview das funcionalidades disponíveis
+- CTA: "Fazer Upgrade para Pro"
+
+### Pro
+- Acesso completo a CSV e JSON
+- Seção de PDF visível mas com LockedSection
+- CTA na seção PDF: "Fazer Upgrade para Plus"
+
+### Plus / Enterprise
+- Acesso total a todas as funcionalidades
+- CSV, JSON e geração de PDF
+
+---
+
+## Detalhes Técnicos
+
+### Imports Necessários em Reports.tsx
+
+```typescript
+import { useUserData } from '@/hooks/useUserData';
+const { isPro, isPlus, plan } = useUserData();
+```
+
+### Lógica de Renderização Condicional
+
+```tsx
+// Não é Pro - mostra upgrade completo
+if (!isPro) {
+  return <UpgradeCard requiredPlan="Pro" />;
+}
+
+// É Pro - mostra página com seções
+return (
+  <>
+    {/* Seção Export - sempre visível para Pro+ */}
+    <ExportSection />
+    
+    {/* Seção PDF - locked para Pro, open para Plus+ */}
+    <LockedSection hasAccess={isPlus} requiredPlan="Plus">
+      <PDFReportSection />
+    </LockedSection>
+  </>
+);
+```
+
+### Simplificação do Header
+
+O header ficará mais limpo, contendo apenas:
+- Botão de menu mobile (hamburger)
+- Espaço flexível (sem input de IA)
+- ThemeToggle
+
+```tsx
+<header className="sticky top-0 z-30 h-16 bg-background/80 backdrop-blur-xl border-b border-border flex items-center justify-between px-4 lg:px-8">
+  <button className="lg:hidden ...">
+    <Menu className="h-5 w-5" />
+  </button>
+  
+  <div className="flex-1" /> {/* Spacer */}
+  
+  <ThemeToggle />
+</header>
+```
+
