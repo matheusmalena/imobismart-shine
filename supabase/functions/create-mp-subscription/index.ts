@@ -87,10 +87,12 @@ serve(async (req) => {
     const subscription = await mpResponse.json();
 
     console.log("Subscription created:", subscription.id);
-    console.log("Init point:", subscription.init_point);
+    console.log("Sandbox URL:", subscription.sandbox_init_point);
+    console.log("Production URL:", subscription.init_point);
 
-    // Usar sempre init_point (produção) - sandbox só funciona com credenciais de teste
-    const checkoutUrl = subscription.init_point;
+    // MODO TESTE: usar sandbox_init_point
+    // Para produção, mudar para: subscription.init_point
+    const checkoutUrl = subscription.sandbox_init_point || subscription.init_point;
 
     if (!checkoutUrl) {
       throw new Error("Checkout URL not received from Mercado Pago");
@@ -100,6 +102,7 @@ serve(async (req) => {
       JSON.stringify({
         checkoutUrl,
         subscriptionId: subscription.id,
+        mode: subscription.sandbox_init_point ? "sandbox" : "production",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
