@@ -6,6 +6,9 @@ verify_jwt = false
 [functions.send-team-invite]
 verify_jwt = false
 
+[functions.cancel-mp-subscription]
+verify_jwt = false
+
 [functions.create-mp-subscription]
 verify_jwt = false
 
