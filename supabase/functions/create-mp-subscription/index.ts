@@ -87,11 +87,18 @@ serve(async (req) => {
     const subscription = await mpResponse.json();
 
     console.log("Subscription created:", subscription.id);
+    console.log("Sandbox URL:", subscription.sandbox_init_point);
+    console.log("Production URL:", subscription.init_point);
+
+    // TODO: Mudar para init_point em produção
+    // Usando sandbox_init_point para modo de teste
+    const checkoutUrl = subscription.sandbox_init_point || subscription.init_point;
 
     return new Response(
       JSON.stringify({
-        checkoutUrl: subscription.init_point,
+        checkoutUrl,
         subscriptionId: subscription.id,
+        mode: subscription.sandbox_init_point ? "sandbox" : "production",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
