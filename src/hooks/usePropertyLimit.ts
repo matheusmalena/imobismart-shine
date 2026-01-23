@@ -1,13 +1,12 @@
-import { useSubscription } from '@/hooks/useSubscription';
+import { useUserData } from '@/hooks/useUserData';
 import { useProperties } from '@/hooks/useProperties';
 import { usePlans } from '@/hooks/usePlans';
 
 export function usePropertyLimit() {
-  const { subscription } = useSubscription();
+  const { plan } = useUserData();
   const { activeProperties } = useProperties();
-  const { getPlanLimit, getPlanById } = usePlans();
+  const { getPlanLimit } = usePlans();
   
-  const plan = subscription?.plan || 'starter';
   const limit = getPlanLimit(plan);
   const activeCount = activeProperties.length;
   const canAddProperty = activeCount < limit;
