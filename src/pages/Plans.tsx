@@ -333,69 +333,80 @@ export default function Plans() {
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    <tr>
-                      <td className="py-3 px-2">Limite de imóveis</td>
-                      <td className="text-center py-3 px-2">3</td>
-                      <td className="text-center py-3 px-2">15</td>
-                      <td className="text-center py-3 px-2">50</td>
-                      <td className="text-center py-3 px-2">Ilimitado</td>
-                    </tr>
-                    <tr>
-                      <td className="py-3 px-2">Dashboard básico</td>
-                      <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                    </tr>
-                    <tr>
-                      <td className="py-3 px-2">Gestão de inquilinos</td>
-                      <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                    </tr>
-                    <tr>
-                      <td className="py-3 px-2">Exportação CSV/Excel/JSON</td>
-                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                    </tr>
-                    <tr>
-                      <td className="py-3 px-2">Análise avançada</td>
-                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                    </tr>
-                    <tr>
-                      <td className="py-3 px-2">Relatórios PDF</td>
-                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                    </tr>
-                    <tr>
-                      <td className="py-3 px-2">Recomendações IA</td>
-                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                    </tr>
-                    <tr>
-                      <td className="py-3 px-2">Gestão de equipe</td>
-                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                    </tr>
-                    <tr>
-                      <td className="py-3 px-2">Suporte prioritário</td>
-                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                      <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                    </tr>
+                    {(() => {
+                      const getPlanLimit = (planId: string) => {
+                        const plan = activePlans.find(p => p.id === planId);
+                        if (!plan) return '—';
+                        return plan.property_limit === -1 ? 'Ilimitado' : plan.property_limit;
+                      };
+                      return (
+                        <>
+                          <tr className="transition-colors hover:bg-muted/50">
+                            <td className="py-3 px-2">Limite de imóveis</td>
+                            <td className="text-center py-3 px-2">{getPlanLimit('starter')}</td>
+                            <td className="text-center py-3 px-2">{getPlanLimit('pro')}</td>
+                            <td className="text-center py-3 px-2">{getPlanLimit('plus')}</td>
+                            <td className="text-center py-3 px-2">{getPlanLimit('enterprise')}</td>
+                          </tr>
+                          <tr className="transition-colors hover:bg-muted/50">
+                            <td className="py-3 px-2">Dashboard básico</td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                          </tr>
+                          <tr className="transition-colors hover:bg-muted/50">
+                            <td className="py-3 px-2">Gestão de inquilinos</td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                          </tr>
+                          <tr className="transition-colors hover:bg-muted/50">
+                            <td className="py-3 px-2">Exportação CSV/Excel/JSON</td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                          </tr>
+                          <tr className="transition-colors hover:bg-muted/50">
+                            <td className="py-3 px-2">Análise avançada</td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                          </tr>
+                          <tr className="transition-colors hover:bg-muted/50">
+                            <td className="py-3 px-2">Relatórios PDF</td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                          </tr>
+                          <tr className="transition-colors hover:bg-muted/50">
+                            <td className="py-3 px-2">Recomendações IA</td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                          </tr>
+                          <tr className="transition-colors hover:bg-muted/50">
+                            <td className="py-3 px-2">Gestão de equipe</td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                          </tr>
+                          <tr className="transition-colors hover:bg-muted/50">
+                            <td className="py-3 px-2">Suporte prioritário</td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                          </tr>
+                        </>
+                      );
+                    })()}
                   </tbody>
                 </table>
               </div>
