@@ -179,11 +179,17 @@ export default function Plans() {
   return (
     <DashboardLayout>
       <div className="space-y-8 pb-8">
-        {/* Back Button */}
-        <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
-          <ArrowLeft className="h-4 w-4" />
-          Voltar
-        </Button>
+        {/* Navigation Buttons */}
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/subscription')} className="gap-2">
+            <Crown className="h-4 w-4" />
+            Minha Assinatura
+          </Button>
+        </div>
 
         {/* Header - Same style as landing page */}
         <motion.div
