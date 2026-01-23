@@ -7,6 +7,7 @@ import { useExportData, ExportConfig } from '@/hooks/useExportData';
 import { PROPERTY_TYPE_LABELS, PROPERTY_STATUS_LABELS } from '@/types/property';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { ExportConfigPanel } from '@/components/reports/ExportConfigPanel';
+import { ReportPreviewDialog } from '@/components/reports/ReportPreviewDialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -84,6 +85,10 @@ export default function Reports() {
   // Panel control
   const [activePanel, setActivePanel] = useState<'csv' | 'xlsx' | 'json' | 'pdf' | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Preview dialog state
+  const [previewType, setPreviewType] = useState<'csv' | 'xlsx' | 'json' | 'pdf' | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   // Export configs (separate for each type)
   const [csvConfig, setCsvConfig] = useState<ExportConfig>(defaultConfig);
@@ -357,19 +362,43 @@ export default function Reports() {
     }
   };
 
-  const handleExportCSV = () => {
-    exportToCSV(filteredProperties, csvConfig);
+  // Preview handlers - show preview first
+  const handleShowPreview = (type: 'csv' | 'xlsx' | 'json' | 'pdf') => {
+    setPreviewType(type);
+    setShowPreview(true);
+  };
+
+  const handleConfirmExport = () => {
+    if (!previewType) return;
+    
+    switch (previewType) {
+      case 'csv':
+        exportToCSV(filteredProperties, csvConfig);
+        break;
+      case 'xlsx':
+        exportToXLSX(filteredProperties, xlsxConfig);
+        break;
+      case 'json':
+        exportToJSON(filteredProperties, jsonConfig);
+        break;
+      case 'pdf':
+        generatePDFReport();
+        break;
+    }
+    
+    setShowPreview(false);
+    setPreviewType(null);
     setActivePanel(null);
   };
 
-  const handleExportJSON = () => {
-    exportToJSON(filteredProperties, jsonConfig);
-    setActivePanel(null);
-  };
-
-  const handleExportXLSX = () => {
-    exportToXLSX(filteredProperties, xlsxConfig);
-    setActivePanel(null);
+  const getActiveConfig = (): ExportConfig => {
+    switch (previewType) {
+      case 'csv': return csvConfig;
+      case 'xlsx': return xlsxConfig;
+      case 'json': return jsonConfig;
+      case 'pdf': return pdfConfig;
+      default: return defaultConfig;
+    }
   };
 
   const updateCsvConfig = (key: keyof ExportConfig, value: boolean) => {
@@ -426,7 +455,7 @@ export default function Reports() {
                   </Badge>
                 </div>
               </div>
-              <Button onClick={() => navigate('/settings')} size="lg" className="w-full">
+              <Button onClick={() => navigate('/plans')} size="lg" className="w-full">
                 <Crown className="mr-2 h-4 w-4" />
                 Fazer Upgrade para Pro
               </Button>
@@ -737,7 +766,7 @@ export default function Reports() {
                   {activePanel === 'pdf' ? 'Fechar' : 'Configurar'}
                 </Button>
               ) : (
-                <Button onClick={() => navigate('/settings')} className="w-full mt-4" variant="outline">
+                <Button onClick={() => navigate('/plans')} className="w-full mt-4" variant="outline">
                   <Lock className="mr-2 h-4 w-4" />
                   Upgrade para Plus
                 </Button>
@@ -752,7 +781,7 @@ export default function Reports() {
             type="csv"
             config={csvConfig}
             onConfigChange={updateCsvConfig}
-            onExport={handleExportCSV}
+            onExport={() => handleShowPreview('csv')}
             onClose={() => setActivePanel(null)}
             propertiesCount={filteredProperties.length}
           />
@@ -763,7 +792,7 @@ export default function Reports() {
             type="xlsx"
             config={xlsxConfig}
             onConfigChange={updateXlsxConfig}
-            onExport={handleExportXLSX}
+            onExport={() => handleShowPreview('xlsx')}
             onClose={() => setActivePanel(null)}
             propertiesCount={filteredProperties.length}
           />
@@ -774,7 +803,7 @@ export default function Reports() {
             type="json"
             config={jsonConfig}
             onConfigChange={updateJsonConfig}
-            onExport={handleExportJSON}
+            onExport={() => handleShowPreview('json')}
             onClose={() => setActivePanel(null)}
             propertiesCount={filteredProperties.length}
           />
@@ -785,9 +814,25 @@ export default function Reports() {
             type="pdf"
             config={pdfConfig}
             onConfigChange={updatePdfConfig}
-            onExport={generatePDFReport}
+            onExport={() => handleShowPreview('pdf')}
             onClose={() => setActivePanel(null)}
             propertiesCount={filteredProperties.length}
+            isGenerating={isGenerating}
+          />
+        )}
+
+        {/* Preview Dialog */}
+        {previewType && (
+          <ReportPreviewDialog
+            open={showPreview}
+            onOpenChange={(open) => {
+              setShowPreview(open);
+              if (!open) setPreviewType(null);
+            }}
+            type={previewType}
+            properties={filteredProperties}
+            config={getActiveConfig()}
+            onConfirm={handleConfirmExport}
             isGenerating={isGenerating}
           />
         )}

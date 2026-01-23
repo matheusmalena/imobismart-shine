@@ -13,6 +13,7 @@ import Documents from "./pages/Documents";
 import Tenants from "./pages/Tenants";
 import Settings from "./pages/Settings";
 import Reports from "./pages/Reports";
+import Plans from "./pages/Plans";
 import AdminClients from "./pages/admin/Clients";
 import AdminClientDetails from "./pages/admin/ClientDetails";
 import AdminPlans from "./pages/admin/Plans";
@@ -40,6 +41,7 @@ const App = () => (
               <Route path="/documents" element={<Documents />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/reports" element={<Reports />} />
+              <Route path="/plans" element={<Plans />} />
               <Route path="/team" element={<Team />} />
               <Route path="/whatsapp" element={<WhatsApp />} />
               <Route path="/admin/clients" element={<AdminClients />} />

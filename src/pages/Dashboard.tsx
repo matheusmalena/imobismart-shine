@@ -160,7 +160,7 @@ export default function Dashboard() {
                     </p>
                   </div>
                 </div>
-                <Button onClick={() => navigate('/settings')} className="gap-2 shrink-0">
+                <Button onClick={() => navigate('/plans')} className="gap-2 shrink-0">
                   <Crown className="h-4 w-4" />
                   Ver Planos
                 </Button>

@@ -49,7 +49,7 @@ export function PropertyLimitBanner({ remainingSlots, isAtLimit, plan, limit }: 
               </p>
             </div>
           </div>
-          <Link to="/settings">
+          <Link to="/plans">
             <Button 
               size="sm" 
               className="gap-2 whitespace-nowrap"

@@ -101,7 +101,7 @@ export function ProFeaturesCard({
               <p className="text-sm text-muted-foreground mb-3">
                 Valor do portfólio, ranking de performance, alertas e exportação de dados.
               </p>
-              <Button size="sm" onClick={() => navigate('/settings')} className="gap-1.5">
+              <Button size="sm" onClick={() => navigate('/plans')} className="gap-1.5">
                 <Crown className="h-3.5 w-3.5" />
                 Upgrade
               </Button>
