@@ -4,7 +4,7 @@ import { TableCell, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { GripVertical, Pencil, Trash2, Sparkles, Building2 } from 'lucide-react';
+import { GripVertical, Pencil, Trash2, Sparkles, Building2, Loader2 } from 'lucide-react';
 import { Plan } from '@/hooks/usePlans';
 
 interface SortablePlanRowProps {
@@ -14,6 +14,8 @@ interface SortablePlanRowProps {
   onDelete: (planId: string) => void;
   onToggleActive: (plan: Plan) => void;
   onToggleHighlighted: (plan: Plan) => void;
+  isUpdating?: boolean;
+  isDeleting?: boolean;
 }
 
 export function SortablePlanRow({
@@ -23,6 +25,8 @@ export function SortablePlanRow({
   onDelete,
   onToggleActive,
   onToggleHighlighted,
+  isUpdating = false,
+  isDeleting = false,
 }: SortablePlanRowProps) {
   const {
     attributes,
@@ -90,12 +94,14 @@ export function SortablePlanRow({
         <Switch
           checked={plan.is_active}
           onCheckedChange={() => onToggleActive(plan)}
+          disabled={isUpdating}
         />
       </TableCell>
       <TableCell className="text-center">
         <Switch
           checked={plan.is_highlighted}
           onCheckedChange={() => onToggleHighlighted(plan)}
+          disabled={isUpdating}
         />
       </TableCell>
       <TableCell>
@@ -104,6 +110,7 @@ export function SortablePlanRow({
             variant="ghost"
             size="sm"
             onClick={() => onEdit(plan)}
+            disabled={isUpdating || isDeleting}
           >
             <Pencil className="h-4 w-4" />
           </Button>
@@ -112,8 +119,13 @@ export function SortablePlanRow({
             size="sm"
             onClick={() => onDelete(plan.id)}
             className="text-destructive hover:text-destructive"
+            disabled={isUpdating || isDeleting}
           >
-            <Trash2 className="h-4 w-4" />
+            {isDeleting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4" />
+            )}
           </Button>
         </div>
       </TableCell>

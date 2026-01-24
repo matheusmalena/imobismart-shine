@@ -5,6 +5,7 @@ export interface WhatsAppSettings {
   is_enabled: boolean;
   evolution_api_url: string | null;
   evolution_api_key: string | null;
+  evolution_api_key_encrypted: string | null;
   evolution_instance_name: string | null;
   days_before_due: number[];
   message_template: string;
