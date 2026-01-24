@@ -144,10 +144,14 @@ export function TeamManagement() {
               A funcionalidade de múltiplos usuários está disponível apenas no plano Enterprise. 
               Adicione membros à sua equipe com diferentes permissões para colaborar na gestão dos imóveis.
             </p>
-            <Badge variant="outline" className="gap-1">
-              <Crown className="h-3 w-3" />
+            <Badge variant="outline" className="gap-1 bg-amber-500/10 text-amber-600 border-amber-200">
+              <Lock className="h-3 w-3" />
               Plano Enterprise
             </Badge>
+            <Button size="sm" onClick={() => window.location.href = '/plans'} className="gap-1.5 mt-4">
+              <Crown className="h-3.5 w-3.5" />
+              Upgrade para Enterprise
+            </Button>
           </div>
         </CardContent>
       </Card>

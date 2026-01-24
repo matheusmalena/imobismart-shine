@@ -440,8 +440,9 @@ export default function Reports() {
                     <p className="font-medium">Exportação CSV/JSON</p>
                     <p className="text-sm text-muted-foreground">Exporte todos os dados do seu portfólio</p>
                   </div>
-                  <Badge variant="outline" className="ml-auto">
-                    Pro
+                  <Badge variant="outline" className="ml-auto gap-1">
+                    <Lock className="h-3 w-3" />
+                    Plano Pro
                   </Badge>
                 </div>
                 <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
@@ -450,8 +451,9 @@ export default function Reports() {
                     <p className="font-medium">Relatórios PDF</p>
                     <p className="text-sm text-muted-foreground">Gere relatórios profissionais personalizados</p>
                   </div>
-                  <Badge variant="outline" className="ml-auto">
-                    Plus
+                  <Badge variant="outline" className="ml-auto gap-1 bg-purple-500/10 text-purple-600 border-purple-200">
+                    <Lock className="h-3 w-3" />
+                    Plano Plus
                   </Badge>
                 </div>
               </div>
@@ -621,8 +623,9 @@ export default function Reports() {
                   </div>
                   CSV
                 </CardTitle>
-                <Badge variant="outline" className="text-xs">
-                  Pro
+                <Badge variant="outline" className="text-xs gap-1">
+                  <Lock className="h-3 w-3" />
+                  Plano Pro
                 </Badge>
               </div>
               <CardDescription>Texto separado por vírgulas</CardDescription>
@@ -660,8 +663,9 @@ export default function Reports() {
                   </div>
                   Excel
                 </CardTitle>
-                <Badge variant="outline" className="text-xs">
-                  Pro
+                <Badge variant="outline" className="text-xs gap-1">
+                  <Lock className="h-3 w-3" />
+                  Plano Pro
                 </Badge>
               </div>
               <CardDescription>Planilha .xlsx nativa</CardDescription>
@@ -699,8 +703,9 @@ export default function Reports() {
                   </div>
                   JSON
                 </CardTitle>
-                <Badge variant="outline" className="text-xs">
-                  Pro
+                <Badge variant="outline" className="text-xs gap-1">
+                  <Lock className="h-3 w-3" />
+                  Plano Pro
                 </Badge>
               </div>
               <CardDescription>Estruturado para devs</CardDescription>
@@ -738,8 +743,9 @@ export default function Reports() {
                   </div>
                   PDF
                 </CardTitle>
-                <Badge variant="secondary" className="text-xs">
-                  Plus
+                <Badge variant="outline" className="text-xs gap-1 bg-purple-500/10 text-purple-600 border-purple-200">
+                  <Lock className="h-3 w-3" />
+                  Plano Plus
                 </Badge>
               </div>
               <CardDescription>Relatório visual profissional</CardDescription>
@@ -767,7 +773,7 @@ export default function Reports() {
                 </Button>
               ) : (
                 <Button onClick={() => navigate('/plans')} className="w-full mt-4" variant="outline">
-                  <Lock className="mr-2 h-4 w-4" />
+                  <Crown className="mr-2 h-4 w-4" />
                   Upgrade para Plus
                 </Button>
               )}

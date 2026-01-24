@@ -86,9 +86,9 @@ export function PlusAICard({
           <Sparkles className="h-5 w-5 text-primary" />
           Recomendações IA
           {!isPlus && (
-            <Badge variant="outline" className="gap-1 text-xs ml-auto">
+            <Badge variant="outline" className="gap-1 text-xs ml-auto bg-purple-500/10 text-purple-600 border-purple-200">
               <Lock className="h-3 w-3" />
-              Plus
+              Plano Plus
             </Badge>
           )}
         </CardTitle>
@@ -108,7 +108,7 @@ export function PlusAICard({
               </p>
               <Button size="sm" onClick={() => navigate('/plans')} className="gap-1.5">
                 <Crown className="h-3.5 w-3.5" />
-                Upgrade
+                Upgrade para Plus
               </Button>
             </div>
           </div>
