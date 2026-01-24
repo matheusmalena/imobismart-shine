@@ -4,10 +4,11 @@ import logoIcon from '@/assets/logo-icon.png';
 interface LogoTextProps {
   size?: 'sm' | 'md' | 'lg';
   showIcon?: boolean;
+  variant?: 'default' | 'sidebar';
   className?: string;
 }
 
-export function LogoText({ size = 'md', showIcon = true, className }: LogoTextProps) {
+export function LogoText({ size = 'md', showIcon = true, variant = 'default', className }: LogoTextProps) {
   const sizeClasses = {
     sm: {
       icon: 'h-8 w-8',
@@ -25,6 +26,14 @@ export function LogoText({ size = 'md', showIcon = true, className }: LogoTextPr
 
   const sizes = sizeClasses[size];
 
+  const textColor = variant === 'sidebar' 
+    ? 'text-sidebar-foreground' 
+    : 'text-foreground';
+
+  const primaryColor = variant === 'sidebar'
+    ? 'text-sidebar-primary'
+    : 'text-primary';
+
   return (
     <div className={cn('flex items-center gap-2', className)}>
       {showIcon && (
@@ -35,8 +44,8 @@ export function LogoText({ size = 'md', showIcon = true, className }: LogoTextPr
         />
       )}
       <div className={cn('font-bold flex flex-col', sizes.text)}>
-        <span className="text-foreground">Imobi</span>
-        <span className="text-primary -mt-1">Smart</span>
+        <span className={textColor}>Imobi</span>
+        <span className={cn(primaryColor, '-mt-1')}>Smart</span>
       </div>
     </div>
   );
