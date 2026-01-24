@@ -63,7 +63,7 @@ export function LockedSection({
             </p>
             <Button size="sm" onClick={() => navigate('/plans')} className="gap-1.5">
               <Crown className="h-3.5 w-3.5" />
-              Upgrade
+              Upgrade para {planLabels[requiredPlan]}
             </Button>
           </div>
         </div>

@@ -867,6 +867,7 @@ export type Database = {
           created_at: string
           days_before_due: number[] | null
           evolution_api_key: string | null
+          evolution_api_key_encrypted: string | null
           evolution_api_url: string | null
           evolution_instance_name: string | null
           id: string
@@ -880,6 +881,7 @@ export type Database = {
           created_at?: string
           days_before_due?: number[] | null
           evolution_api_key?: string | null
+          evolution_api_key_encrypted?: string | null
           evolution_api_url?: string | null
           evolution_instance_name?: string | null
           id?: string
@@ -893,6 +895,7 @@ export type Database = {
           created_at?: string
           days_before_due?: number[] | null
           evolution_api_key?: string | null
+          evolution_api_key_encrypted?: string | null
           evolution_api_url?: string | null
           evolution_instance_name?: string | null
           id?: string
@@ -932,6 +935,16 @@ export type Database = {
       }
       cleanup_expired_invitations: { Args: never; Returns: undefined }
       cleanup_rate_limits: { Args: never; Returns: undefined }
+      decrypt_api_key: { Args: { encrypted_key: string }; Returns: string }
+      decrypt_api_key_with_key: {
+        Args: { encrypted_key: string; encryption_key: string }
+        Returns: string
+      }
+      encrypt_api_key: { Args: { plain_key: string }; Returns: string }
+      encrypt_api_key_with_key: {
+        Args: { encryption_key: string; plain_key: string }
+        Returns: string
+      }
       get_org_role: {
         Args: { _org_id: string; _user_id: string }
         Returns: Database["public"]["Enums"]["org_member_role"]

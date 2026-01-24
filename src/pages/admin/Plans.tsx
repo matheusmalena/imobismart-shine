@@ -248,6 +248,8 @@ export default function AdminPlans() {
                             onDelete={(id) => setDeleteConfirm(id)}
                             onToggleActive={handleToggleActive}
                             onToggleHighlighted={handleToggleHighlighted}
+                            isUpdating={updatePlan.isPending}
+                            isDeleting={deletePlan.isPending && deleteConfirm === plan.id}
                           />
                         ))}
                       </TableBody>

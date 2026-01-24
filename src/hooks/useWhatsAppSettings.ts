@@ -33,11 +33,30 @@ export function useWhatsAppSettings() {
     mutationFn: async (formData: WhatsAppSettingsFormData) => {
       if (!user?.id) throw new Error('Usuário não autenticado');
 
+      let encryptedApiKey: string | null = null;
+
+      // Encrypt the API key if provided
+      if (formData.evolution_api_key) {
+        const { data, error } = await supabase.functions.invoke('encrypt-whatsapp-key', {
+          body: { api_key: formData.evolution_api_key },
+        });
+
+        if (error) {
+          console.error('Error encrypting API key:', error);
+          throw new Error('Erro ao proteger credenciais');
+        }
+
+        if (data?.encrypted_key) {
+          encryptedApiKey = data.encrypted_key;
+        }
+      }
+
       const settingsData = {
         user_id: user.id,
         is_enabled: formData.is_enabled,
         evolution_api_url: formData.evolution_api_url || null,
-        evolution_api_key: formData.evolution_api_key || null,
+        evolution_api_key: null, // Don't store plain text anymore
+        evolution_api_key_encrypted: encryptedApiKey,
         evolution_instance_name: formData.evolution_instance_name || null,
         days_before_due: formData.days_before_due,
         message_template: formData.message_template,

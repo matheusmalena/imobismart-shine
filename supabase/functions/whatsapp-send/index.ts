@@ -101,10 +101,30 @@ const handler = async (req: Request): Promise<Response> => {
       .eq("user_id", userId)
       .single();
 
+    // Function to decrypt API key if encrypted version exists
+    async function getApiKey(): Promise<string | null> {
+      if (settings?.evolution_api_key_encrypted) {
+        try {
+          const encryptionKey = Deno.env.get("WHATSAPP_ENCRYPTION_KEY");
+          if (encryptionKey) {
+            const { data, error } = await supabase.rpc('decrypt_api_key_with_key', { 
+              encrypted_key: settings.evolution_api_key_encrypted,
+              encryption_key: encryptionKey
+            });
+            if (!error && data) return data;
+          }
+        } catch (e) {
+          console.error("Decryption error:", e);
+        }
+      }
+      // Fallback to plain text (legacy)
+      return settings?.evolution_api_key || null;
+    }
+
   if (body.action === "test_connection") {
       // Test connection to Evolution API
       const apiUrl = sanitizeString(body.apiUrl || settings?.evolution_api_url, MAX_API_URL_LENGTH);
-      const apiKey = sanitizeString(body.apiKey || settings?.evolution_api_key, 200);
+      const apiKey = sanitizeString(body.apiKey || await getApiKey(), 200);
       const instanceName = sanitizeString(body.instanceName || settings?.evolution_instance_name, 100);
 
       if (!apiUrl || !apiKey) {
@@ -183,7 +203,10 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
-      if (!settings?.evolution_api_url || !settings?.evolution_api_key) {
+      // Get decrypted API key
+      const decryptedApiKey = await getApiKey();
+
+      if (!settings?.evolution_api_url || !decryptedApiKey) {
         return new Response(
           JSON.stringify({ success: false, error: "Evolution API não configurada" }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders, ...securityHeaders } }
@@ -267,7 +290,7 @@ const handler = async (req: Request): Promise<Response> => {
           {
             method: "POST",
             headers: {
-              "apikey": settings.evolution_api_key,
+              "apikey": decryptedApiKey,
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
