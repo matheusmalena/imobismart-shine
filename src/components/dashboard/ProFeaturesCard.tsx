@@ -83,7 +83,7 @@ export function ProFeaturesCard({
           {!isPro && (
             <Badge variant="outline" className="gap-1 text-xs ml-auto">
               <Lock className="h-3 w-3" />
-              Pro
+              Plano Pro
             </Badge>
           )}
         </CardTitle>
@@ -103,7 +103,7 @@ export function ProFeaturesCard({
               </p>
               <Button size="sm" onClick={() => navigate('/plans')} className="gap-1.5">
                 <Crown className="h-3.5 w-3.5" />
-                Upgrade
+                Upgrade para Pro
               </Button>
             </div>
           </div>
