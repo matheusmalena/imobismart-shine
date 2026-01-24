@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserData } from '@/hooks/useUserData';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,7 +21,6 @@ import {
   ChevronDown,
   Crown,
   ClipboardList,
-  Lock,
   CreditCard,
   Users,
   MessageCircle,
@@ -136,7 +134,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               );
             })}
 
-            {/* Unified Reports link - Pro+ */}
+            {/* Relatórios - Pro+ */}
             <Link
               to="/reports"
               className={cn(
@@ -149,15 +147,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             >
               <ClipboardList className="h-5 w-5" />
               Relatórios
-              {!isPro && (
-                <Badge variant="outline" className="ml-auto gap-1 text-xs bg-sidebar-accent">
-                  <Lock className="h-3 w-3" />
-                  Upgrade
-                </Badge>
-              )}
             </Link>
 
-            {/* Enterprise Feature: Equipe */}
+            {/* Equipe - Enterprise */}
             <Link
               to="/team"
               className={cn(
@@ -170,12 +162,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             >
               <Users className="h-5 w-5" />
               Equipe
-              {!isEnterprise && (
-                <Badge variant="outline" className="ml-auto gap-1 text-xs bg-amber-500/10 border-amber-500/30 text-amber-600">
-                  <Lock className="h-3 w-3" />
-                  Upgrade
-                </Badge>
-              )}
             </Link>
 
             {/* Admin section */}
