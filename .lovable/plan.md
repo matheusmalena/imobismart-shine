@@ -1,72 +1,154 @@
 
-# Plano: Padronização de Elementos de Upgrade em Todo o Sistema
+# Plano: Melhorias de Segurança e UX
 
-## Contexto e Análise
+## Resumo das Implementações
 
-Após análise detalhada de todas as páginas e componentes, identifiquei **inconsistências visuais** nos elementos de upgrade em todo o app:
+Este plano aborda 4 áreas críticas identificadas na auditoria:
 
-### Problemas Encontrados
-
-| Local | Problema |
-|-------|----------|
-| **ProFeaturesCard** | Badge diz apenas "Pro", sem ícone de cadeado visível no badge do header |
-| **PlusAICard** | Badge diz apenas "Plus", padrão OK mas sem "Plano" |
-| **Reports (upgrade prompt)** | Badges dizem "Pro" e "Plus" sem cadeado, botão diz "Fazer Upgrade para Pro" |
-| **Reports (cards funcionais)** | Badges "Pro" e "Plus" sem cadeado, PDF diz "Upgrade para Plus" |
-| **TeamManagement** | Badge diz "Plano Enterprise" com Crown, mas sem Lock |
-| **Dashboard upgrade card** | Texto "Ver Planos", sem indicação de plano específico |
-| **Subscription** | Botões "Ver Planos" e "Fazer Upgrade" sem padronização |
-| **PropertyLimitBanner** | Botão "Fazer Upgrade" genérico |
-
-### Padrão Visual Proposto
-
-Todos os elementos de upgrade devem seguir este padrão:
-
-**1. Badges de Plano (indicadores de recurso bloqueado)**
-```
-┌─────────────────────┐
-│ 🔒 Plano [Nome]     │  <- Badge outline com Lock + "Plano Pro/Plus/Enterprise"
-└─────────────────────┘
-```
-
-**2. Botões de Upgrade (CTAs)**
-```
-┌─────────────────────────────┐
-│ 👑 Upgrade para [Plano]     │  <- Button com Crown + "Upgrade para Pro/Plus"
-└─────────────────────────────┘
-```
-
-**3. Cores por Plano**
-- **Pro**: `text-primary` (padrão)
-- **Plus**: `text-purple-600` / `bg-purple-500/10`
-- **Enterprise**: `text-amber-600` / `bg-amber-500/10`
+1. **Proteção contra senhas vazadas** - Configuração do Auth
+2. **Criptografia de API Keys do WhatsApp** - Backend seguro
+3. **Correção de warnings de console** - AlertDialog/forwardRef
+4. **Feedback visual para operações assíncronas** - UX aprimorado
 
 ---
 
-## Implementação Detalhada
+## 1. Proteção de Senha Vazada no Auth
 
-### 1. Atualizar `LockedSection.tsx`
-- Manter padrão atual (já está correto)
-- Badge: `<Lock /> {planLabels[requiredPlan]}`
-- Botão: `<Crown /> Upgrade`
+### Problema
+O sistema de autenticação não verifica se as senhas usadas foram comprometidas em vazamentos de dados conhecidos.
 
-### 2. Atualizar `ProFeaturesCard.tsx`
-**Linha 84-87**: Alterar Badge
-```tsx
-// De:
-<Badge variant="outline" className="gap-1 text-xs ml-auto">
-  <Lock className="h-3 w-3" />
-  Pro
-</Badge>
+### Solução
+Habilitar a proteção HaveIBeenPwned no Supabase Auth para verificar senhas durante signup e login.
 
-// Para:
-<Badge variant="outline" className="gap-1 text-xs ml-auto">
-  <Lock className="h-3 w-3" />
-  Plano Pro
-</Badge>
+### Implementação
+- Usar a ferramenta `configure-auth` para habilitar `leaked_password_protection`
+- Esta configuração é feita via API do Supabase, sem necessidade de código
+
+---
+
+## 2. Criptografia de API Keys do WhatsApp
+
+### Problema Atual
+As credenciais da Evolution API (URL, API Key, Instance Name) são armazenadas em texto plano na tabela `whatsapp_settings`:
+```text
+┌─────────────────────────────────────────────┐
+│ whatsapp_settings                          │
+├─────────────────────────────────────────────┤
+│ evolution_api_url: text (PLAIN)            │
+│ evolution_api_key: text (PLAIN) ⚠️          │
+│ evolution_instance_name: text (PLAIN)      │
+└─────────────────────────────────────────────┘
 ```
 
-**Linha 104-106**: Alterar botão de upgrade
+### Solução
+Usar **pgcrypto** para criptografar API keys sensíveis com uma chave armazenada nos secrets do Supabase.
+
+### Implementação
+
+**Passo 1: Adicionar extensão e criar funções de criptografia**
+```sql
+-- Habilitar pgcrypto
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Função para criptografar
+CREATE OR REPLACE FUNCTION encrypt_api_key(plain_key text)
+RETURNS text AS $$
+BEGIN
+  IF plain_key IS NULL OR plain_key = '' THEN
+    RETURN NULL;
+  END IF;
+  RETURN encode(
+    pgp_sym_encrypt(plain_key, current_setting('app.encryption_key', true)),
+    'base64'
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Função para descriptografar
+CREATE OR REPLACE FUNCTION decrypt_api_key(encrypted_key text)
+RETURNS text AS $$
+BEGIN
+  IF encrypted_key IS NULL OR encrypted_key = '' THEN
+    RETURN NULL;
+  END IF;
+  RETURN pgp_sym_decrypt(
+    decode(encrypted_key, 'base64'),
+    current_setting('app.encryption_key', true)
+  );
+EXCEPTION WHEN OTHERS THEN
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+**Passo 2: Adicionar colunas criptografadas**
+```sql
+ALTER TABLE whatsapp_settings 
+ADD COLUMN IF NOT EXISTS evolution_api_key_encrypted text;
+```
+
+**Passo 3: Atualizar edge function para usar descriptografia**
+A edge function `whatsapp-send` será atualizada para:
+- Descriptografar a API key antes de usar
+- Usar o service role key para acessar as funções de descriptografia
+
+**Arquivos afetados:**
+- Migração SQL
+- `supabase/functions/whatsapp-send/index.ts`
+- `src/hooks/useWhatsAppSettings.ts` (para salvar criptografado)
+
+---
+
+## 3. Correção de Warnings de Console (forwardRef)
+
+### Problema
+Os componentes `AlertDialogHeader` e `AlertDialogFooter` não usam `forwardRef`, causando warnings no console quando usados com algumas bibliotecas.
+
+### Análise
+Verificando o arquivo `src/components/ui/alert-dialog.tsx`, os componentes problemáticos são:
+```tsx
+// Atual - sem forwardRef
+const AlertDialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={...} {...props} />
+);
+AlertDialogHeader.displayName = "AlertDialogHeader";
+```
+
+### Solução
+Converter para usar `React.forwardRef`:
+```tsx
+// Corrigido - com forwardRef
+const AlertDialogHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={...} {...props} />
+));
+AlertDialogHeader.displayName = "AlertDialogHeader";
+```
+
+### Arquivos afetados:
+- `src/components/ui/alert-dialog.tsx` (linhas 46-54)
+
+---
+
+## 4. Feedback Visual para Operações Assíncronas
+
+### Problema
+Algumas operações assíncronas não têm feedback visual adequado durante o processamento.
+
+### Áreas Identificadas
+
+| Componente | Operação | Status Atual |
+|------------|----------|--------------|
+| `admin/Plans.tsx` | Save/Delete/Toggle | Sem loader nos botões |
+| `LockedSection.tsx` | Botão upgrade | Sem indicação de plano específico |
+| `Settings.tsx` | Cancel subscription | Com feedback (OK) |
+| `WhatsAppSettingsPanel.tsx` | Save template | ✅ Já tem loader |
+
+### Implementação
+
+**4.1 LockedSection - Padronizar botão**
 ```tsx
 // De:
 <Button size="sm" onClick={() => navigate('/plans')} className="gap-1.5">
@@ -77,191 +159,56 @@ Todos os elementos de upgrade devem seguir este padrão:
 // Para:
 <Button size="sm" onClick={() => navigate('/plans')} className="gap-1.5">
   <Crown className="h-3.5 w-3.5" />
-  Upgrade para Pro
+  Upgrade para {planLabels[requiredPlan]}
 </Button>
 ```
 
-### 3. Atualizar `PlusAICard.tsx`
-**Linha 89-92**: Alterar Badge e adicionar cor roxa
+**4.2 admin/Plans.tsx - Adicionar estados de loading**
 ```tsx
-// De:
-<Badge variant="outline" className="gap-1 text-xs ml-auto">
-  <Lock className="h-3 w-3" />
-  Plus
-</Badge>
-
-// Para:
-<Badge variant="outline" className="gap-1 text-xs ml-auto bg-purple-500/10 text-purple-600 border-purple-200">
-  <Lock className="h-3 w-3" />
-  Plano Plus
-</Badge>
-```
-
-**Linha 109-111**: Alterar botão de upgrade
-```tsx
-// De:
-<Button size="sm" onClick={() => navigate('/plans')} className="gap-1.5">
-  <Crown className="h-3.5 w-3.5" />
-  Upgrade
-</Button>
-
-// Para:
-<Button size="sm" onClick={() => navigate('/plans')} className="gap-1.5">
-  <Crown className="h-3.5 w-3.5" />
-  Upgrade para Plus
+// Adicionar loading state aos botões de ação
+<Button 
+  onClick={() => handleToggleActive(plan)}
+  disabled={updatePlan.isPending}
+>
+  {updatePlan.isPending && updatePlan.variables?.id === plan.id ? (
+    <Loader2 className="h-4 w-4 animate-spin" />
+  ) : (
+    plan.is_active ? <EyeOff /> : <Eye />
+  )}
 </Button>
 ```
-
-### 4. Atualizar `Reports.tsx` - Prompt de Upgrade (não-Pro)
-**Linha 443-445 e 453-455**: Adicionar Lock nos badges
-```tsx
-// De:
-<Badge variant="outline" className="ml-auto">
-  Pro
-</Badge>
-
-// Para:
-<Badge variant="outline" className="ml-auto gap-1">
-  <Lock className="h-3 w-3" />
-  Plano Pro
-</Badge>
-```
-
-```tsx
-// Badge Plus:
-<Badge variant="outline" className="ml-auto gap-1 bg-purple-500/10 text-purple-600 border-purple-200">
-  <Lock className="h-3 w-3" />
-  Plano Plus
-</Badge>
-```
-
-**Linha 458-460**: Manter botão como está (já está bom)
-
-### 5. Atualizar `Reports.tsx` - Cards de Exportação
-**Linhas 624-626, 663-665, 702-704**: Adicionar Lock aos badges Pro
-```tsx
-// De:
-<Badge variant="outline" className="text-xs">
-  Pro
-</Badge>
-
-// Para:
-<Badge variant="outline" className="text-xs gap-1">
-  <Lock className="h-3 w-3" />
-  Plano Pro
-</Badge>
-```
-
-**Linha 741-743**: Badge Plus com cor
-```tsx
-// De:
-<Badge variant="secondary" className="text-xs">
-  Plus
-</Badge>
-
-// Para:
-<Badge variant="outline" className="text-xs gap-1 bg-purple-500/10 text-purple-600 border-purple-200">
-  <Lock className="h-3 w-3" />
-  Plano Plus
-</Badge>
-```
-
-**Linha 769-772**: Botão PDF upgrade
-```tsx
-// De:
-<Button onClick={() => navigate('/plans')} className="w-full mt-4" variant="outline">
-  <Lock className="mr-2 h-4 w-4" />
-  Upgrade para Plus
-</Button>
-
-// Para (manter Lock no botão para consistência visual):
-<Button onClick={() => navigate('/plans')} className="w-full mt-4" variant="outline">
-  <Crown className="mr-2 h-4 w-4" />
-  Upgrade para Plus
-</Button>
-```
-
-### 6. Atualizar `TeamManagement.tsx`
-**Linha 147-150**: Alterar badge para incluir Lock
-```tsx
-// De:
-<Badge variant="outline" className="gap-1">
-  <Crown className="h-3 w-3" />
-  Plano Enterprise
-</Badge>
-
-// Para:
-<Badge variant="outline" className="gap-1 bg-amber-500/10 text-amber-600 border-amber-200">
-  <Lock className="h-3 w-3" />
-  Plano Enterprise
-</Badge>
-```
-
-**Adicionar botão de upgrade** após o badge (linha ~150):
-```tsx
-<Button size="sm" onClick={() => navigate('/plans')} className="gap-1.5 mt-4">
-  <Crown className="h-3.5 w-3.5" />
-  Upgrade para Enterprise
-</Button>
-```
-
-### 7. Atualizar `Dashboard.tsx` - Upgrade Prompt
-**Linha 163-166**: Especificar plano no botão
-```tsx
-// De:
-<Button onClick={() => navigate('/plans')} className="gap-2 shrink-0">
-  <Crown className="h-4 w-4" />
-  Ver Planos
-</Button>
-
-// Manter como "Ver Planos" pois é genérico e pode ir para Pro, Plus ou Enterprise
-// O botão está OK
-```
-
-### 8. Atualizar `Subscription.tsx`
-**Linha 249-252**: Botão de upgrade para starter
-```tsx
-// Manter como está - já está bom:
-<Button onClick={() => navigate('/plans')} className="w-full gap-2">
-  <Crown className="h-4 w-4" />
-  Fazer Upgrade
-</Button>
-```
-
-### 9. Atualizar `PropertyLimitBanner.tsx`
-**Linha 58-60**: Mantido como genérico (OK)
 
 ---
 
-## Resumo das Alterações
+## Resumo de Arquivos a Modificar
 
 | Arquivo | Alteração |
 |---------|-----------|
-| `ProFeaturesCard.tsx` | Badge: "Plano Pro", Botão: "Upgrade para Pro" |
-| `PlusAICard.tsx` | Badge: roxo + "Plano Plus", Botão: "Upgrade para Plus" |
-| `Reports.tsx` | Badges com Lock + "Plano X", cores por tier |
-| `TeamManagement.tsx` | Badge: âmbar + Lock + "Plano Enterprise", Adicionar botão upgrade |
-| `LockedSection.tsx` | Já está correto - nenhuma mudança |
+| Auth Config | Habilitar leaked password protection |
+| Migração SQL | Funções encrypt/decrypt + coluna encrypted |
+| `whatsapp-send/index.ts` | Usar descriptografia |
+| `useWhatsAppSettings.ts` | Salvar criptografado |
+| `alert-dialog.tsx` | Adicionar forwardRef a Header/Footer |
+| `LockedSection.tsx` | Padronizar texto do botão |
+| `admin/Plans.tsx` | Adicionar loaders nos botões |
 
 ---
 
-## Benefícios
+## Considerações de Segurança
 
-1. **Consistência Visual**: Todos os badges de plano seguem o mesmo padrão `<Lock /> Plano [Nome]`
-2. **Hierarquia de Cores**: Pro (primary), Plus (roxo), Enterprise (âmbar)
-3. **CTAs Claros**: Botões sempre dizem "Upgrade para [Plano]" com ícone Crown
-4. **Responsividade**: Todas as alterações mantêm o layout responsivo existente
+1. **Encryption Key**: Será armazenada como secret do Supabase (`WHATSAPP_ENCRYPTION_KEY`)
+2. **RLS já configurado**: As políticas RLS para `whatsapp_settings` já estão corretas (usuário só vê seus dados)
+3. **Edge Function**: Usa service role, então tem acesso às funções de descriptografia
 
 ---
 
-## Detalhes Técnicos
+## Ordem de Implementação
 
-### Imports Necessários
-Verificar que `Lock` está importado em todos os arquivos que serão modificados:
-- `Reports.tsx` - ✅ já importado
-- `ProFeaturesCard.tsx` - ✅ já importado  
-- `PlusAICard.tsx` - ✅ já importado
-- `TeamManagement.tsx` - ✅ já importado
+1. Habilitar proteção de senha vazada (configure-auth)
+2. Criar migração SQL para criptografia
+3. Atualizar edge function `whatsapp-send`
+4. Atualizar hook `useWhatsAppSettings`
+5. Corrigir `alert-dialog.tsx` (forwardRef)
+6. Padronizar `LockedSection.tsx`
+7. Adicionar loaders em `admin/Plans.tsx`
 
-### Navegação para Upgrade
-Todos os botões de upgrade navegam para `/plans` usando `useNavigate()` do react-router-dom.
