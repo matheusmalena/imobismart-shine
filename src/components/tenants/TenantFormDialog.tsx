@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Tenant, TenantFormData } from '@/types/tenant';
+import { formatCPF, formatPhone, formatRG } from '@/utils/inputMasks';
 import {
   Dialog,
   DialogContent,
@@ -198,7 +199,15 @@ export function TenantFormDialog({
                   <FormItem>
                     <FormLabel>CPF</FormLabel>
                     <FormControl>
-                      <Input placeholder="000.000.000-00" {...field} />
+                      <Input 
+                        placeholder="000.000.000-00" 
+                        {...field}
+                        onChange={(e) => {
+                          const formatted = formatCPF(e.target.value);
+                          field.onChange(formatted);
+                        }}
+                        inputMode="numeric"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -211,7 +220,15 @@ export function TenantFormDialog({
                   <FormItem>
                     <FormLabel>RG</FormLabel>
                     <FormControl>
-                      <Input placeholder="00.000.000-0" {...field} />
+                      <Input 
+                        placeholder="00.000.000-0" 
+                        {...field}
+                        onChange={(e) => {
+                          const formatted = formatRG(e.target.value);
+                          field.onChange(formatted);
+                        }}
+                        inputMode="text"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -240,7 +257,15 @@ export function TenantFormDialog({
                 <FormItem>
                   <FormLabel>Telefone</FormLabel>
                   <FormControl>
-                    <Input placeholder="(00) 00000-0000" {...field} />
+                    <Input 
+                      placeholder="(00) 00000-0000" 
+                      {...field}
+                      onChange={(e) => {
+                        const formatted = formatPhone(e.target.value);
+                        field.onChange(formatted);
+                      }}
+                      inputMode="tel"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
