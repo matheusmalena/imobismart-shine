@@ -100,6 +100,7 @@ export function useProperties() {
           floor_number: formData.floor_number,
           year_built: formData.year_built,
           description: formData.description || null,
+          other_amenities: formData.other_amenities || null,
           photo_url: formData.photo_url || null,
         })
         .select()
@@ -170,6 +171,7 @@ export function useProperties() {
           floor_number: formData.floor_number,
           year_built: formData.year_built,
           description: formData.description || null,
+          other_amenities: formData.other_amenities || null,
           photo_url: formData.photo_url || null,
         })
         .eq('id', id)
@@ -297,6 +299,7 @@ export function useProperties() {
           floor_number: property.floor_number,
           year_built: property.year_built,
           description: property.description,
+          other_amenities: property.other_amenities,
           photo_url: property.photo_url,
         })
         .select()
