@@ -56,6 +56,7 @@ const defaultFormData: PropertyFormData = {
   floor_number: null,
   year_built: null,
   description: '',
+  other_amenities: '',
   photo_url: null,
 };
 
@@ -111,6 +112,7 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
         floor_number: property.floor_number,
         year_built: property.year_built,
         description: property.description || '',
+        other_amenities: property.other_amenities || '',
         photo_url: property.photo_url || null,
       });
       // Set currency display values
@@ -612,6 +614,18 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                       onCheckedChange={(checked) => updateField('is_furnished', checked)}
                     />
                   </div>
+                </div>
+                
+                {/* Outros - Campo de texto para comodidades adicionais */}
+                <div className="mt-4 space-y-2">
+                  <Label htmlFor="other_amenities">Outras Comodidades</Label>
+                  <Textarea
+                    id="other_amenities"
+                    value={formData.other_amenities}
+                    onChange={(e) => updateField('other_amenities', e.target.value)}
+                    placeholder="Informe outras comodidades não listadas acima..."
+                    rows={3}
+                  />
                 </div>
               </div>
             </TabsContent>

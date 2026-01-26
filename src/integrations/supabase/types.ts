@@ -425,6 +425,7 @@ export type Database = {
           name: string
           occupancy_rate: number | null
           organization_id: string | null
+          other_amenities: string | null
           other_costs: number | null
           parking_spots: number | null
           performance:
@@ -469,6 +470,7 @@ export type Database = {
           name: string
           occupancy_rate?: number | null
           organization_id?: string | null
+          other_amenities?: string | null
           other_costs?: number | null
           parking_spots?: number | null
           performance?:
@@ -513,6 +515,7 @@ export type Database = {
           name?: string
           occupancy_rate?: number | null
           organization_id?: string | null
+          other_amenities?: string | null
           other_costs?: number | null
           parking_spots?: number | null
           performance?:

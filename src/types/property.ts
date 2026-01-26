@@ -45,6 +45,7 @@ export interface Property {
   floor_number: number | null;
   year_built: number | null;
   description: string | null;
+  other_amenities: string | null;
   
   // Photo
   photo_url: string | null;
@@ -101,6 +102,7 @@ export interface PropertyFormData {
   floor_number: number | null;
   year_built: number | null;
   description: string;
+  other_amenities: string;
   photo_url?: string | null;
 }
 
