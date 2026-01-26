@@ -7,21 +7,24 @@ import { ImageCropDialog } from './ImageCropDialog';
 
 interface PhotoUploadProps {
   currentPhotoUrl?: string | null;
+  previewUrl?: string | null;
   onPhotoChange: (url: string | null) => void;
   onFileSelect: (file: File) => void;
+  onPreviewChange?: (url: string | null) => void;
   isUploading?: boolean;
   className?: string;
 }
 
 export function PhotoUpload({ 
   currentPhotoUrl, 
+  previewUrl: externalPreviewUrl,
   onPhotoChange, 
   onFileSelect,
+  onPreviewChange,
   isUploading,
   className 
 }: PhotoUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
 
@@ -46,7 +49,7 @@ export function PhotoUpload({
   const handleCropComplete = (croppedBlob: Blob) => {
     // Create preview URL from cropped blob
     const croppedUrl = URL.createObjectURL(croppedBlob);
-    setPreviewUrl(croppedUrl);
+    onPreviewChange?.(croppedUrl);
     
     // Convert blob to file and send to parent
     const file = new File([croppedBlob], 'cropped-image.jpg', { type: 'image/jpeg' });
@@ -56,14 +59,14 @@ export function PhotoUpload({
   };
 
   const handleRemove = () => {
-    setPreviewUrl(null);
+    onPreviewChange?.(null);
     onPhotoChange(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
-  const displayUrl = previewUrl || currentPhotoUrl;
+  const displayUrl = externalPreviewUrl || currentPhotoUrl;
 
   return (
     <div className={cn("space-y-3", className)}>

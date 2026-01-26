@@ -63,6 +63,7 @@ const defaultFormData: PropertyFormData = {
 export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading }: PropertyFormProps) {
   const { uploadPhoto, isUploading } = usePhotoUpload();
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [isSearchingCEP, setIsSearchingCEP] = useState(false);
   
   const [formData, setFormData] = useState<PropertyFormData>(defaultFormData);
@@ -136,6 +137,7 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
       });
     }
     setPendingFile(null);
+    setPhotoPreviewUrl(null);
   }, [property, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -205,11 +207,18 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
 
   const handlePhotoChange = (url: string | null) => {
     setFormData(prev => ({ ...prev, photo_url: url }));
-    if (!url) setPendingFile(null);
+    if (!url) {
+      setPendingFile(null);
+      setPhotoPreviewUrl(null);
+    }
   };
 
   const handleFileSelect = (file: File) => {
     setPendingFile(file);
+  };
+
+  const handlePreviewChange = (url: string | null) => {
+    setPhotoPreviewUrl(url);
   };
 
   return (
@@ -235,8 +244,10 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
               {/* Photo Upload */}
               <PhotoUpload
                 currentPhotoUrl={formData.photo_url}
+                previewUrl={photoPreviewUrl}
                 onPhotoChange={handlePhotoChange}
                 onFileSelect={handleFileSelect}
+                onPreviewChange={handlePreviewChange}
                 isUploading={isUploading}
               />
 
