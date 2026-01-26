@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -30,6 +30,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { ContractPdfUpload } from './ContractPdfUpload';
 
 const formSchema = z.object({
   tenant_id: z.string().min(1, 'Selecione um inquilino'),
@@ -62,6 +63,9 @@ export function ContractFormDialog({
   onSubmit,
   isLoading,
 }: ContractFormDialogProps) {
+  const [contractFile, setContractFile] = useState<File | null>(null);
+  const [existingFileUrl, setExistingFileUrl] = useState<string | null>(null);
+
   const form = useForm<LeaseContractFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -90,6 +94,8 @@ export function ContractFormDialog({
         status: contract.status,
         notes: contract.notes || '',
       });
+      setExistingFileUrl(contract.contract_file_url || null);
+      setContractFile(null);
     } else {
       form.reset({
         tenant_id: '',
@@ -102,11 +108,25 @@ export function ContractFormDialog({
         status: 'active',
         notes: '',
       });
+      setExistingFileUrl(null);
+      setContractFile(null);
     }
-  }, [contract, form]);
+  }, [contract, form, open]);
+
+  const handleFileChange = (file: File | null) => {
+    setContractFile(file);
+    if (file) {
+      // If a new file is selected, clear the existing URL reference
+      setExistingFileUrl(null);
+    }
+  };
 
   const handleSubmit = (data: LeaseContractFormData) => {
-    onSubmit(data);
+    onSubmit({
+      ...data,
+      contract_file: contractFile,
+      contract_file_url: contractFile ? null : existingFileUrl,
+    });
   };
 
   return (
@@ -303,6 +323,18 @@ export function ContractFormDialog({
                 </FormItem>
               )}
             />
+
+            <div>
+              <FormLabel>Documento do Contrato (PDF)</FormLabel>
+              <div className="mt-2">
+                <ContractPdfUpload
+                  file={contractFile}
+                  existingUrl={existingFileUrl}
+                  onFileChange={handleFileChange}
+                  isUploading={isLoading}
+                />
+              </div>
+            </div>
 
             <div className="flex justify-end gap-2 pt-4">
               <Button

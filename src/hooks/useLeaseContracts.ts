@@ -5,6 +5,43 @@ import { LeaseContract, LeaseContractFormData } from '@/types/tenant';
 import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
 
+async function uploadContractFile(
+  userId: string,
+  contractId: string,
+  file: File
+): Promise<string> {
+  const timestamp = Date.now();
+  const filePath = `${userId}/contracts/${contractId}/${timestamp}.pdf`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('property-documents')
+    .upload(filePath, file, {
+      contentType: 'application/pdf',
+      upsert: false,
+    });
+
+  if (uploadError) {
+    console.error('Error uploading contract file:', uploadError);
+    throw new Error('Erro ao enviar o documento do contrato');
+  }
+
+  return filePath;
+}
+
+async function deleteContractFile(fileUrl: string): Promise<void> {
+  try {
+    const { error } = await supabase.storage
+      .from('property-documents')
+      .remove([fileUrl]);
+
+    if (error) {
+      console.error('Error deleting contract file:', error);
+    }
+  } catch (error) {
+    console.error('Error deleting contract file:', error);
+  }
+}
+
 export function useLeaseContracts(propertyId?: string) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -40,6 +77,7 @@ export function useLeaseContracts(propertyId?: string) {
     mutationFn: async (data: LeaseContractFormData) => {
       if (!user?.id) throw new Error('Usuário não autenticado');
 
+      // First create the contract without the file URL
       const { data: newContract, error } = await supabase
         .from('lease_contracts')
         .insert({
@@ -58,6 +96,35 @@ export function useLeaseContracts(propertyId?: string) {
         .single();
 
       if (error) throw error;
+
+      // If there's a file to upload, upload it and update the contract
+      if (data.contract_file) {
+        try {
+          const filePath = await uploadContractFile(
+            user.id,
+            newContract.id,
+            data.contract_file
+          );
+
+          const { error: updateError } = await supabase
+            .from('lease_contracts')
+            .update({ contract_file_url: filePath })
+            .eq('id', newContract.id);
+
+          if (updateError) {
+            // Try to delete the uploaded file
+            await deleteContractFile(filePath);
+            throw updateError;
+          }
+
+          return { ...newContract, contract_file_url: filePath };
+        } catch (fileError) {
+          console.error('Error uploading file:', fileError);
+          toast.error('Contrato criado, mas houve erro ao anexar o documento');
+          return newContract;
+        }
+      }
+
       return newContract;
     },
     onSuccess: () => {
@@ -73,6 +140,38 @@ export function useLeaseContracts(propertyId?: string) {
 
   const updateContract = useMutation({
     mutationFn: async ({ id, ...data }: LeaseContractFormData & { id: string }) => {
+      if (!user?.id) throw new Error('Usuário não autenticado');
+
+      // Get the current contract to check for existing file
+      const { data: currentContract } = await supabase
+        .from('lease_contracts')
+        .select('contract_file_url')
+        .eq('id', id)
+        .single();
+
+      let newFileUrl = data.contract_file_url;
+
+      // If there's a new file to upload
+      if (data.contract_file) {
+        try {
+          const filePath = await uploadContractFile(user.id, id, data.contract_file);
+          newFileUrl = filePath;
+
+          // Delete the old file if it exists
+          if (currentContract?.contract_file_url) {
+            await deleteContractFile(currentContract.contract_file_url);
+          }
+        } catch (fileError) {
+          console.error('Error uploading file:', fileError);
+          toast.error('Erro ao anexar o documento');
+          throw fileError;
+        }
+      } else if (data.contract_file_url === null && currentContract?.contract_file_url) {
+        // File was removed
+        await deleteContractFile(currentContract.contract_file_url);
+        newFileUrl = null;
+      }
+
       const { data: updatedContract, error } = await supabase
         .from('lease_contracts')
         .update({
@@ -85,6 +184,7 @@ export function useLeaseContracts(propertyId?: string) {
           payment_due_day: data.payment_due_day || 5,
           status: data.status || 'active',
           notes: data.notes || null,
+          contract_file_url: newFileUrl,
         })
         .eq('id', id)
         .select()
@@ -106,6 +206,18 @@ export function useLeaseContracts(propertyId?: string) {
 
   const deleteContract = useMutation({
     mutationFn: async (id: string) => {
+      // Get the contract to check for file
+      const { data: contract } = await supabase
+        .from('lease_contracts')
+        .select('contract_file_url')
+        .eq('id', id)
+        .single();
+
+      // Delete the file if it exists
+      if (contract?.contract_file_url) {
+        await deleteContractFile(contract.contract_file_url);
+      }
+
       const { error } = await supabase
         .from('lease_contracts')
         .delete()
@@ -123,6 +235,24 @@ export function useLeaseContracts(propertyId?: string) {
       toast.error('Erro ao remover contrato');
     },
   });
+
+  const getSignedUrl = async (fileUrl: string): Promise<string | null> => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('property-documents')
+        .createSignedUrl(fileUrl, 3600); // 1 hour
+
+      if (error) {
+        console.error('Error getting signed URL:', error);
+        return null;
+      }
+
+      return data.signedUrl;
+    } catch (error) {
+      console.error('Error getting signed URL:', error);
+      return null;
+    }
+  };
 
   // Computed values for alerts
   const expiringContracts = contracts.filter(contract => {
@@ -143,6 +273,7 @@ export function useLeaseContracts(propertyId?: string) {
     createContract,
     updateContract,
     deleteContract,
+    getSignedUrl,
     expiringContracts,
     expiredContracts,
   };

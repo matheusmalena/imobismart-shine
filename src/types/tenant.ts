@@ -56,6 +56,8 @@ export interface LeaseContractFormData {
   payment_due_day?: number;
   status?: 'active' | 'expired' | 'terminated' | 'pending';
   notes?: string;
+  contract_file?: File | null;
+  contract_file_url?: string | null;
 }
 
 export const CONTRACT_STATUS_LABELS: Record<string, string> = {
