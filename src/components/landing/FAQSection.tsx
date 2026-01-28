@@ -29,10 +29,6 @@ const faqs = [
     answer: "Você pode fazer upload de qualquer documento relacionado aos seus imóveis: matrículas, contratos, laudos, comprovantes de IPTU, etc. Todos ficam organizados por imóvel e categoria, facilitando a busca e o acesso.",
   },
   {
-    question: "Vocês oferecem suporte técnico?",
-    answer: "Sim! Todos os planos incluem suporte por email. Os planos Pro e Enterprise contam com suporte prioritário e tempo de resposta mais rápido. Também temos uma base de conhecimento completa com tutoriais e guias.",
-  },
-  {
     question: "Posso cancelar minha assinatura quando quiser?",
     answer: "Com certeza. Não há fidelidade mínima. Você pode cancelar sua assinatura a qualquer momento e continuará tendo acesso até o final do período já pago. Seus dados ficam disponíveis para exportação.",
   },
