@@ -4,6 +4,7 @@ import { Property, PropertyFormData } from '@/types/property';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useRateLimit, RATE_LIMITS } from '@/hooks/useRateLimit';
+import { validateAndNormalizePropertyFormData } from '@/utils/propertyValidation';
 
 export function useProperties() {
   const { user } = useAuth();
@@ -52,6 +53,8 @@ export function useProperties() {
     mutationFn: async (formData: PropertyFormData) => {
       if (!user) throw new Error('Usuário não autenticado');
 
+      const normalized = validateAndNormalizePropertyFormData(formData);
+
       // Rate limit check
       const rateLimitResult = await checkRateLimit(RATE_LIMITS.CREATE_PROPERTY);
       if (!rateLimitResult.allowed) {
@@ -59,7 +62,7 @@ export function useProperties() {
       }
 
       // Check for duplicate name
-      const nameExists = await checkNameExists(formData.name.trim());
+      const nameExists = await checkNameExists(normalized.name);
       if (nameExists) {
         throw new Error('Já existe um imóvel com este nome');
       }
@@ -68,40 +71,40 @@ export function useProperties() {
         .from('properties')
         .insert({
           user_id: user.id,
-          name: formData.name.trim(),
-          property_type: formData.property_type,
-          status: formData.status,
-          address_street: formData.address_street || null,
-          address_number: formData.address_number || null,
-          address_complement: formData.address_complement || null,
-          address_neighborhood: formData.address_neighborhood || null,
-          address_city: formData.address_city || null,
-          address_state: formData.address_state || null,
-          address_zip: formData.address_zip || null,
-          property_value: formData.property_value || 0,
-          monthly_revenue: formData.monthly_revenue || 0,
-          occupancy_rate: Math.min(100, Math.max(0, formData.occupancy_rate || 0)),
-          acquisition_date: formData.acquisition_date || null,
-          condominium_fee: formData.condominium_fee || 0,
-          iptu_fee: formData.iptu_fee || 0,
-          maintenance_fee: formData.maintenance_fee || 0,
-          other_costs: formData.other_costs || 0,
-          area_sqm: formData.area_sqm || null,
-          bedrooms: formData.bedrooms || 0,
-          bathrooms: formData.bathrooms || 0,
-          parking_spots: formData.parking_spots || 0,
-          suites: formData.suites || 0,
-          has_pool: formData.has_pool || false,
-          has_gym: formData.has_gym || false,
-          has_elevator: formData.has_elevator || false,
-          has_balcony: formData.has_balcony || false,
-          has_barbecue: formData.has_barbecue || false,
-          is_furnished: formData.is_furnished || false,
-          floor_number: formData.floor_number,
-          year_built: formData.year_built,
-          description: formData.description || null,
-          other_amenities: formData.other_amenities || null,
-          photo_url: formData.photo_url || null,
+          name: normalized.name,
+          property_type: normalized.property_type,
+          status: normalized.status,
+          address_street: normalized.address_street || null,
+          address_number: normalized.address_number || null,
+          address_complement: normalized.address_complement || null,
+          address_neighborhood: normalized.address_neighborhood || null,
+          address_city: normalized.address_city || null,
+          address_state: normalized.address_state || null,
+          address_zip: normalized.address_zip || null,
+          property_value: normalized.property_value || 0,
+          monthly_revenue: normalized.monthly_revenue || 0,
+          occupancy_rate: Math.min(100, Math.max(0, normalized.occupancy_rate || 0)),
+          acquisition_date: normalized.acquisition_date || null,
+          condominium_fee: normalized.condominium_fee || 0,
+          iptu_fee: normalized.iptu_fee || 0,
+          maintenance_fee: normalized.maintenance_fee || 0,
+          other_costs: normalized.other_costs || 0,
+          area_sqm: normalized.area_sqm || null,
+          bedrooms: normalized.bedrooms || 0,
+          bathrooms: normalized.bathrooms || 0,
+          parking_spots: normalized.parking_spots || 0,
+          suites: normalized.suites || 0,
+          has_pool: normalized.has_pool || false,
+          has_gym: normalized.has_gym || false,
+          has_elevator: normalized.has_elevator || false,
+          has_balcony: normalized.has_balcony || false,
+          has_barbecue: normalized.has_barbecue || false,
+          is_furnished: normalized.is_furnished || false,
+          floor_number: normalized.floor_number,
+          year_built: normalized.year_built,
+          description: normalized.description || null,
+          other_amenities: normalized.other_amenities || null,
+          photo_url: normalized.photo_url || null,
         })
         .select()
         .single();
@@ -124,6 +127,8 @@ export function useProperties() {
 
   const updateProperty = useMutation({
     mutationFn: async ({ id, ...formData }: PropertyFormData & { id: string }) => {
+      const normalized = validateAndNormalizePropertyFormData(formData);
+
       // Rate limit check
       const rateLimitResult = await checkRateLimit(RATE_LIMITS.UPDATE_PROPERTY);
       if (!rateLimitResult.allowed) {
@@ -131,7 +136,7 @@ export function useProperties() {
       }
 
       // Check for duplicate name (excluding current property)
-      const nameExists = await checkNameExists(formData.name.trim(), id);
+      const nameExists = await checkNameExists(normalized.name, id);
       if (nameExists) {
         throw new Error('Já existe um imóvel com este nome');
       }
@@ -139,40 +144,40 @@ export function useProperties() {
       const { data, error } = await supabase
         .from('properties')
         .update({
-          name: formData.name.trim(),
-          property_type: formData.property_type,
-          status: formData.status,
-          address_street: formData.address_street || null,
-          address_number: formData.address_number || null,
-          address_complement: formData.address_complement || null,
-          address_neighborhood: formData.address_neighborhood || null,
-          address_city: formData.address_city || null,
-          address_state: formData.address_state || null,
-          address_zip: formData.address_zip || null,
-          property_value: formData.property_value || 0,
-          monthly_revenue: formData.monthly_revenue || 0,
-          occupancy_rate: Math.min(100, Math.max(0, formData.occupancy_rate || 0)),
-          acquisition_date: formData.acquisition_date || null,
-          condominium_fee: formData.condominium_fee || 0,
-          iptu_fee: formData.iptu_fee || 0,
-          maintenance_fee: formData.maintenance_fee || 0,
-          other_costs: formData.other_costs || 0,
-          area_sqm: formData.area_sqm || null,
-          bedrooms: formData.bedrooms || 0,
-          bathrooms: formData.bathrooms || 0,
-          parking_spots: formData.parking_spots || 0,
-          suites: formData.suites || 0,
-          has_pool: formData.has_pool || false,
-          has_gym: formData.has_gym || false,
-          has_elevator: formData.has_elevator || false,
-          has_balcony: formData.has_balcony || false,
-          has_barbecue: formData.has_barbecue || false,
-          is_furnished: formData.is_furnished || false,
-          floor_number: formData.floor_number,
-          year_built: formData.year_built,
-          description: formData.description || null,
-          other_amenities: formData.other_amenities || null,
-          photo_url: formData.photo_url || null,
+          name: normalized.name,
+          property_type: normalized.property_type,
+          status: normalized.status,
+          address_street: normalized.address_street || null,
+          address_number: normalized.address_number || null,
+          address_complement: normalized.address_complement || null,
+          address_neighborhood: normalized.address_neighborhood || null,
+          address_city: normalized.address_city || null,
+          address_state: normalized.address_state || null,
+          address_zip: normalized.address_zip || null,
+          property_value: normalized.property_value || 0,
+          monthly_revenue: normalized.monthly_revenue || 0,
+          occupancy_rate: Math.min(100, Math.max(0, normalized.occupancy_rate || 0)),
+          acquisition_date: normalized.acquisition_date || null,
+          condominium_fee: normalized.condominium_fee || 0,
+          iptu_fee: normalized.iptu_fee || 0,
+          maintenance_fee: normalized.maintenance_fee || 0,
+          other_costs: normalized.other_costs || 0,
+          area_sqm: normalized.area_sqm || null,
+          bedrooms: normalized.bedrooms || 0,
+          bathrooms: normalized.bathrooms || 0,
+          parking_spots: normalized.parking_spots || 0,
+          suites: normalized.suites || 0,
+          has_pool: normalized.has_pool || false,
+          has_gym: normalized.has_gym || false,
+          has_elevator: normalized.has_elevator || false,
+          has_balcony: normalized.has_balcony || false,
+          has_barbecue: normalized.has_barbecue || false,
+          is_furnished: normalized.is_furnished || false,
+          floor_number: normalized.floor_number,
+          year_built: normalized.year_built,
+          description: normalized.description || null,
+          other_amenities: normalized.other_amenities || null,
+          photo_url: normalized.photo_url || null,
         })
         .eq('id', id)
         .select()

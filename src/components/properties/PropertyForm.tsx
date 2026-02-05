@@ -13,6 +13,7 @@ import { PhotoUpload } from './PhotoUpload';
 import { PropertyGallery } from './PropertyGallery';
 import { usePhotoUpload } from '@/hooks/usePhotoUpload';
 import { formatCEP, formatCurrencyInput, parseCurrency, fetchAddressByCEP } from '@/utils/formatters';
+import { getPropertyValidationErrors, type PropertyValidationErrors } from '@/utils/propertyValidation';
 import { toast } from 'sonner';
 
 interface PropertyFormProps {
@@ -65,9 +66,12 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [isSearchingCEP, setIsSearchingCEP] = useState(false);
-  
+
+  const [activeTab, setActiveTab] = useState<'basic' | 'address' | 'financial' | 'features' | 'gallery'>('basic');
+  const [errors, setErrors] = useState<PropertyValidationErrors>({});
+
   const [formData, setFormData] = useState<PropertyFormData>(defaultFormData);
-  
+
   // Currency display values
   const [currencyDisplay, setCurrencyDisplay] = useState({
     property_value: '',
@@ -79,6 +83,9 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
   });
 
   useEffect(() => {
+    setErrors({});
+    setActiveTab('basic');
+
     if (property) {
       setFormData({
         name: property.name,
@@ -140,27 +147,28 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
     setPhotoPreviewUrl(null);
   }, [property, open]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    let photoUrl = formData.photo_url;
-    
-    // Upload new photo if selected
-    if (pendingFile) {
-      const uploadedUrl = await uploadPhoto(pendingFile);
-      if (uploadedUrl) {
-        photoUrl = uploadedUrl;
-      }
-    }
-    
-    // Clamp occupancy_rate between 0 and 100
-    const clampedOccupancy = Math.min(100, Math.max(0, formData.occupancy_rate));
-    
-    onSubmit({ ...formData, occupancy_rate: clampedOccupancy, photo_url: photoUrl });
+  const clearError = (field: keyof PropertyValidationErrors) => {
+    setErrors(prev => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
   };
 
   const updateField = <K extends keyof PropertyFormData>(field: K, value: PropertyFormData[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear granular errors as the user fixes them
+    clearError(field);
+    if (
+      field === 'address_zip' ||
+      field === 'address_street' ||
+      field === 'address_number' ||
+      field === 'address_city' ||
+      field === 'address_state'
+    ) {
+      clearError('address_minimum');
+    }
   };
 
   const handleCEPChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -174,11 +182,11 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
       toast.error('CEP inválido. Informe 8 dígitos.');
       return;
     }
-    
+
     setIsSearchingCEP(true);
     const address = await fetchAddressByCEP(formData.address_zip);
     setIsSearchingCEP(false);
-    
+
     if (address) {
       setFormData(prev => ({
         ...prev,
@@ -188,6 +196,7 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
         address_state: address.uf || prev.address_state,
         address_complement: address.complemento || prev.address_complement,
       }));
+      clearError('address_minimum');
       toast.success('Endereço preenchido automaticamente!');
     } else {
       toast.error('CEP não encontrado.');
@@ -221,6 +230,39 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
     setPhotoPreviewUrl(url);
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const validationErrors = getPropertyValidationErrors(formData);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+
+      if (validationErrors.address_minimum) {
+        setActiveTab('address');
+      } else {
+        setActiveTab('financial');
+      }
+
+      toast.error('Preencha os campos obrigatórios antes de salvar.');
+      return;
+    }
+
+    let photoUrl = formData.photo_url;
+
+    // Upload new photo if selected
+    if (pendingFile) {
+      const uploadedUrl = await uploadPhoto(pendingFile);
+      if (uploadedUrl) {
+        photoUrl = uploadedUrl;
+      }
+    }
+
+    // Clamp occupancy_rate between 0 and 100
+    const clampedOccupancy = Math.min(100, Math.max(0, formData.occupancy_rate));
+
+    onSubmit({ ...formData, occupancy_rate: clampedOccupancy, photo_url: photoUrl });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -231,7 +273,7 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <Tabs defaultValue="basic" className="w-full">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="w-full">
             <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="basic">Básico</TabsTrigger>
               <TabsTrigger value="address">Endereço</TabsTrigger>
@@ -311,6 +353,10 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
             </TabsContent>
 
             <TabsContent value="address" className="space-y-4 mt-4">
+              {errors.address_minimum && (
+                <p className="text-sm text-destructive">{errors.address_minimum}</p>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="sm:col-span-2 space-y-2">
                   <Label htmlFor="street">Rua</Label>
@@ -319,6 +365,7 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                     value={formData.address_street}
                     onChange={(e) => updateField('address_street', e.target.value)}
                     placeholder="Rua, Avenida..."
+                    aria-invalid={!!errors.address_minimum}
                   />
                 </div>
                 <div className="space-y-2">
@@ -328,6 +375,7 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                     value={formData.address_number}
                     onChange={(e) => updateField('address_number', e.target.value)}
                     placeholder="123"
+                    aria-invalid={!!errors.address_minimum}
                   />
                 </div>
               </div>
@@ -361,6 +409,7 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                     value={formData.address_city}
                     onChange={(e) => updateField('address_city', e.target.value)}
                     placeholder="São Paulo"
+                    aria-invalid={!!errors.address_minimum}
                   />
                 </div>
                 <div className="space-y-2">
@@ -371,6 +420,7 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                     onChange={(e) => updateField('address_state', e.target.value)}
                     placeholder="SP"
                     maxLength={2}
+                    aria-invalid={!!errors.address_minimum}
                   />
                 </div>
                 <div className="space-y-2">
@@ -383,6 +433,7 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                       placeholder="00000-000"
                       maxLength={9}
                       className="flex-1"
+                      aria-invalid={!!errors.address_minimum}
                     />
                     <Button 
                       type="button" 
@@ -407,7 +458,11 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                     value={currencyDisplay.property_value}
                     onChange={handleCurrencyChange('property_value')}
                     placeholder="500.000,00"
+                    aria-invalid={!!errors.property_value}
                   />
+                  {errors.property_value && (
+                    <p className="text-sm text-destructive">{errors.property_value}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="monthly_revenue">Receita Mensal (R$)</Label>
@@ -416,7 +471,11 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                     value={currencyDisplay.monthly_revenue}
                     onChange={handleCurrencyChange('monthly_revenue')}
                     placeholder="3.000,00"
+                    aria-invalid={!!errors.monthly_revenue}
                   />
+                  {errors.monthly_revenue && (
+                    <p className="text-sm text-destructive">{errors.monthly_revenue}</p>
+                  )}
                 </div>
               </div>
 
