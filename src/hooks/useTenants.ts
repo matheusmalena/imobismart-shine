@@ -29,14 +29,18 @@ export function useTenants() {
     mutationFn: async (data: TenantFormData) => {
       if (!user?.id) throw new Error('Usuário não autenticado');
 
+      // Normaliza CPF/Email antes de salvar (apenas números no CPF, lowercase no email)
+      const normalizedCpf = data.cpf ? data.cpf.replace(/\D/g, '') || null : null;
+      const normalizedEmail = data.email ? data.email.trim().toLowerCase() || null : null;
+
       const { data: newTenant, error } = await supabase
         .from('tenants')
         .insert({
           user_id: user.id,
-          name: data.name,
-          email: data.email || null,
+          name: data.name.trim(),
+          email: normalizedEmail,
           phone: data.phone || null,
-          cpf: data.cpf || null,
+          cpf: normalizedCpf,
           rg: data.rg || null,
           address: data.address || null,
           notes: data.notes || null,
@@ -51,21 +55,34 @@ export function useTenants() {
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
       toast.success('Inquilino cadastrado com sucesso!');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Erro ao criar inquilino:', error);
-      toast.error('Erro ao cadastrar inquilino');
+      
+      // Detecta erro de duplicidade (índice único) e mostra mensagem amigável
+      const errorMessage = error?.message || '';
+      if (errorMessage.includes('tenants_user_cpf_uniq')) {
+        toast.error('Já existe um inquilino cadastrado com este CPF.');
+      } else if (errorMessage.includes('tenants_user_email_uniq')) {
+        toast.error('Já existe um inquilino cadastrado com este email.');
+      } else {
+        toast.error('Erro ao cadastrar inquilino');
+      }
     },
   });
 
   const updateTenant = useMutation({
     mutationFn: async ({ id, ...data }: TenantFormData & { id: string }) => {
+      // Normaliza CPF/Email antes de salvar (apenas números no CPF, lowercase no email)
+      const normalizedCpf = data.cpf ? data.cpf.replace(/\D/g, '') || null : null;
+      const normalizedEmail = data.email ? data.email.trim().toLowerCase() || null : null;
+
       const { data: updatedTenant, error } = await supabase
         .from('tenants')
         .update({
-          name: data.name,
-          email: data.email || null,
+          name: data.name.trim(),
+          email: normalizedEmail,
           phone: data.phone || null,
-          cpf: data.cpf || null,
+          cpf: normalizedCpf,
           rg: data.rg || null,
           address: data.address || null,
           notes: data.notes || null,
@@ -81,9 +98,18 @@ export function useTenants() {
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
       toast.success('Inquilino atualizado com sucesso!');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Erro ao atualizar inquilino:', error);
-      toast.error('Erro ao atualizar inquilino');
+      
+      // Detecta erro de duplicidade (índice único) e mostra mensagem amigável
+      const errorMessage = error?.message || '';
+      if (errorMessage.includes('tenants_user_cpf_uniq')) {
+        toast.error('Já existe um inquilino cadastrado com este CPF.');
+      } else if (errorMessage.includes('tenants_user_email_uniq')) {
+        toast.error('Já existe um inquilino cadastrado com este email.');
+      } else {
+        toast.error('Erro ao atualizar inquilino');
+      }
     },
   });
 
