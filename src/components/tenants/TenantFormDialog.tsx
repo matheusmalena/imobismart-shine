@@ -140,16 +140,18 @@ export function TenantFormDialog({
 
   useEffect(() => {
     if (tenant) {
+      // Edição: formata CPF/RG/Phone de volta (se salvos "limpos")
       form.reset({
         name: tenant.name,
         email: tenant.email || '',
-        phone: tenant.phone || '',
-        cpf: tenant.cpf || '',
-        rg: tenant.rg || '',
+        phone: tenant.phone ? formatPhone(tenant.phone) : '',
+        cpf: tenant.cpf ? formatCPF(tenant.cpf) : '',
+        rg: tenant.rg ? formatRG(tenant.rg) : '',
         address: tenant.address || '',
         notes: tenant.notes || '',
       });
     } else {
+      // Novo inquilino: limpa tudo
       form.reset({
         name: '',
         email: '',
@@ -161,6 +163,21 @@ export function TenantFormDialog({
       });
     }
   }, [tenant, form]);
+
+  // Força reset quando abre "Novo Inquilino" (open=true, tenant=null)
+  useEffect(() => {
+    if (open && !tenant) {
+      form.reset({
+        name: '',
+        email: '',
+        phone: '',
+        cpf: '',
+        rg: '',
+        address: '',
+        notes: '',
+      });
+    }
+  }, [open, tenant, form]);
 
   const handleSubmit = (data: TenantFormData) => {
     onSubmit(data);
