@@ -33,6 +33,16 @@ export function useTenants() {
       const normalizedCpf = data.cpf ? data.cpf.replace(/\D/g, '') || null : null;
       const normalizedEmail = data.email ? data.email.trim().toLowerCase() || null : null;
 
+      // Validação frontend de duplicidade
+      if (normalizedCpf) {
+        const duplicate = tenants.find(t => t.cpf === normalizedCpf);
+        if (duplicate) throw new Error('tenants_user_cpf_uniq');
+      }
+      if (normalizedEmail) {
+        const duplicate = tenants.find(t => t.email?.toLowerCase() === normalizedEmail);
+        if (duplicate) throw new Error('tenants_user_email_uniq');
+      }
+
       const { data: newTenant, error } = await supabase
         .from('tenants')
         .insert({
@@ -75,6 +85,16 @@ export function useTenants() {
       // Normaliza CPF/Email antes de salvar (apenas números no CPF, lowercase no email)
       const normalizedCpf = data.cpf ? data.cpf.replace(/\D/g, '') || null : null;
       const normalizedEmail = data.email ? data.email.trim().toLowerCase() || null : null;
+
+      // Validação frontend de duplicidade (ignora o próprio inquilino)
+      if (normalizedCpf) {
+        const duplicate = tenants.find(t => t.id !== id && t.cpf === normalizedCpf);
+        if (duplicate) throw new Error('tenants_user_cpf_uniq');
+      }
+      if (normalizedEmail) {
+        const duplicate = tenants.find(t => t.id !== id && t.email?.toLowerCase() === normalizedEmail);
+        if (duplicate) throw new Error('tenants_user_email_uniq');
+      }
 
       const { data: updatedTenant, error } = await supabase
         .from('tenants')
