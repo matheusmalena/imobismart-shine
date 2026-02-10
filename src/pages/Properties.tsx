@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProperties } from '@/hooks/useProperties';
 import { usePropertyLimit } from '@/hooks/usePropertyLimit';
 import { usePlans } from '@/hooks/usePlans';
+import { useOrgPermissions } from '@/hooks/useOrgPermissions';
 import { Property, PropertyFormData, PROPERTY_TYPE_LABELS, PROPERTY_STATUS_LABELS } from '@/types/property';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { PropertyCard } from '@/components/properties/PropertyCard';
@@ -37,6 +38,7 @@ export default function Properties() {
   } = useProperties();
   
   const { canAddProperty, remainingSlots, isAtLimit, plan, limit, activeCount: planActiveCount } = usePropertyLimit();
+  const { canCreate, canDelete } = useOrgPermissions();
   const { getPlanById } = usePlans();
   const [formOpen, setFormOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
@@ -198,21 +200,23 @@ export default function Properties() {
               {archivedCount > 0 && ` (${archivedCount} arquivados)`}
             </p>
           </div>
-          <Button 
-            onClick={() => {
-              if (!canAddProperty) {
-                toast.error('Limite de imóveis atingido! Faça upgrade para adicionar mais.');
-                return;
-              }
-              setEditingProperty(null); 
-              setFormOpen(true); 
-            }} 
-            className="gap-2"
-            variant={canAddProperty ? 'default' : 'secondary'}
-          >
-            <Plus className="h-4 w-4" />
-            Novo Imóvel
-          </Button>
+          {canCreate && (
+            <Button 
+              onClick={() => {
+                if (!canAddProperty) {
+                  toast.error('Limite de imóveis atingido! Faça upgrade para adicionar mais.');
+                  return;
+                }
+                setEditingProperty(null); 
+                setFormOpen(true); 
+              }} 
+              className="gap-2"
+              variant={canAddProperty ? 'default' : 'secondary'}
+            >
+              <Plus className="h-4 w-4" />
+              Novo Imóvel
+            </Button>
+          )}
         </div>
 
         {/* Property Limit Banner */}
@@ -331,6 +335,8 @@ export default function Properties() {
                 onDuplicate={handleDuplicate}
                 onArchive={handleArchive}
                 onDelete={handleDelete}
+                canDelete={canDelete}
+                canCreate={canCreate}
               />
             ))}
           </div>

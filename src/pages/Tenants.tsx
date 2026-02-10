@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTenants } from '@/hooks/useTenants';
 import { useLeaseContracts } from '@/hooks/useLeaseContracts';
 import { Tenant, TenantFormData } from '@/types/tenant';
+import { useOrgPermissions } from '@/hooks/useOrgPermissions';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { PageTransition } from '@/components/PageTransition';
 import { TenantCard } from '@/components/tenants/TenantCard';
@@ -22,6 +23,7 @@ export default function Tenants() {
   const { user, loading: authLoading } = useAuth();
   const { tenants, isLoading, createTenant, updateTenant, deleteTenant } = useTenants();
   const { contracts, expiringContracts, expiredContracts } = useLeaseContracts();
+  const { canCreate, canDelete } = useOrgPermissions();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
@@ -112,16 +114,18 @@ export default function Tenants() {
                 Gerencie seus {tenants.length} inquilinos e {contracts.length} contratos
               </p>
             </div>
-            <Button
-              onClick={() => {
-                setEditingTenant(null);
-                setFormOpen(true);
-              }}
-              className="gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Novo Inquilino
-            </Button>
+            {canCreate && (
+              <Button
+                onClick={() => {
+                  setEditingTenant(null);
+                  setFormOpen(true);
+                }}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Novo Inquilino
+              </Button>
+            )}
           </div>
 
           {/* Alerts */}
@@ -183,6 +187,7 @@ export default function Tenants() {
                       contractsCount={contracts.filter(c => c.tenant_id === tenant.id).length}
                       onEdit={handleEdit}
                       onDelete={handleDelete}
+                      canDelete={canDelete}
                     />
                   ))}
                 </div>

@@ -3,22 +3,30 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tenant, TenantFormData } from '@/types/tenant';
 import { toast } from 'sonner';
+import { useOrgPermissions } from '@/hooks/useOrgPermissions';
 
 export function useTenants() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { isInOrg, organizationId } = useOrgPermissions();
 
   const { data: tenants = [], isLoading } = useQuery({
-    queryKey: ['tenants', user?.id],
+    queryKey: ['tenants', user?.id, organizationId],
     queryFn: async () => {
       if (!user?.id) return [];
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('tenants')
         .select('*')
-        .eq('user_id', user.id)
         .order('name');
 
+      if (isInOrg && organizationId) {
+        query = query.eq('organization_id', organizationId);
+      } else {
+        query = query.eq('user_id', user.id);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data as Tenant[];
     },
@@ -47,6 +55,7 @@ export function useTenants() {
         .from('tenants')
         .insert({
           user_id: user.id,
+          organization_id: organizationId || null,
           name: data.name.trim(),
           email: normalizedEmail,
           phone: data.phone || null,

@@ -5,30 +5,38 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useRateLimit, RATE_LIMITS } from '@/hooks/useRateLimit';
 import { validateAndNormalizePropertyFormData } from '@/utils/propertyValidation';
+import { useOrgPermissions } from '@/hooks/useOrgPermissions';
 
 export function useProperties() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { checkRateLimit } = useRateLimit();
+  const { isInOrg, organizationId } = useOrgPermissions();
 
   const { data: properties = [], isLoading, error } = useQuery({
-    queryKey: ['properties', user?.id],
+    queryKey: ['properties', user?.id, organizationId],
     queryFn: async () => {
       if (!user) return [];
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('properties')
         .select('*')
-        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
+      if (isInOrg && organizationId) {
+        query = query.eq('organization_id', organizationId);
+      } else {
+        query = query.eq('user_id', user.id);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data as Property[];
     },
     enabled: !!user,
-    staleTime: 2 * 60 * 1000, // 2 minutos - reduz requisições desnecessárias
-    gcTime: 5 * 60 * 1000, // 5 minutos de cache
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
   });
 
   // Check if property name already exists for this user
@@ -71,6 +79,7 @@ export function useProperties() {
         .from('properties')
         .insert({
           user_id: user.id,
+          organization_id: organizationId || null,
           name: normalized.name,
           property_type: normalized.property_type,
           status: normalized.status,
@@ -272,6 +281,7 @@ export function useProperties() {
         .from('properties')
         .insert({
           user_id: user.id,
+          organization_id: organizationId || null,
           name: copyName,
           property_type: property.property_type,
           status: property.status,

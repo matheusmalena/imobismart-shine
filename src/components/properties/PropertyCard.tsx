@@ -30,9 +30,11 @@ interface PropertyCardProps {
   onDuplicate: (property: Property) => void;
   onArchive: (property: Property) => void;
   onDelete: (property: Property) => void;
+  canDelete?: boolean;
+  canCreate?: boolean;
 }
 
-export function PropertyCard({ property, onClick, onEdit, onDuplicate, onArchive, onDelete }: PropertyCardProps) {
+export function PropertyCard({ property, onClick, onEdit, onDuplicate, onArchive, onDelete, canDelete = true, canCreate = true }: PropertyCardProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -106,22 +108,28 @@ export function PropertyCard({ property, onClick, onEdit, onDuplicate, onArchive
                 <Edit className="mr-2 h-4 w-4" />
                 Editar
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onDuplicate(property)}>
-                <Copy className="mr-2 h-4 w-4" />
-                Duplicar
-              </DropdownMenuItem>
+              {canCreate && (
+                <DropdownMenuItem onClick={() => onDuplicate(property)}>
+                  <Copy className="mr-2 h-4 w-4" />
+                  Duplicar
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={() => onArchive(property)}>
                 <Archive className="mr-2 h-4 w-4" />
                 {property.is_archived ? 'Desarquivar' : 'Arquivar'}
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={() => onDelete(property)}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Excluir
-              </DropdownMenuItem>
+              {canDelete && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={() => onDelete(property)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Excluir
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

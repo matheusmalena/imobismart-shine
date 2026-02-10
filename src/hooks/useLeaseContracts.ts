@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { LeaseContract, LeaseContractFormData } from '@/types/tenant';
 import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
+import { useOrgPermissions } from '@/hooks/useOrgPermissions';
 
 async function uploadContractFile(
   userId: string,
@@ -45,9 +46,10 @@ async function deleteContractFile(fileUrl: string): Promise<void> {
 export function useLeaseContracts(propertyId?: string) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { isInOrg, organizationId } = useOrgPermissions();
 
   const { data: contracts = [], isLoading } = useQuery({
-    queryKey: ['lease-contracts', user?.id, propertyId],
+    queryKey: ['lease-contracts', user?.id, propertyId, organizationId],
     queryFn: async () => {
       if (!user?.id) return [];
       
@@ -58,8 +60,13 @@ export function useLeaseContracts(propertyId?: string) {
           tenant:tenants(id, name, email, phone, cpf),
           property:properties(id, name, photo_url)
         `)
-        .eq('user_id', user.id)
         .order('end_date', { ascending: true });
+
+      if (isInOrg && organizationId) {
+        query = query.eq('organization_id', organizationId);
+      } else {
+        query = query.eq('user_id', user.id);
+      }
 
       if (propertyId) {
         query = query.eq('property_id', propertyId);
@@ -82,6 +89,7 @@ export function useLeaseContracts(propertyId?: string) {
         .from('lease_contracts')
         .insert({
           user_id: user.id,
+          organization_id: organizationId || null,
           property_id: data.property_id,
           tenant_id: data.tenant_id,
           start_date: data.start_date,
