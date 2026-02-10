@@ -15,6 +15,7 @@ export interface Plan {
   is_highlighted: boolean;
   is_active: boolean;
   sort_order: number;
+  checkout_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -30,6 +31,7 @@ export interface PlanInput {
   is_highlighted: boolean;
   is_active: boolean;
   sort_order: number;
+  checkout_url?: string;
 }
 
 export interface PlanAuditLog {
@@ -105,6 +107,7 @@ export function usePlans() {
           is_highlighted: planData.is_highlighted,
           is_active: planData.is_active,
           sort_order: planData.sort_order,
+          checkout_url: (planData as any).checkout_url,
         })
         .eq('id', planData.id);
 
@@ -139,6 +142,7 @@ export function usePlans() {
           is_highlighted: planData.is_highlighted,
           is_active: planData.is_active,
           sort_order: planData.sort_order,
+          checkout_url: (planData as any).checkout_url,
         });
 
       if (error) throw error;

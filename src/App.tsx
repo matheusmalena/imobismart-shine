@@ -18,6 +18,7 @@ import Subscription from "./pages/Subscription";
 import AdminClients from "./pages/admin/Clients";
 import AdminClientDetails from "./pages/admin/ClientDetails";
 import AdminPlans from "./pages/admin/Plans";
+import AdminEnterpriseLinks from "./pages/admin/EnterpriseLinks";
 import Team from "./pages/Team";
 import AcceptInvite from "./pages/AcceptInvite";
 import NotFound from "./pages/NotFound";
@@ -49,6 +50,7 @@ const App = () => (
               <Route path="/admin/clients" element={<AdminClients />} />
               <Route path="/admin/clients/:userId" element={<AdminClientDetails />} />
               <Route path="/admin/plans" element={<AdminPlans />} />
+              <Route path="/admin/enterprise-links" element={<AdminEnterpriseLinks />} />
               <Route path="/accept-invite" element={<AcceptInvite />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
