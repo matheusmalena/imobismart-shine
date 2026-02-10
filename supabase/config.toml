@@ -6,14 +6,8 @@ verify_jwt = false
 [functions.send-team-invite]
 verify_jwt = false
 
-[functions.cancel-mp-subscription]
+[functions.cakto-webhook]
 verify_jwt = false
 
-[functions.create-mp-subscription]
-verify_jwt = false
-
-[functions.get-mp-payments]
-verify_jwt = false
-
-[functions.mercadopago-webhook]
+[functions.cancel-cakto-subscription]
 verify_jwt = false

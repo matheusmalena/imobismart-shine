@@ -131,6 +131,17 @@ export function PlanFormDialog({
             />
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="plan-checkout-url">Link de Checkout (Cakto)</Label>
+            <Input
+              id="plan-checkout-url"
+              value={(formData as any).checkout_url || ''}
+              onChange={(e) => setFormData({ ...formData, checkout_url: e.target.value } as any)}
+              placeholder="https://pay.cakto.com.br/..."
+            />
+            <p className="text-xs text-muted-foreground">Cole o link de checkout da Cakto para este plano</p>
+          </div>
+
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <Switch

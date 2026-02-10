@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { usePlans } from '@/hooks/usePlans';
-import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -84,7 +83,7 @@ export default function Plans() {
   const currentPlan = subscription?.plan || 'starter';
   const isLoading = authLoading || subscriptionLoading || plansLoading;
 
-  // Handle return from Mercado Pago checkout
+  // Handle return from checkout
   useEffect(() => {
     const status = searchParams.get('status');
     const plan = searchParams.get('plan');
@@ -94,9 +93,7 @@ export default function Plans() {
         description: 'Você receberá uma confirmação quando o pagamento for aprovado.',
         duration: 6000,
       });
-      // Refresh subscription data
       refetchSubscription();
-      // Clear URL params
       navigate('/plans', { replace: true });
     }
   }, [searchParams, navigate, refetchSubscription]);
@@ -146,27 +143,19 @@ export default function Plans() {
       return;
     }
 
-    // Pro or Plus - redirect to Mercado Pago checkout
+    // Pro or Plus - redirect to Cakto checkout URL from plans table
     if (planId === 'pro' || planId === 'plus') {
       setLoadingPlan(planId);
       
       try {
-        const { data, error } = await supabase.functions.invoke('create-mp-subscription', {
-          body: { 
-            planId,
-            backUrl: window.location.origin,
-          },
-        });
+        const plan = activePlans.find(p => p.id === planId);
+        const checkoutUrl = (plan as any)?.checkout_url;
 
-        if (error) {
-          throw new Error(error.message || 'Erro ao processar pagamento');
+        if (!checkoutUrl) {
+          throw new Error('Link de checkout não configurado para este plano. Entre em contato com o suporte.');
         }
 
-        if (data?.checkoutUrl) {
-          window.location.href = data.checkoutUrl;
-        } else {
-          throw new Error('URL de checkout não recebida');
-        }
+        window.location.href = checkoutUrl;
       } catch (error) {
         console.error('Checkout error:', error);
         toast.error('Erro ao iniciar pagamento', {

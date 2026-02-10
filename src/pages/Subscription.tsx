@@ -32,7 +32,6 @@ import {
   AlertTriangle,
   Clock,
   Loader2,
-  ExternalLink,
   Sparkles,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -85,7 +84,7 @@ export default function Subscription() {
     setIsCancelling(true);
     
     try {
-      const { data, error } = await supabase.functions.invoke('cancel-mp-subscription');
+      const { data, error } = await supabase.functions.invoke('cancel-cakto-subscription');
 
       if (error) {
         throw new Error(error.message || 'Erro ao cancelar assinatura');
@@ -276,7 +275,7 @@ export default function Subscription() {
                       <span className="text-muted-foreground">Método</span>
                       <Badge variant="outline" className="gap-1.5">
                         <CreditCard className="h-3.5 w-3.5" />
-                        Mercado Pago
+                        Cakto
                       </Badge>
                     </div>
 
@@ -288,26 +287,11 @@ export default function Subscription() {
                       </span>
                     </div>
 
-                    {/* MP Subscription ID */}
-                    {(subscription as any)?.mp_subscription_id && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">ID da Assinatura</span>
-                        <code className="text-xs bg-muted px-2 py-1 rounded">
-                          {(subscription as any).mp_subscription_id.slice(0, 12)}...
-                        </code>
-                      </div>
-                    )}
-
-                    {/* Manage in MP */}
+                    {/* Info */}
                     <div className="pt-4 border-t">
-                      <Button
-                        variant="outline"
-                        className="w-full gap-2"
-                        onClick={() => window.open('https://www.mercadopago.com.br/subscriptions', '_blank')}
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        Gerenciar no Mercado Pago
-                      </Button>
+                      <p className="text-sm text-muted-foreground text-center">
+                        Para gerenciar detalhes do pagamento, acesse o painel da Cakto.
+                      </p>
                     </div>
                   </>
                 ) : (

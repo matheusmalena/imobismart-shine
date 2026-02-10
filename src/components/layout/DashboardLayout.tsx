@@ -24,6 +24,7 @@ import {
   CreditCard,
   Users,
   MessageCircle,
+  Link2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -48,6 +49,7 @@ const navigation = [
 const adminNavigation = [
   { name: 'Clientes', href: '/admin/clients', icon: Crown },
   { name: 'Planos', href: '/admin/plans', icon: CreditCard },
+  { name: 'Links Enterprise', href: '/admin/enterprise-links', icon: Link2 },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
