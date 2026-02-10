@@ -67,14 +67,14 @@ import { toast } from 'sonner';
 const ROLE_ICONS: Record<OrgMemberRole, React.ReactNode> = {
   owner: <Crown className="h-4 w-4 text-amber-500" />,
   admin: <Shield className="h-4 w-4 text-blue-500" />,
-  financial: <DollarSign className="h-4 w-4 text-green-500" />,
+  financial: <Shield className="h-4 w-4 text-green-500" />, // backward compat
   operator: <User className="h-4 w-4 text-muted-foreground" />,
 };
 
 const ROLE_COLORS: Record<OrgMemberRole, string> = {
   owner: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
   admin: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-  financial: 'bg-green-500/10 text-green-600 border-green-500/20',
+  financial: 'bg-green-500/10 text-green-600 border-green-500/20', // backward compat
   operator: 'bg-muted text-muted-foreground border-border',
 };
 
@@ -311,12 +311,6 @@ export function TeamManagement() {
                             <span>Administrador</span>
                           </div>
                         </SelectItem>
-                        <SelectItem value="financial">
-                          <div className="flex items-center gap-2">
-                            {ROLE_ICONS.financial}
-                            <span>Financeiro</span>
-                          </div>
-                        </SelectItem>
                         <SelectItem value="operator">
                           <div className="flex items-center gap-2">
                             {ROLE_ICONS.operator}
@@ -405,13 +399,6 @@ export function TeamManagement() {
                       >
                         {ROLE_ICONS.admin}
                         <span className="ml-2">Tornar Administrador</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => updateMemberRole.mutate({ memberId: member.id, role: 'financial' })}
-                        disabled={member.role === 'financial'}
-                      >
-                        {ROLE_ICONS.financial}
-                        <span className="ml-2">Tornar Financeiro</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => updateMemberRole.mutate({ memberId: member.id, role: 'operator' })}
@@ -537,7 +524,7 @@ export function TeamManagement() {
         <div className="space-y-2">
           <h4 className="text-sm font-medium text-muted-foreground">Níveis de Permissão</h4>
           <div className="grid gap-2 sm:grid-cols-2">
-            {(['owner', 'admin', 'financial', 'operator'] as OrgMemberRole[]).map((role) => (
+            {(['owner', 'admin', 'operator'] as OrgMemberRole[]).map((role) => (
               <div key={role} className="flex items-start gap-2 p-2 rounded-lg bg-muted/50">
                 {ROLE_ICONS[role]}
                 <div>

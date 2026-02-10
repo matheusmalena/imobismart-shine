@@ -46,15 +46,15 @@ export interface OrganizationInvitation {
 const ROLE_LABELS: Record<OrgMemberRole, string> = {
   owner: 'Proprietário',
   admin: 'Administrador',
-  financial: 'Financeiro',
+  financial: 'Financeiro', // kept for backward compat with existing data
   operator: 'Operador',
 };
 
 const ROLE_DESCRIPTIONS: Record<OrgMemberRole, string> = {
   owner: 'Controle total da organização e membros',
-  admin: 'Pode gerenciar membros e dados',
-  financial: 'Acesso a relatórios e dados financeiros',
-  operator: 'Visualização e edição básica de dados',
+  admin: 'Acesso geral - pode ver, criar, editar, deletar e gerenciar equipe',
+  financial: 'Acesso a relatórios e dados financeiros', // kept for backward compat
+  operator: 'Visualização e edição básica de dados (não pode criar, deletar ou gerenciar equipe)',
 };
 
 export function useOrganization() {

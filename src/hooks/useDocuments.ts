@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useRateLimit, RATE_LIMITS } from '@/hooks/useRateLimit';
 import type { DocumentCategory, PropertyDocument } from '@/types/property';
+import { useOrgPermissions } from '@/hooks/useOrgPermissions';
 
 export function useDocuments(propertyId?: string) {
   const { user } = useAuth();
@@ -12,17 +13,23 @@ export function useDocuments(propertyId?: string) {
   const queryClient = useQueryClient();
   const [isUploading, setIsUploading] = useState(false);
   const { checkRateLimit } = useRateLimit();
+  const { isInOrg, organizationId } = useOrgPermissions();
 
   const { data: documents = [], isLoading } = useQuery({
-    queryKey: ['documents', propertyId],
+    queryKey: ['documents', propertyId, organizationId],
     queryFn: async () => {
       if (!user) return [];
 
       let query = supabase
         .from('documents')
         .select('*')
-        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
+
+      if (isInOrg && organizationId) {
+        query = query.eq('organization_id', organizationId);
+      } else {
+        query = query.eq('user_id', user.id);
+      }
 
       if (propertyId) {
         query = query.eq('property_id', propertyId);
@@ -112,6 +119,7 @@ export function useDocuments(propertyId?: string) {
 
       const { error: dbError } = await supabase.from('documents').insert({
         user_id: user.id,
+        organization_id: organizationId || null,
         property_id: propertyId,
         name,
         category,
