@@ -204,6 +204,14 @@ export function useOrganization() {
 
       if (memberError) throw memberError;
 
+      // Migrate existing data to the new organization
+      await Promise.all([
+        supabase.from('properties').update({ organization_id: org.id }).eq('user_id', user.id).is('organization_id', null),
+        supabase.from('tenants').update({ organization_id: org.id }).eq('user_id', user.id).is('organization_id', null),
+        supabase.from('documents').update({ organization_id: org.id }).eq('user_id', user.id).is('organization_id', null),
+        supabase.from('lease_contracts').update({ organization_id: org.id }).eq('user_id', user.id).is('organization_id', null),
+      ]);
+
       return org;
     },
     onSuccess: () => {
