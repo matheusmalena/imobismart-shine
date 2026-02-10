@@ -76,7 +76,7 @@ export function FAQSection() {
             Perguntas Frequentes
           </div>
           <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
-            Tire suas dúvidas
+            FAQ
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Encontre respostas para as perguntas mais comuns sobre nossa plataforma.
