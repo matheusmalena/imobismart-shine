@@ -948,6 +948,13 @@ export type Database = {
         Args: { encryption_key: string; plain_key: string }
         Returns: string
       }
+      get_org_owner_plan: {
+        Args: { _user_id: string }
+        Returns: {
+          plan: Database["public"]["Enums"]["subscription_plan"]
+          status: Database["public"]["Enums"]["subscription_status"]
+        }[]
+      }
       get_org_role: {
         Args: { _org_id: string; _user_id: string }
         Returns: Database["public"]["Enums"]["org_member_role"]
