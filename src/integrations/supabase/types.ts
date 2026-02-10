@@ -923,6 +923,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_invitation: {
+        Args: { _token: string; _user_id: string }
+        Returns: undefined
+      }
       can_manage_org: {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
