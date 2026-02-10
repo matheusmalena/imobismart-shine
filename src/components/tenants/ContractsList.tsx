@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLeaseContracts } from '@/hooks/useLeaseContracts';
 import { useTenants } from '@/hooks/useTenants';
 import { useProperties } from '@/hooks/useProperties';
+import { useOrgPermissions } from '@/hooks/useOrgPermissions';
 import { LeaseContract, LeaseContractFormData, CONTRACT_STATUS_LABELS, CONTRACT_STATUS_COLORS } from '@/types/tenant';
 import { ContractFormDialog } from './ContractFormDialog';
 import { Button } from '@/components/ui/button';
@@ -43,6 +44,7 @@ export function ContractsList() {
   const { contracts, isLoading, createContract, updateContract, deleteContract, getSignedUrl } = useLeaseContracts();
   const { tenants } = useTenants();
   const { properties } = useProperties();
+  const { canCreate, canDelete } = useOrgPermissions();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingContract, setEditingContract] = useState<LeaseContract | null>(null);
@@ -160,17 +162,19 @@ export function ContractsList() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button
-          onClick={() => {
-            setEditingContract(null);
-            setFormOpen(true);
-          }}
-          className="gap-2"
-          disabled={tenants.length === 0 || properties.length === 0}
-        >
-          <Plus className="h-4 w-4" />
-          Novo Contrato
-        </Button>
+        {canCreate && (
+          <Button
+            onClick={() => {
+              setEditingContract(null);
+              setFormOpen(true);
+            }}
+            className="gap-2"
+            disabled={tenants.length === 0 || properties.length === 0}
+          >
+            <Plus className="h-4 w-4" />
+            Novo Contrato
+          </Button>
+        )}
       </div>
 
       {tenants.length === 0 || properties.length === 0 ? (
@@ -271,13 +275,15 @@ export function ContractsList() {
                           <Pencil className="h-4 w-4 mr-2" />
                           Editar
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleDelete(contract)}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Excluir
-                        </DropdownMenuItem>
+                        {canDelete && (
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(contract)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Excluir
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

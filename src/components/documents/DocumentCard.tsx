@@ -9,7 +9,7 @@ interface DocumentCardProps {
   document: PropertyDocument;
   onView: (document: PropertyDocument) => void;
   onDownload: (document: PropertyDocument) => void;
-  onDelete: (document: PropertyDocument) => void;
+  onDelete?: (document: PropertyDocument) => void;
   getThumbnailUrl?: (fileUrl: string) => Promise<string | null>;
 }
 
@@ -98,14 +98,16 @@ export function DocumentCard({ document, onView, onDownload, onDelete, getThumbn
               <Download className="h-3.5 w-3.5" />
               Baixar
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onDelete(document)}
-              className="h-8 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
+            {onDelete && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onDelete(document)}
+                className="h-8 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>
