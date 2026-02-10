@@ -95,6 +95,48 @@ export type Database = {
           },
         ]
       }
+      enterprise_checkout_links: {
+        Row: {
+          checkout_url: string
+          client_email: string
+          client_name: string
+          created_at: string
+          created_by: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          plan_label: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          checkout_url: string
+          client_email: string
+          client_name: string
+          created_at?: string
+          created_by: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          plan_label?: string
+          price?: number
+          updated_at?: string
+        }
+        Update: {
+          checkout_url?: string
+          client_email?: string
+          client_name?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          plan_label?: string
+          price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lease_contracts: {
         Row: {
           contract_file_url: string | null
@@ -318,6 +360,7 @@ export type Database = {
       }
       plans: {
         Row: {
+          checkout_url: string | null
           created_at: string
           description: string | null
           features: Json
@@ -332,6 +375,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          checkout_url?: string | null
           created_at?: string
           description?: string | null
           features?: Json
@@ -346,6 +390,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          checkout_url?: string | null
           created_at?: string
           description?: string | null
           features?: Json
@@ -615,9 +660,11 @@ export type Database = {
         Row: {
           created_at: string
           expires_at: string | null
+          external_subscription_id: string | null
           id: string
           mp_payer_email: string | null
           mp_subscription_id: string | null
+          payer_email: string | null
           payment_method: string | null
           plan: Database["public"]["Enums"]["subscription_plan"]
           started_at: string
@@ -628,9 +675,11 @@ export type Database = {
         Insert: {
           created_at?: string
           expires_at?: string | null
+          external_subscription_id?: string | null
           id?: string
           mp_payer_email?: string | null
           mp_subscription_id?: string | null
+          payer_email?: string | null
           payment_method?: string | null
           plan?: Database["public"]["Enums"]["subscription_plan"]
           started_at?: string
@@ -641,9 +690,11 @@ export type Database = {
         Update: {
           created_at?: string
           expires_at?: string | null
+          external_subscription_id?: string | null
           id?: string
           mp_payer_email?: string | null
           mp_subscription_id?: string | null
+          payer_email?: string | null
           payment_method?: string | null
           plan?: Database["public"]["Enums"]["subscription_plan"]
           started_at?: string
