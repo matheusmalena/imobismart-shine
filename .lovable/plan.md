@@ -1,78 +1,106 @@
 
+# Migrar Mercado Pago para Cakto + Painel Enterprise
 
-## Problema
+## Resumo
 
-Quando um usuario convidado aceita o convite e cria a conta, o convite nao e removido da tabela `organization_invitations` porque o novo usuario (operador) nao tem permissao RLS para deletar convites -- apenas admins/owners da organizacao podem fazer isso.
+Substituir toda a integracao de pagamento Mercado Pago pela Cakto, usando **checkout via link direto** (configurado pelo admin na tabela de planos) + **webhook** para ativar assinaturas automaticamente. Para Enterprise, o admin gerencia links personalizados por cliente numa pagina dedicada.
 
-Isso faz com que o convite continue aparecendo na lista de "Convites Pendentes" na pagina de Equipe.
+## Pre-requisitos (o que voce precisa fazer antes)
 
-## Solucao
+1. Criar conta na Cakto (https://app.cakto.com.br)
+2. Criar produtos "ImobiSmart Pro" e "ImobiSmart Plus" como ofertas recorrentes (subscription)
+3. Copiar os **links de checkout** de cada oferta
+4. Gerar **Client ID** e **Client Secret** em Integracoes > Cakto API (se quiser usar API para consultas)
+5. Configurar webhook no painel Cakto apontando para a URL que sera fornecida apos deploy
 
-### 1. Criar uma funcao SECURITY DEFINER para aceitar convites (Migracao SQL)
+## Etapas
 
-Criar uma funcao `accept_invitation(_token text, _user_id uuid)` que:
-- Valida que o token existe e nao expirou
-- Insere o usuario como membro da organizacao (se ainda nao estiver)
-- Deleta o convite da tabela
-- Roda como SECURITY DEFINER para ter permissao de deletar o convite independente do role do usuario
+### 1. Banco de dados
 
-### 2. Atualizar `AcceptInvite.tsx`
+- Adicionar coluna `checkout_url` (text, nullable) na tabela `plans` -- o admin cola o link de checkout da Cakto para Pro e Plus
+- Criar tabela `enterprise_checkout_links` para links Enterprise personalizados por cliente:
+  - `id`, `client_name`, `client_email`, `checkout_url`, `plan_label`, `price`, `is_active`, `notes`, `created_by`, `created_at`, `updated_at`
+  - RLS: somente admins podem ler/escrever
+- Adicionar colunas na tabela `subscriptions`:
+  - `external_subscription_id` (text, nullable) -- substitui `mp_subscription_id`
+  - `payer_email` (text, nullable) -- substitui `mp_payer_email`
+  - Manter as colunas antigas por seguranca (nao apagar dados existentes)
 
-Substituir as chamadas separadas de INSERT em `organization_members` e DELETE em `organization_invitations` por uma unica chamada RPC `accept_invitation`, garantindo que tudo acontece de forma atomica e com as permissoes corretas.
+### 2. Configurar segredos
 
-### 3. Limpeza dos convites existentes (Correcao de dados)
+- `CAKTO_WEBHOOK_SECRET` -- para validar webhooks recebidos da Cakto
 
-Deletar os 2 convites que ja foram aceitos mas ainda estao na tabela:
-- `oyangferreira@gmail.com`
-- `matheusmalena28@gmail.com`
+### 3. Criar edge function `cakto-webhook`
 
-## Detalhes Tecnicos
+Recebe notificacoes da Cakto quando um pagamento e aprovado ou cancelado:
+- Valida o secret do webhook
+- Extrai email do comprador e identifica o produto/oferta
+- Busca o usuario pelo email no banco (tabela profiles)
+- Determina o plano (pro/plus/enterprise) pelo produto da Cakto
+- Atualiza a subscription do usuario (status = active, plan = correspondente)
+- Para cancelamentos, reverte para starter
+
+### 4. Criar edge function `cancel-cakto-subscription`
+
+- Autentica o usuario via token
+- Atualiza status local para `cancelled` e plan para `starter`
+- Nota: cancelamento efetivo na Cakto e feito manualmente pelo admin no painel Cakto
+
+### 5. Atualizar frontend
+
+**Plans.tsx:**
+- Remover chamada a `create-mp-subscription`
+- Pro/Plus: buscar `checkout_url` do plano na tabela `plans` e redirecionar via `window.location.href`
+- Enterprise: manter "Falar com Vendas" via WhatsApp
+
+**Subscription.tsx:**
+- Trocar "Mercado Pago" por "Cakto"
+- Cancelamento chama `cancel-cakto-subscription`
+- Remover link "Gerenciar no Mercado Pago"
+
+**PaymentHistory.tsx:**
+- Simplificar para mostrar dados locais do banco (historico de mudancas de status da subscription)
+- Remover dependencia da API do Mercado Pago
+
+**PlanFormDialog.tsx:**
+- Adicionar campo `checkout_url` para o admin colar o link de checkout da Cakto
+
+### 6. Criar pagina admin `/admin/enterprise-links`
+
+Nova pagina no painel admin com:
+- Tabela listando todos os links Enterprise criados
+- Botao "Novo Link Enterprise" com formulario: nome do cliente, email, link de checkout, descricao do plano, valor, observacoes
+- Acoes: editar, desativar, copiar link, deletar
+- Adicionar item "Links Enterprise" na navegacao admin do DashboardLayout
+
+### 7. Remover codigo do Mercado Pago
+
+- Deletar edge functions: `create-mp-subscription`, `mercadopago-webhook`, `cancel-mp-subscription`, `get-mp-payments`
+- Remover do config.toml
+- Limpar referencias no frontend
+
+### 8. Atualizar config.toml
+
+Adicionar:
+- `cakto-webhook` (verify_jwt = false)
+- `cancel-cakto-subscription` (verify_jwt = false)
+
+## Fluxo do usuario (Pro/Plus)
 
 ```text
-Fluxo atual (com bug):
-  Usuario aceita convite
-  -> INSERT organization_members (funciona via RLS "org admins can insert")
-  -> DELETE organization_invitations (FALHA - usuario nao e admin)
-  -> Convite permanece na lista
-
-Fluxo corrigido:
-  Usuario aceita convite
-  -> RPC accept_invitation (SECURITY DEFINER)
-     -> INSERT organization_members
-     -> DELETE organization_invitations
-     -> Tudo funciona com permissoes elevadas
+Usuario clica "Fazer Upgrade"
+  -> Frontend busca checkout_url do plano na tabela plans
+  -> Redireciona para checkout Cakto (link externo)
+  -> Usuario paga
+  -> Cakto envia webhook -> edge function ativa subscription
 ```
 
-**SQL da funcao:**
-```sql
-CREATE OR REPLACE FUNCTION public.accept_invitation(_token text, _user_id uuid)
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
-AS $$
-DECLARE
-  _inv RECORD;
-BEGIN
-  SELECT * INTO _inv FROM organization_invitations
-  WHERE token = _token AND expires_at > now();
+## Fluxo Enterprise
 
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'Convite invalido ou expirado';
-  END IF;
-
-  INSERT INTO organization_members (organization_id, user_id, role, status, accepted_at)
-  VALUES (_inv.organization_id, _user_id, _inv.role, 'active', now())
-  ON CONFLICT DO NOTHING;
-
-  DELETE FROM organization_invitations WHERE id = _inv.id;
-END;
-$$;
+```text
+Cliente entra em contato via WhatsApp
+  -> Admin cria produto na Cakto com valor personalizado
+  -> Admin cadastra o link em /admin/enterprise-links
+  -> Admin envia o link para o cliente
+  -> Cliente paga -> webhook ativa como Enterprise
 ```
-
-**Alteracao no AcceptInvite.tsx:**
-Substituir as linhas do INSERT + DELETE por:
-```typescript
-await supabase.rpc('accept_invitation', { _token: token, _user_id: authData.user.id });
-```
-
