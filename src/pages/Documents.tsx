@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProperties } from '@/hooks/useProperties';
 import { useDocuments } from '@/hooks/useDocuments';
+import { useOrgPermissions } from '@/hooks/useOrgPermissions';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +21,7 @@ export default function Documents() {
   const { user, loading: authLoading } = useAuth();
   const { properties, activeProperties, isLoading: propertiesLoading } = useProperties();
   const { documents, isLoading: documentsLoading, isUploading, uploadDocument, deleteDocument, downloadDocument, viewDocument: getDocumentSignedUrl, getThumbnailUrl } = useDocuments();
+  const { canCreate, canDelete } = useOrgPermissions();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [propertyFilter, setPropertyFilter] = useState<string>('all');
@@ -95,14 +97,16 @@ export default function Documents() {
               Gerencie os documentos dos seus imóveis
             </p>
           </div>
-          <Button
-            className="gap-2"
-            onClick={() => handleUploadClick()}
-            disabled={!hasProperties}
-          >
-            <Upload className="h-4 w-4" />
-            Upload de Documento
-          </Button>
+          {canCreate && (
+            <Button
+              className="gap-2"
+              onClick={() => handleUploadClick()}
+              disabled={!hasProperties}
+            >
+              <Upload className="h-4 w-4" />
+              Upload de Documento
+            </Button>
+          )}
         </div>
 
         {/* Filters */}
@@ -170,14 +174,16 @@ export default function Documents() {
                         <Building2 className="h-5 w-5 text-muted-foreground" />
                         {property.name}
                       </h3>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleUploadClick(property.id)}
-                      >
-                        <Upload className="h-4 w-4 mr-2" />
-                        Adicionar
-                      </Button>
+                      {canCreate && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleUploadClick(property.id)}
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          Adicionar
+                        </Button>
+                      )}
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                       {propertyDocs.map((doc) => (
@@ -186,7 +192,7 @@ export default function Documents() {
                           document={doc}
                           onView={setViewDocumentData}
                           onDownload={downloadDocument}
-                          onDelete={setDeleteDoc}
+                          onDelete={canDelete ? setDeleteDoc : undefined}
                           getThumbnailUrl={getThumbnailUrl}
                         />
                       ))}
