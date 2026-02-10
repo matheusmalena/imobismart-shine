@@ -1,94 +1,78 @@
 
 
-# Melhorar Funcionamento de Equipe Enterprise
+## Problema
 
-## Problema Atual
+Quando um usuario convidado aceita o convite e cria a conta, o convite nao e removido da tabela `organization_invitations` porque o novo usuario (operador) nao tem permissao RLS para deletar convites -- apenas admins/owners da organizacao podem fazer isso.
 
-O banco de dados ja tem as colunas `organization_id` e politicas de seguranca configuradas nas tabelas de imoveis, inquilinos, contratos e documentos. Porem, o codigo frontend **sempre filtra apenas pelo usuario logado** (`user_id = user.id`), entao membros convidados nunca veem o portfolio do dono da conta.
+Isso faz com que o convite continue aparecendo na lista de "Convites Pendentes" na pagina de Equipe.
 
-## O que sera feito
+## Solucao
 
-### 1. Simplificar para 2 tipos de acesso
+### 1. Criar uma funcao SECURITY DEFINER para aceitar convites (Migracao SQL)
 
-Remover os roles "financial" e manter apenas:
+Criar uma funcao `accept_invitation(_token text, _user_id uuid)` que:
+- Valida que o token existe e nao expirou
+- Insere o usuario como membro da organizacao (se ainda nao estiver)
+- Deleta o convite da tabela
+- Roda como SECURITY DEFINER para ter permissao de deletar o convite independente do role do usuario
 
-| Papel | Descricao |
-|-------|-----------|
-| **owner** | Dono da conta Enterprise (controle total) |
-| **admin** | Acesso geral - pode ver, criar, editar e deletar tudo no portfolio |
-| **operator** | Somente visualizacao e edicao basica de dados (nao pode deletar, nao pode gerenciar equipe) |
+### 2. Atualizar `AcceptInvite.tsx`
 
-### 2. Fazer os hooks carregarem dados da organizacao
+Substituir as chamadas separadas de INSERT em `organization_members` e DELETE em `organization_invitations` por uma unica chamada RPC `accept_invitation`, garantindo que tudo acontece de forma atomica e com as permissoes corretas.
 
-Atualizar os 4 hooks principais para que, quando o usuario pertencer a uma organizacao, ele veja os dados do portfolio inteiro (nao apenas os proprios):
+### 3. Limpeza dos convites existentes (Correcao de dados)
 
-- **useProperties** - Buscar imoveis do dono + da organizacao
-- **useTenants** - Buscar inquilinos do portfolio
-- **useDocuments** - Buscar documentos do portfolio
-- **useLeaseContracts** - Buscar contratos do portfolio
-
-### 3. Controlar permissoes no frontend
-
-Criar um hook centralizado `useOrgPermissions` que expoe:
-- `canDelete` - apenas owner e admin podem deletar
-- `canManageTeam` - apenas owner e admin
-- `canCreate` - owner, admin (operador nao cria novos registros, apenas edita existentes)
-- `canEdit` - todos podem editar
-
-### 4. Ajustar o registro de dados novos
-
-Quando o owner/admin cria um imovel, inquilino, contrato ou documento, o `organization_id` precisa ser preenchido automaticamente para que os outros membros tambem vejam.
+Deletar os 2 convites que ja foram aceitos mas ainda estao na tabela:
+- `oyangferreira@gmail.com`
+- `matheusmalena28@gmail.com`
 
 ## Detalhes Tecnicos
 
-### Banco de Dados (Migracao SQL)
+```text
+Fluxo atual (com bug):
+  Usuario aceita convite
+  -> INSERT organization_members (funciona via RLS "org admins can insert")
+  -> DELETE organization_invitations (FALHA - usuario nao e admin)
+  -> Convite permanece na lista
 
-1. **Atualizar RLS de tenants para SELECT** - atualmente a politica de SELECT de tenants usa `can_manage_org` (restritivo demais), precisa trocar para `is_org_member` para operadores tambem verem
-2. **Criar funcao `get_user_org_id`** - funcao auxiliar que retorna o organization_id do usuario logado (para facilitar queries no frontend)
-3. Nenhuma alteracao no enum `org_member_role` e necessaria pois os valores "financial" simplesmente deixarao de ser oferecidos na UI
+Fluxo corrigido:
+  Usuario aceita convite
+  -> RPC accept_invitation (SECURITY DEFINER)
+     -> INSERT organization_members
+     -> DELETE organization_invitations
+     -> Tudo funciona com permissoes elevadas
+```
 
-### Frontend - Hooks Modificados
+**SQL da funcao:**
+```sql
+CREATE OR REPLACE FUNCTION public.accept_invitation(_token text, _user_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = 'public'
+AS $$
+DECLARE
+  _inv RECORD;
+BEGIN
+  SELECT * INTO _inv FROM organization_invitations
+  WHERE token = _token AND expires_at > now();
 
-**useProperties.ts**: 
-- Buscar pelo `organization_id` do usuario (via useOrganization) ao inves de apenas `user_id`
-- Quando usuario tem organizacao: buscar `WHERE organization_id = X`
-- Quando nao tem: manter filtro por `user_id` (comportamento atual)
-- No `insert`, incluir `organization_id` automaticamente
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Convite invalido ou expirado';
+  END IF;
 
-**useTenants.ts**: Mesma logica acima
+  INSERT INTO organization_members (organization_id, user_id, role, status, accepted_at)
+  VALUES (_inv.organization_id, _user_id, _inv.role, 'active', now())
+  ON CONFLICT DO NOTHING;
 
-**useDocuments.ts**: Mesma logica acima
+  DELETE FROM organization_invitations WHERE id = _inv.id;
+END;
+$$;
+```
 
-**useLeaseContracts.ts**: Mesma logica acima
-
-**useOrganization.ts**: 
-- Remover opcao "financial" das constantes ROLE_LABELS e ROLE_DESCRIPTIONS
-- Ajustar `canManage` para considerar apenas owner/admin
-- Adicionar flags de permissao baseadas no role
-
-### Frontend - UI Modificada
-
-**TeamManagement.tsx**:
-- Remover opcao "Financeiro" do select de convite
-- Remover opcao "Tornar Financeiro" do dropdown de membros
-- Atualizar descricoes dos roles
-- Operadores nao podem convidar ou gerenciar membros
-
-**Componentes de CRUD** (PropertyCard, TenantCard, etc.):
-- Esconder botoes de deletar para operadores
-- Esconder botoes de criar para operadores
-
-### Arquivos Afetados
-
-| Arquivo | Tipo de Alteracao |
-|---------|-------------------|
-| `src/hooks/useProperties.ts` | Queries com organization_id + insert com org_id |
-| `src/hooks/useTenants.ts` | Queries com organization_id + insert com org_id |
-| `src/hooks/useDocuments.ts` | Queries com organization_id + insert com org_id |
-| `src/hooks/useLeaseContracts.ts` | Queries com organization_id + insert com org_id |
-| `src/hooks/useOrganization.ts` | Remover financial, adicionar flags de permissao |
-| `src/components/team/TeamManagement.tsx` | Simplificar UI para 2 roles |
-| `src/components/properties/PropertyCard.tsx` | Esconder delete para operator |
-| `src/components/tenants/TenantCard.tsx` | Esconder delete para operator |
-| Migracao SQL | Ajustar RLS de tenants SELECT |
+**Alteracao no AcceptInvite.tsx:**
+Substituir as linhas do INSERT + DELETE por:
+```typescript
+await supabase.rpc('accept_invitation', { _token: token, _user_id: authData.user.id });
+```
 
