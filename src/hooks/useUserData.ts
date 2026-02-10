@@ -47,7 +47,7 @@ export function useUserData() {
       if (!user) return { profile: null, subscription: null, role: null };
 
       // Executar todas as queries em paralelo para máxima eficiência
-      const [profileResult, subscriptionResult, roleResult, membershipResult] = await Promise.all([
+      const [profileResult, subscriptionResult, roleResult] = await Promise.all([
         supabase
           .from('profiles')
           .select('*')
@@ -60,13 +60,6 @@ export function useUserData() {
           .maybeSingle(),
         supabase
           .rpc('get_user_role', { _user_id: user.id }),
-        // Check if user is a member of an organization (not owner)
-        supabase
-          .from('organization_members')
-          .select('organization_id, role')
-          .eq('user_id', user.id)
-          .eq('status', 'active')
-          .maybeSingle(),
       ]);
 
       // Log errors but don't throw - return null for failed queries
@@ -82,31 +75,17 @@ export function useUserData() {
 
       let subscription = subscriptionResult.data as Subscription | null;
 
-      // If user is org member (not owner), inherit owner's plan
-      if (membershipResult.data && membershipResult.data.role !== 'owner') {
-        const orgId = membershipResult.data.organization_id;
-        const { data: org } = await supabase
-          .from('organizations')
-          .select('owner_id')
-          .eq('id', orgId)
-          .single();
+      // Check if user is org member (not owner) and inherit owner's plan
+      const { data: ownerPlan } = await supabase
+        .rpc('get_org_owner_plan' as any, { _user_id: user.id });
 
-        if (org) {
-          const { data: ownerSub } = await supabase
-            .from('subscriptions')
-            .select('*')
-            .eq('user_id', org.owner_id)
-            .maybeSingle();
-
-          if (ownerSub) {
-            // Override with owner's plan but keep user's own subscription id
-            subscription = {
-              ...(subscription || ownerSub),
-              plan: ownerSub.plan as Subscription['plan'],
-              status: ownerSub.status as Subscription['status'],
-            };
-          }
-        }
+      if (ownerPlan && Array.isArray(ownerPlan) && ownerPlan.length > 0) {
+        const op = ownerPlan[0];
+        subscription = {
+          ...(subscription || { id: '', user_id: user.id, started_at: '', expires_at: null, created_at: '', updated_at: '' }),
+          plan: op.plan as Subscription['plan'],
+          status: op.status as Subscription['status'],
+        };
       }
 
       return {
