@@ -152,7 +152,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Sending email to:", invitation.email);
 
     const emailResponse = await resend.emails.send({
-      from: "ImobiSmart <noreply@imobismart.com.br>",
+      from: "ImobiSmart <noreply@imobismart.com>",
       to: [invitation.email],
       subject: `Convite para ${organizationName} - ImobiSmart`,
       html: `
