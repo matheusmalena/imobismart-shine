@@ -126,27 +126,13 @@ export default function AcceptInvite() {
       // Wait a bit for the user to be fully created
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Add user as organization member
-      const { error: memberError } = await supabase
-        .from('organization_members')
-        .insert({
-          organization_id: invitation.organization_id,
-          user_id: authData.user.id,
-          role: invitation.role as any,
-          status: 'active',
-          accepted_at: new Date().toISOString(),
-        });
+      // Accept invitation atomically (insert member + delete invitation)
+      const { error: acceptError } = await supabase
+        .rpc('accept_invitation' as any, { _token: token, _user_id: authData.user.id });
 
-      if (memberError) {
-        console.error('Error adding member:', memberError);
-        // Don't throw here, user is already created
+      if (acceptError) {
+        console.error('Error accepting invitation:', acceptError);
       }
-
-      // Delete the invitation
-      await supabase
-        .from('organization_invitations')
-        .delete()
-        .eq('id', invitation.id);
 
       setSuccess(true);
       toast.success('Conta criada com sucesso!');
