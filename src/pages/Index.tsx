@@ -127,7 +127,7 @@ export default function Index() {
           <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
           <div className="absolute bottom-10 right-10 w-96 h-96 bg-primary/3 rounded-full blur-3xl" />
         </div>
-        
+
         <div className="container mx-auto text-center max-w-5xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -144,8 +144,8 @@ export default function Index() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="text-4xl md:text-6xl lg:text-7xl font-bold text-foreground leading-[1.1] mb-8"
           >
-            Gerencie seus imóveis com{" "}
-            <span className="gradient-text">inteligência</span>
+            Gerencie seus imóveis de forma{" "}
+            <span className="gradient-text">inteligente</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -181,7 +181,7 @@ export default function Index() {
 
           {/* Tutorial Modal */}
           <TutorialModal ref={tutorialRef} autoShow={false} />
-          
+
           {/* Trust badges */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
