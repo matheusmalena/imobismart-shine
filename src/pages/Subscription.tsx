@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useUserData } from '@/hooks/useUserData';
@@ -23,7 +22,6 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
-  ArrowLeft,
   CreditCard,
   Calendar,
   Crown,
@@ -37,19 +35,6 @@ import {
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-};
 
 const PLAN_NAMES: Record<string, string> = {
   starter: 'Gratuito',
@@ -127,215 +112,196 @@ export default function Subscription() {
 
   return (
     <DashboardLayout>
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="space-y-6 pb-8"
-      >
+      <div className="space-y-6 animate-fade-in">
         {/* Header */}
-        <motion.div variants={itemVariants} className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Voltar
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Minha Assinatura</h1>
-              <p className="text-muted-foreground mt-1">Gerencie seu plano e pagamentos</p>
-            </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Minha Assinatura</h1>
+            <p className="text-muted-foreground mt-1">Gerencie seu plano e pagamentos</p>
           </div>
           <Button onClick={() => navigate('/plans')} className="gap-2">
             <Sparkles className="h-4 w-4" />
             Ver Planos
           </Button>
-        </motion.div>
+        </div>
 
         {/* Main Content */}
         <div className="grid gap-6 md:grid-cols-2">
           {/* Current Plan Card */}
-          <motion.div variants={itemVariants}>
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Crown className="h-5 w-5 text-primary" />
-                  Plano Atual
-                </CardTitle>
-                <CardDescription>
-                  Detalhes da sua assinatura atual
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Plan Name */}
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Crown className="h-5 w-5 text-primary" />
+                Plano Atual
+              </CardTitle>
+              <CardDescription>
+                Detalhes da sua assinatura atual
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Plan Name */}
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Plano</span>
+                <span className="text-lg font-semibold text-foreground">
+                  {PLAN_NAMES[currentPlan] || currentPlan}
+                </span>
+              </div>
+
+              {/* Status */}
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Status</span>
+                <Badge variant="outline" className={`gap-1.5 ${statusConfig.color}`}>
+                  {statusConfig.icon}
+                  {statusConfig.label}
+                </Badge>
+              </div>
+
+              {/* Start Date */}
+              {subscription?.started_at && (
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Plano</span>
-                  <span className="text-2xl font-bold text-foreground">
-                    {PLAN_NAMES[currentPlan] || currentPlan}
+                  <span className="text-muted-foreground">Início</span>
+                  <span className="text-foreground">
+                    {format(new Date(subscription.started_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                   </span>
                 </div>
+              )}
 
-                {/* Status */}
+              {/* Expiration */}
+              {subscription?.expires_at && (
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Status</span>
-                  <Badge variant="outline" className={`gap-1.5 ${statusConfig.color}`}>
-                    {statusConfig.icon}
-                    {statusConfig.label}
-                  </Badge>
+                  <span className="text-muted-foreground">Próxima cobrança</span>
+                  <span className="text-foreground">
+                    {format(new Date(subscription.expires_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                  </span>
                 </div>
+              )}
 
-                {/* Start Date */}
-                {subscription?.started_at && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Início</span>
-                    <span className="text-foreground">
-                      {format(new Date(subscription.started_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                    </span>
-                  </div>
+              {/* Actions */}
+              <div className="pt-4 border-t space-y-3">
+                {canCancel && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" className="w-full gap-2" disabled={isCancelling}>
+                        {isCancelling ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <XCircle className="h-4 w-4" />
+                        )}
+                        Cancelar Assinatura
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Cancelar Assinatura?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Ao cancelar, você perderá acesso aos recursos do plano {PLAN_NAMES[currentPlan]} e será revertido para o plano Gratuito. Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Manter Assinatura</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleCancelSubscription}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Confirmar Cancelamento
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 )}
 
-                {/* Expiration */}
-                {subscription?.expires_at && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Próxima cobrança</span>
-                    <span className="text-foreground">
-                      {format(new Date(subscription.expires_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                    </span>
-                  </div>
+                {currentStatus === 'cancelled' && (
+                  <Button onClick={() => navigate('/plans')} className="w-full gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    Reativar Assinatura
+                  </Button>
                 )}
 
-                {/* Actions */}
-                <div className="pt-4 border-t space-y-3">
-                  {canCancel && (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive" className="w-full gap-2" disabled={isCancelling}>
-                          {isCancelling ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <XCircle className="h-4 w-4" />
-                          )}
-                          Cancelar Assinatura
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Cancelar Assinatura?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Ao cancelar, você perderá acesso aos recursos do plano {PLAN_NAMES[currentPlan]} e será revertido para o plano Gratuito. Esta ação não pode ser desfeita.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Manter Assinatura</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={handleCancelSubscription}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            Confirmar Cancelamento
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  )}
-
-                  {currentStatus === 'cancelled' && (
-                    <Button onClick={() => navigate('/plans')} className="w-full gap-2">
-                      <Sparkles className="h-4 w-4" />
-                      Reativar Assinatura
-                    </Button>
-                  )}
-
-                  {currentPlan === 'starter' && currentStatus !== 'cancelled' && (
-                    <Button onClick={() => navigate('/plans')} className="w-full gap-2">
-                      <Crown className="h-4 w-4" />
-                      Fazer Upgrade
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Payment Info Card */}
-          <motion.div variants={itemVariants}>
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5 text-primary" />
-                  Pagamento
-                </CardTitle>
-                <CardDescription>
-                  Informações de pagamento e cobrança
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {isPaid ? (
-                  <>
-                    {/* Payment Method */}
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Método</span>
-                      <Badge variant="outline" className="gap-1.5">
-                        <CreditCard className="h-3.5 w-3.5" />
-                        Cakto
-                      </Badge>
-                    </div>
-
-                    {/* Payer Email */}
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Email</span>
-                      <span className="text-foreground text-sm">
-                        {profile?.email || user?.email || '—'}
-                      </span>
-                    </div>
-
-                    {/* Info */}
-                    <div className="pt-4 border-t">
-                      <p className="text-sm text-muted-foreground text-center">
-                        Para gerenciar detalhes do pagamento, acesse o painel da Cakto.
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <div className="p-4 rounded-full bg-muted mb-4">
-                      <CreditCard className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                    <h3 className="font-medium text-foreground mb-2">Nenhum pagamento ativo</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Você está no plano Gratuito. Faça upgrade para desbloquear recursos premium.
-                    </p>
-                    <Button onClick={() => navigate('/plans')} size="sm" className="gap-2">
-                      <Sparkles className="h-4 w-4" />
-                      Ver Planos
-                    </Button>
-                  </div>
+                {currentPlan === 'starter' && currentStatus !== 'cancelled' && (
+                  <Button onClick={() => navigate('/plans')} className="w-full gap-2">
+                    <Crown className="h-4 w-4" />
+                    Fazer Upgrade
+                  </Button>
                 )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-
-        {/* Payment History */}
-        <motion.div variants={itemVariants}>
-          <PaymentHistory />
-        </motion.div>
-
-        {/* Info Banner */}
-        <motion.div variants={itemVariants}>
-          <Card className="border-primary/30 bg-primary/5">
-            <CardContent className="flex items-start gap-4 py-4">
-              <div className="p-2 rounded-full bg-primary/10">
-                <Calendar className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1">
-                <h4 className="font-medium text-foreground mb-1">Sobre renovações</h4>
-                <p className="text-sm text-muted-foreground">
-                  Sua assinatura é renovada automaticamente a cada mês. Você pode cancelar a qualquer momento e manterá acesso até o fim do período pago.
-                </p>
               </div>
             </CardContent>
           </Card>
-        </motion.div>
-      </motion.div>
+
+          {/* Payment Info Card */}
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-primary" />
+                Pagamento
+              </CardTitle>
+              <CardDescription>
+                Informações de pagamento e cobrança
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {isPaid ? (
+                <>
+                  {/* Payment Method */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Método</span>
+                    <Badge variant="outline" className="gap-1.5">
+                      <CreditCard className="h-3.5 w-3.5" />
+                      Cakto
+                    </Badge>
+                  </div>
+
+                  {/* Payer Email */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Email</span>
+                    <span className="text-foreground text-sm">
+                      {profile?.email || user?.email || '—'}
+                    </span>
+                  </div>
+
+                  {/* Info */}
+                  <div className="pt-4 border-t">
+                    <p className="text-sm text-muted-foreground text-center">
+                      Para gerenciar detalhes do pagamento, acesse o painel da Cakto.
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <div className="p-4 rounded-full bg-muted mb-4">
+                    <CreditCard className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="font-medium text-foreground mb-2">Nenhum pagamento ativo</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Você está no plano Gratuito. Faça upgrade para desbloquear recursos premium.
+                  </p>
+                  <Button onClick={() => navigate('/plans')} size="sm" className="gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    Ver Planos
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Payment History */}
+        <PaymentHistory />
+
+        {/* Info Banner */}
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="flex items-start gap-4 py-4">
+            <div className="p-2 rounded-full bg-primary/10">
+              <Calendar className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-medium text-foreground mb-1">Sobre renovações</h4>
+              <p className="text-sm text-muted-foreground">
+                Sua assinatura é renovada automaticamente a cada mês. Você pode cancelar a qualquer momento e manterá acesso até o fim do período pago.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </DashboardLayout>
   );
 }
