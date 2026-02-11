@@ -1,20 +1,17 @@
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { 
   Target, 
   CheckCircle, 
   AlertTriangle, 
   TrendingUp, 
   TrendingDown,
-  Lock,
-  Crown,
   BarChart3,
   Download
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Property } from '@/types/property';
+import { UpgradeOverlay, UpgradeBadge } from '@/components/common/UpgradeOverlay';
 
 interface ProFeaturesCardProps {
   properties: Property[];
@@ -29,8 +26,6 @@ export function ProFeaturesCard({
   isPro, 
   onExport 
 }: ProFeaturesCardProps) {
-  const navigate = useNavigate();
-
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -39,7 +34,6 @@ export function ProFeaturesCard({
     }).format(value);
   };
 
-  // Calculate metrics
   const totalValue = properties.reduce((sum, p) => sum + Number(p.property_value), 0);
   
   const highPerformers = properties.filter((p) => {
@@ -56,7 +50,6 @@ export function ProFeaturesCard({
 
   const lowOccupancy = properties.filter((p) => Number(p.occupancy_rate) < 70);
 
-  // Calculate ranking data
   const rankedProperties = properties
     .map(p => {
       const revenue = Number(p.monthly_revenue);
@@ -80,33 +73,16 @@ export function ProFeaturesCard({
         <CardTitle className="flex items-center gap-2 text-base">
           <BarChart3 className="h-5 w-5 text-primary" />
           Análise Avançada
-          {!isPro && (
-            <Badge variant="outline" className="gap-1 text-xs ml-auto">
-              <Lock className="h-3 w-3" />
-              Plano Pro
-            </Badge>
-          )}
+          {!isPro && <UpgradeBadge plan="pro" />}
         </CardTitle>
       </CardHeader>
-      <CardContent className="relative">
-        {/* Blur overlay for non-Pro */}
+      <CardContent className="relative min-h-[220px]">
         {!isPro && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center">
-            <div className="absolute inset-0 backdrop-blur-lg bg-background/60" />
-            <div className="relative z-20 text-center p-6 max-w-md">
-              <div className="p-3 rounded-full bg-primary/10 w-fit mx-auto mb-3">
-                <Lock className="h-5 w-5 text-primary" />
-              </div>
-              <h4 className="font-semibold mb-1">Recursos Pro</h4>
-              <p className="text-sm text-muted-foreground mb-3">
-                Valor do portfólio, ranking de performance, alertas e exportação de dados.
-              </p>
-              <Button size="sm" onClick={() => navigate('/plans')} className="gap-1.5">
-                <Crown className="h-3.5 w-3.5" />
-                Upgrade para Pro
-              </Button>
-            </div>
-          </div>
+          <UpgradeOverlay
+            plan="pro"
+            title="Recursos Pro"
+            description="Valor do portfólio, ranking de performance, alertas e exportação de dados."
+          />
         )}
 
         <div className={cn("space-y-5", !isPro && "opacity-20 pointer-events-none select-none")}>

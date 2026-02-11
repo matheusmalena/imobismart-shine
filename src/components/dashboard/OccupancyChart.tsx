@@ -1,4 +1,5 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Property, PROPERTY_STATUS_LABELS } from '@/types/property';
 
 interface OccupancyChartProps {
@@ -26,60 +27,70 @@ export function OccupancyChart({ properties }: OccupancyChartProps) {
 
   if (properties.length === 0) {
     return (
-      <div className="bg-card rounded-xl p-6 shadow-card border border-border/50">
-        <h3 className="text-lg font-semibold text-card-foreground mb-6">Status dos Imóveis</h3>
-        <div className="text-center py-8 text-muted-foreground">
-          Adicione imóveis para ver a distribuição
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Status dos Imóveis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-muted-foreground">
+            Adicione imóveis para ver a distribuição
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-card rounded-xl p-6 shadow-card border border-border/50">
-      <h3 className="text-lg font-semibold text-card-foreground mb-6">Status dos Imóveis</h3>
-      <div className="h-[200px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              innerRadius={50}
-              outerRadius={80}
-              paddingAngle={5}
-              dataKey="value"
-            >
-              {data.map((entry, index) => (
-                <Cell 
-                  key={`cell-${index}`} 
-                  fill={COLORS[entry.status as keyof typeof COLORS]} 
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Status dos Imóveis</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center gap-6">
+          <div className="h-[180px] w-[180px] shrink-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={data}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {data.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={COLORS[entry.status as keyof typeof COLORS]} 
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px',
+                  }}
+                  formatter={(value: number, name: string) => [value, name]}
                 />
-              ))}
-            </Pie>
-            <Tooltip
-              contentStyle={{
-                backgroundColor: 'hsl(var(--card))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '8px',
-              }}
-              formatter={(value: number, name: string) => [value, name]}
-            />
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
-      <div className="grid grid-cols-2 gap-2 mt-4">
-        {data.map((item) => (
-          <div key={item.status} className="flex items-center gap-2">
-            <div 
-              className="w-3 h-3 rounded-full" 
-              style={{ backgroundColor: COLORS[item.status as keyof typeof COLORS] }}
-            />
-            <span className="text-sm text-muted-foreground">{item.name}</span>
-            <span className="text-sm font-medium text-card-foreground ml-auto">{item.value}</span>
+              </PieChart>
+            </ResponsiveContainer>
           </div>
-        ))}
-      </div>
-    </div>
+          <div className="flex flex-col gap-2 flex-1">
+            {data.map((item) => (
+              <div key={item.status} className="flex items-center gap-2">
+                <div 
+                  className="w-3 h-3 rounded-full shrink-0" 
+                  style={{ backgroundColor: COLORS[item.status as keyof typeof COLORS] }}
+                />
+                <span className="text-sm text-muted-foreground">{item.name}</span>
+                <span className="text-sm font-medium text-card-foreground ml-auto">{item.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

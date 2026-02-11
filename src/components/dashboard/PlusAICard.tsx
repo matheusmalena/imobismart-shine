@@ -1,17 +1,13 @@
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { 
   Sparkles, 
-  Lock,
-  Crown,
   Lightbulb,
   TrendingUp,
   Home,
   DollarSign
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { UpgradeOverlay, UpgradeBadge } from '@/components/common/UpgradeOverlay';
 
 interface PlusAICardProps {
   isPlus: boolean;
@@ -26,9 +22,6 @@ export function PlusAICard({
   avgROI,
   avgOccupancy
 }: PlusAICardProps) {
-  const navigate = useNavigate();
-
-  // Generate sample AI recommendations based on data
   const getRecommendations = () => {
     const recommendations = [];
     
@@ -85,33 +78,17 @@ export function PlusAICard({
         <CardTitle className="flex items-center gap-2 text-base">
           <Sparkles className="h-5 w-5 text-primary" />
           Recomendações IA
-          {!isPlus && (
-            <Badge variant="outline" className="gap-1 text-xs ml-auto bg-purple-500/10 text-purple-600 border-purple-200">
-              <Lock className="h-3 w-3" />
-              Plano Plus
-            </Badge>
-          )}
+          {!isPlus && <UpgradeBadge plan="plus" />}
         </CardTitle>
       </CardHeader>
-      <CardContent className="relative">
-        {/* Blur overlay for non-Plus */}
+      <CardContent className="relative min-h-[220px]">
         {!isPlus && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center">
-            <div className="absolute inset-0 backdrop-blur-lg bg-background/60" />
-            <div className="relative z-20 text-center p-6 max-w-md">
-              <div className="p-3 rounded-full bg-primary/10 w-fit mx-auto mb-3">
-                <Sparkles className="h-5 w-5 text-primary" />
-              </div>
-              <h4 className="font-semibold mb-1">Insights com IA</h4>
-              <p className="text-sm text-muted-foreground mb-3">
-                Recomendações personalizadas baseadas na análise do seu portfólio.
-              </p>
-              <Button size="sm" onClick={() => navigate('/plans')} className="gap-1.5">
-                <Crown className="h-3.5 w-3.5" />
-                Upgrade para Plus
-              </Button>
-            </div>
-          </div>
+          <UpgradeOverlay
+            plan="plus"
+            title="Insights com IA"
+            description="Recomendações personalizadas baseadas na análise do seu portfólio."
+            icon={<Sparkles className="h-5 w-5 text-purple-600" />}
+          />
         )}
 
         <div className={cn("space-y-3", !isPlus && "opacity-20 pointer-events-none select-none")}>
