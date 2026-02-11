@@ -41,12 +41,12 @@ export function OccupancyChart({ properties }: OccupancyChartProps) {
   }
 
   return (
-    <Card>
+    <Card className="flex flex-col h-full">
       <CardHeader>
         <CardTitle className="text-base">Status dos Imóveis</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="flex items-center gap-6">
+      <CardContent className="flex-1 flex items-center">
+        <div className="flex items-center gap-6 w-full">
           <div className="h-[180px] w-[180px] shrink-0">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
