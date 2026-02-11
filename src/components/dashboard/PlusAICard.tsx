@@ -73,7 +73,7 @@ export function PlusAICard({
   };
 
   return (
-    <Card className="relative overflow-hidden">
+    <Card className="relative overflow-hidden flex flex-col h-full">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <Sparkles className="h-5 w-5 text-primary" />
@@ -81,7 +81,7 @@ export function PlusAICard({
           {!isPlus && <UpgradeBadge plan="plus" />}
         </CardTitle>
       </CardHeader>
-      <CardContent className="relative min-h-[220px]">
+      <CardContent className="relative flex-1 min-h-[220px]">
         {!isPlus && (
           <UpgradeOverlay
             plan="plus"
