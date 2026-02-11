@@ -1,64 +1,62 @@
 
-# Padronizacao Visual da Plataforma
+# Padronizacao Visual Completa
 
-## Inconsistencias Encontradas
+## Problemas Encontrados
 
-### 1. Titulos de Pagina (h1)
-| Pagina | Tamanho | Estilo |
-|--------|---------|--------|
-| Dashboard | `text-2xl sm:text-3xl font-bold` | Com saudacao |
-| Properties | `text-3xl font-bold` | Sem subtitulo `mt-1` |
-| Documents | `text-3xl font-bold` | Sem subtitulo `mt-1` |
-| Tenants | `text-3xl font-bold` | Sem subtitulo `mt-1` |
-| Settings | `text-3xl font-bold` | Sem subtitulo `mt-1` |
-| Team | `text-3xl font-bold` | Sem subtitulo `mt-1` |
-| **WhatsApp** | **`text-2xl font-bold`** | **Diferente!** Sem `mt-1` no subtitulo |
-| **Reports (Pro)** | **`text-2xl font-bold`** | **Diferente!** Sem subtitulo |
-| **Subscription** | **`text-2xl font-bold`** | **Diferente!** Layout diferente com botao Voltar |
+### 1. Subscription.tsx - Multiplas inconsistencias
 
-**Padrao correto:** `text-3xl font-bold text-foreground` para o h1, e `text-muted-foreground mt-1` para o subtitulo.
+| Problema | Estado Atual | Padrao Correto |
+|----------|-------------|----------------|
+| Botao "Voltar" | Presente no header | Nenhuma outra pagina interna tem botao voltar |
+| Animacoes | `framer-motion` com variants | `animate-fade-in` (CSS class usada em todas as paginas) |
+| Layout do header | Botao Voltar + titulo + botao Ver Planos em linha | `flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4` com titulo/subtitulo a esquerda e acao a direita |
+| Nome do plano no card | `text-2xl font-bold` (muito grande) | `text-lg font-semibold` (proporcional ao card) |
+| Container | `pb-8` (padding extra) | Sem padding extra (igual outras paginas) |
+| Wrapper | `motion.div` | `div className="space-y-6 animate-fade-in"` |
 
-### 2. Cards do Dashboard: RevenueChart usa `div` manual
-O `RevenueChart` ainda usa `div` com classes manuais (`bg-card rounded-xl p-6 shadow-card border border-border/50`) em vez do componente `Card` padrao. O `OccupancyChart` ja foi corrigido.
+### 2. Plans.tsx - Inconsistencias
 
-### 3. Cards do Dashboard: Titulos internos inconsistentes
-| Card | Titulo | Classe |
-|------|--------|--------|
-| RevenueChart | `h3 text-lg font-semibold text-card-foreground` | Manual |
-| OccupancyChart | `CardTitle text-base` | Componente padrao |
-| ProFeaturesCard | `CardTitle text-base` | Componente padrao |
-| PlusAICard | `CardTitle text-base` | Componente padrao |
+| Problema | Estado Atual | Padrao Correto |
+|----------|-------------|----------------|
+| Botao "Voltar" | Presente | Remover (nenhuma pagina interna tem) |
+| Titulo h1 | `text-3xl md:text-5xl` | `text-3xl font-bold text-foreground` (padrao) |
+| Subtitulo | `text-lg` | `text-muted-foreground mt-1` sem tamanho extra |
 
-**Padrao correto:** Usar `CardTitle` com `text-base` em todos.
+### 3. Reports.tsx - Upgrade prompt (nao-Pro)
 
-### 4. Reports: Upgrade prompt nao segue o padrao
-A pagina Reports (para usuarios nao-Pro) usa um design proprio de upgrade que nao usa o componente `UpgradeOverlay`. Usa `CardTitle text-2xl`, um botao `size="lg" w-full`, e badges com estilos inline em vez do `UpgradeBadge`.
+| Problema | Estado Atual | Padrao Correto |
+|----------|-------------|----------------|
+| Titulo do upgrade | `CardTitle text-2xl` (dentro do card) | Tamanho menor, consistente com UpgradeOverlay |
+| Layout | Card centralizado com `max-w-2xl mx-auto py-12` | Usar layout padrao da pagina com header normal |
 
-### 5. Subscription: Info banner inconsistente com Dashboard upgrade banner
-O banner de upgrade do Dashboard usa `border-primary/30 bg-primary/5` enquanto o info banner de Subscription usa `border-primary/20 bg-primary/5`.
+### 4. Settings.tsx - CardTitle sem override de tamanho
 
-### 6. Subtitulos de pagina sem consistencia de espacamento
-Algumas paginas usam `mt-1` no subtitulo, outras nao tem `mt-1`. WhatsApp nao usa.
+O componente `CardTitle` por padrao renderiza com `text-2xl`. Em Settings, os titulos "Informacoes Pessoais", "Seguranca", "Assinatura" ficam com `text-2xl` (padrao do componente), o que e consistente. Nenhuma mudanca necessaria aqui.
 
 ## Plano de Correcao
 
-### Etapa 1: Padronizar titulos de pagina
-Corrigir `WhatsApp.tsx`, `Reports.tsx` (versao Pro) e `Subscription.tsx` para usar `text-3xl font-bold text-foreground` no h1 e `text-muted-foreground mt-1` no subtitulo.
+### Etapa 1: Reescrever header e remover animacoes do Subscription.tsx
+- Remover botao "Voltar"
+- Remover `framer-motion` (imports, variants, `motion.div`)
+- Usar wrapper `div className="space-y-6 animate-fade-in"` padrao
+- Header no padrao: titulo "Minha Assinatura" + subtitulo a esquerda, botao "Ver Planos" a direita
+- Reduzir nome do plano de `text-2xl font-bold` para `text-lg font-semibold`
+- Remover `pb-8` do container
 
-### Etapa 2: Migrar RevenueChart para componente Card
-Substituir os `div` manuais por `Card`, `CardHeader`, `CardTitle` e `CardContent`, da mesma forma que o `OccupancyChart` ja foi corrigido.
+### Etapa 2: Remover botao Voltar e ajustar titulo do Plans.tsx
+- Remover botao "Voltar" da navegacao
+- Manter botao "Minha Assinatura" mas mover para o header padrao como acao secundaria
+- Reduzir h1 de `text-3xl md:text-5xl` para `text-3xl font-bold text-foreground`
+- Ajustar subtitulo para `text-muted-foreground mt-1`
 
-### Etapa 3: Padronizar upgrade prompt da pagina Reports
-Substituir o design custom na pagina Reports (nao-Pro) pelo padrao visual consistente, usando `UpgradeBadge` e um estilo similar ao usado nos cards de dashboard.
-
-### Etapa 4: Alinhar info banners
-Padronizar a borda dos banners informativos para `border-primary/30 bg-primary/5`.
+### Etapa 3: Ajustar upgrade prompt do Reports.tsx (nao-Pro)
+- Reduzir `CardTitle` do prompt de upgrade para tamanho proporcional
+- Manter centralizado mas com estilo visual alinhado ao padrao de banners de upgrade usado no Dashboard
 
 ## Arquivos Modificados
 
-| Arquivo | Alteracao |
-|---------|-----------|
-| `src/pages/WhatsApp.tsx` | h1 de `text-2xl` para `text-3xl`, subtitulo com `mt-1` |
-| `src/pages/Reports.tsx` | h1 Pro de `text-2xl` para `text-3xl` + subtitulo; upgrade prompt padronizado |
-| `src/pages/Subscription.tsx` | h1 de `text-2xl` para `text-3xl`; info banner border alinhado |
-| `src/components/dashboard/RevenueChart.tsx` | Migrar de `div` para `Card/CardHeader/CardTitle/CardContent` |
+| Arquivo | Alteracao Principal |
+|---------|-------------------|
+| `src/pages/Subscription.tsx` | Remover framer-motion, botao voltar, padronizar header e tamanhos de texto |
+| `src/pages/Plans.tsx` | Remover botao voltar, reduzir h1, padronizar header |
+| `src/pages/Reports.tsx` | Ajustar tamanho do titulo no upgrade prompt |
