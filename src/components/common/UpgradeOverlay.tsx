@@ -37,7 +37,7 @@ export function UpgradeOverlay({ plan, title, description, icon }: UpgradeOverla
   const config = PLAN_CONFIG[plan];
 
   return (
-    <div className="absolute inset-0 z-10 flex items-center justify-center">
+    <div className="absolute inset-0 z-10 flex items-center justify-center p-6">
       <div className="absolute inset-0 backdrop-blur-md bg-card/80" />
       <div className="relative z-20 text-center p-6 max-w-sm">
         <div className={cn('p-3 rounded-full w-fit mx-auto mb-3', config.iconBg)}>
