@@ -427,7 +427,7 @@ export default function Reports() {
               <div className="mx-auto h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <Crown className="h-8 w-8 text-primary" />
               </div>
-              <CardTitle className="text-2xl">Relatórios Avançados</CardTitle>
+              <CardTitle className="text-xl">Relatórios Avançados</CardTitle>
               <CardDescription className="text-base">
                 Exporte seus dados e gere relatórios profissionais do seu portfólio
               </CardDescription>
@@ -506,7 +506,7 @@ export default function Reports() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">Relatórios</h1>
+          <h1 className="text-3xl font-bold text-foreground">Relatórios</h1>
           <Badge variant="secondary" className="gap-1">
             <ClipboardList className="h-3 w-3" />
             {isPlus ? 'Plus' : 'Pro'}

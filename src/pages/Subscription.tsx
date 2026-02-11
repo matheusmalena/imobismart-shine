@@ -141,8 +141,8 @@ export default function Subscription() {
               Voltar
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Minha Assinatura</h1>
-              <p className="text-muted-foreground">Gerencie seu plano e pagamentos</p>
+              <h1 className="text-3xl font-bold text-foreground">Minha Assinatura</h1>
+              <p className="text-muted-foreground mt-1">Gerencie seu plano e pagamentos</p>
             </div>
           </div>
           <Button onClick={() => navigate('/plans')} className="gap-2">
@@ -321,7 +321,7 @@ export default function Subscription() {
 
         {/* Info Banner */}
         <motion.div variants={itemVariants}>
-          <Card className="border-primary/20 bg-primary/5">
+          <Card className="border-primary/30 bg-primary/5">
             <CardContent className="flex items-start gap-4 py-4">
               <div className="p-2 rounded-full bg-primary/10">
                 <Calendar className="h-5 w-5 text-primary" />
