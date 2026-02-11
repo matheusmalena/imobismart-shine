@@ -18,10 +18,8 @@ import {
   Crown,
   Check,
   X,
-  Sparkles,
   FileText,
   HelpCircle,
-  ArrowLeft,
   Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -169,36 +167,17 @@ export default function Plans() {
   return (
     <DashboardLayout>
       <div className="space-y-8 pb-8">
-        {/* Navigation Buttons */}
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Voltar
-          </Button>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Planos</h1>
+            <p className="text-muted-foreground mt-1">Escolha o plano ideal para sua carteira de imóveis</p>
+          </div>
           <Button variant="outline" onClick={() => navigate('/subscription')} className="gap-2">
             <Crown className="h-4 w-4" />
             Minha Assinatura
           </Button>
         </div>
-
-        {/* Header - Same style as landing page */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-8"
-        >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-            <Sparkles className="h-4 w-4" />
-            Planos Flexíveis
-          </div>
-          <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
-            Escolha o plano ideal para sua carteira de imóveis
-          </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Comece grátis e evolua conforme seu portfólio cresce. Sem surpresas.
-          </p>
-        </motion.div>
 
         {/* Plans Grid - Same style as landing page */}
         <motion.div

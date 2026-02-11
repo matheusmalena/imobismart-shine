@@ -421,23 +421,28 @@ export default function Reports() {
   if (!isPro) {
     return (
       <DashboardLayout>
-        <div className="max-w-2xl mx-auto py-12">
-          <Card className="text-center">
-            <CardHeader className="pb-4">
-              <div className="mx-auto h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Crown className="h-8 w-8 text-primary" />
+        <div className="space-y-6 animate-fade-in">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Relatórios</h1>
+            <p className="text-muted-foreground mt-1">Exporte dados e gere relatórios do seu portfólio</p>
+          </div>
+
+          <Card>
+            <CardHeader className="text-center pb-4">
+              <div className="mx-auto h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                <Crown className="h-7 w-7 text-primary" />
               </div>
-              <CardTitle className="text-xl">Relatórios Avançados</CardTitle>
-              <CardDescription className="text-base">
+              <CardTitle>Relatórios Avançados</CardTitle>
+              <CardDescription>
                 Exporte seus dados e gere relatórios profissionais do seu portfólio
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4 text-left">
+            <CardContent className="space-y-4">
+              <div className="grid gap-3 text-left">
                 <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
                   <Download className="h-5 w-5 text-primary mt-0.5" />
                   <div>
-                    <p className="font-medium">Exportação CSV/JSON</p>
+                    <p className="font-medium text-sm">Exportação CSV/JSON</p>
                     <p className="text-sm text-muted-foreground">Exporte todos os dados do seu portfólio</p>
                   </div>
                   <Badge variant="outline" className="ml-auto gap-1">
@@ -448,7 +453,7 @@ export default function Reports() {
                 <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
                   <FileText className="h-5 w-5 text-primary mt-0.5" />
                   <div>
-                    <p className="font-medium">Relatórios PDF</p>
+                    <p className="font-medium text-sm">Relatórios PDF</p>
                     <p className="text-sm text-muted-foreground">Gere relatórios profissionais personalizados</p>
                   </div>
                   <Badge variant="outline" className="ml-auto gap-1 bg-purple-500/10 text-purple-600 border-purple-200">
@@ -457,8 +462,8 @@ export default function Reports() {
                   </Badge>
                 </div>
               </div>
-              <Button onClick={() => navigate('/plans')} size="lg" className="w-full">
-                <Crown className="mr-2 h-4 w-4" />
+              <Button onClick={() => navigate('/plans')} className="w-full gap-2">
+                <Crown className="h-4 w-4" />
                 Fazer Upgrade para Pro
               </Button>
             </CardContent>
