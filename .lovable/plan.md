@@ -1,62 +1,67 @@
 
-# Padronizacao Visual Completa
 
-## Problemas Encontrados
+# Limpeza Completa da Base de Dados
 
-### 1. Subscription.tsx - Multiplas inconsistencias
+## Resumo
 
-| Problema | Estado Atual | Padrao Correto |
-|----------|-------------|----------------|
-| Botao "Voltar" | Presente no header | Nenhuma outra pagina interna tem botao voltar |
-| Animacoes | `framer-motion` com variants | `animate-fade-in` (CSS class usada em todas as paginas) |
-| Layout do header | Botao Voltar + titulo + botao Ver Planos em linha | `flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4` com titulo/subtitulo a esquerda e acao a direita |
-| Nome do plano no card | `text-2xl font-bold` (muito grande) | `text-lg font-semibold` (proporcional ao card) |
-| Container | `pb-8` (padding extra) | Sem padding extra (igual outras paginas) |
-| Wrapper | `motion.div` | `div className="space-y-6 animate-fade-in"` |
+Existem **17 usuarios** no sistema. Apenas **matheus@yup.group** (admin) sera mantido. Todos os outros usuarios e seus dados serao removidos.
 
-### 2. Plans.tsx - Inconsistencias
+### Dados a serem removidos
 
-| Problema | Estado Atual | Padrao Correto |
-|----------|-------------|----------------|
-| Botao "Voltar" | Presente | Remover (nenhuma pagina interna tem) |
-| Titulo h1 | `text-3xl md:text-5xl` | `text-3xl font-bold text-foreground` (padrao) |
-| Subtitulo | `text-lg` | `text-muted-foreground mt-1` sem tamanho extra |
+| Tabela | Registros para remover |
+|--------|----------------------|
+| properties | 151 |
+| tenants | 14 |
+| lease_contracts | 5 |
+| documents | 2 |
+| ai_chat_messages | 44 |
+| whatsapp_settings | 1 |
+| organizations | 5 |
+| organization_members | 3 |
+| profiles | 17 |
+| subscriptions | ~17 |
+| user_roles | ~17 |
+| auth.users | 17 (via API) |
 
-### 3. Reports.tsx - Upgrade prompt (nao-Pro)
+### Plano de Execucao
 
-| Problema | Estado Atual | Padrao Correto |
-|----------|-------------|----------------|
-| Titulo do upgrade | `CardTitle text-2xl` (dentro do card) | Tamanho menor, consistente com UpgradeOverlay |
-| Layout | Card centralizado com `max-w-2xl mx-auto py-12` | Usar layout padrao da pagina com header normal |
+**Etapa 1: Criar Edge Function temporaria `cleanup-users`**
 
-### 4. Settings.tsx - CardTitle sem override de tamanho
+Uma funcao backend que usa privilegios administrativos para:
+1. Listar todos os usuarios exceto matheus@yup.group
+2. Para cada usuario, deletar em ordem:
+   - whatsapp_scheduled, whatsapp_messages, whatsapp_settings
+   - ai_chat_messages
+   - property_gallery, documents, lease_contracts
+   - tenants, properties
+   - organization_invitations, organization_members, organizations
+   - plan_audit_logs, rate_limits
+   - subscriptions, user_roles, profiles
+   - Arquivos nos buckets de storage (avatars, property-photos, property-documents)
+   - Conta de autenticacao (auth.users via admin API)
+3. Garantir que o usuario matheus@yup.group mantenha role `admin` e subscription `enterprise` com status `active`
 
-O componente `CardTitle` por padrao renderiza com `text-2xl`. Em Settings, os titulos "Informacoes Pessoais", "Seguranca", "Assinatura" ficam com `text-2xl` (padrao do componente), o que e consistente. Nenhuma mudanca necessaria aqui.
+**Etapa 2: Executar a funcao**
 
-## Plano de Correcao
+Chamar a funcao para limpar tudo.
 
-### Etapa 1: Reescrever header e remover animacoes do Subscription.tsx
-- Remover botao "Voltar"
-- Remover `framer-motion` (imports, variants, `motion.div`)
-- Usar wrapper `div className="space-y-6 animate-fade-in"` padrao
-- Header no padrao: titulo "Minha Assinatura" + subtitulo a esquerda, botao "Ver Planos" a direita
-- Reduzir nome do plano de `text-2xl font-bold` para `text-lg font-semibold`
-- Remover `pb-8` do container
+**Etapa 3: Atualizar subscription do matheus**
 
-### Etapa 2: Remover botao Voltar e ajustar titulo do Plans.tsx
-- Remover botao "Voltar" da navegacao
-- Manter botao "Minha Assinatura" mas mover para o header padrao como acao secundaria
-- Reduzir h1 de `text-3xl md:text-5xl` para `text-3xl font-bold text-foreground`
-- Ajustar subtitulo para `text-muted-foreground mt-1`
+Alterar o plano de `starter/trial` para `enterprise/active` para que voce tenha acesso completo durante os testes.
 
-### Etapa 3: Ajustar upgrade prompt do Reports.tsx (nao-Pro)
-- Reduzir `CardTitle` do prompt de upgrade para tamanho proporcional
-- Manter centralizado mas com estilo visual alinhado ao padrao de banners de upgrade usado no Dashboard
+**Etapa 4: Remover a Edge Function**
 
-## Arquivos Modificados
+Deletar a funcao `cleanup-users` apos a execucao, pois e de uso unico.
 
-| Arquivo | Alteracao Principal |
-|---------|-------------------|
-| `src/pages/Subscription.tsx` | Remover framer-motion, botao voltar, padronizar header e tamanhos de texto |
-| `src/pages/Plans.tsx` | Remover botao voltar, reduzir h1, padronizar header |
-| `src/pages/Reports.tsx` | Ajustar tamanho do titulo no upgrade prompt |
+## Detalhes Tecnicos
+
+A Edge Function usara `SUPABASE_SERVICE_ROLE_KEY` para ter permissao de deletar registros em todas as tabelas e remover usuarios da autenticacao via `supabase.auth.admin.deleteUser()`. 
+
+A funcao protegera o usuario `3a2e17a7-e9ca-43dc-92c3-ff3bbd81acb1` (matheus@yup.group) de qualquer exclusao.
+
+## Arquivos
+
+| Arquivo | Acao |
+|---------|------|
+| `supabase/functions/cleanup-users/index.ts` | Criar (temporario) |
+
