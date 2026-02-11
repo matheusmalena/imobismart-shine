@@ -1,37 +1,63 @@
 
-# Adicionar Imagens aos Imoveis da conta pro@teste.com
 
-## Situacao Atual
+# Corrigir Layout dos Cards e Padronizar CTAs de Upgrade
 
-A conta `pro@teste.com` tem 5 imoveis com caminhos de imagem locais que nao existem:
+## Problemas Identificados
 
-| Imovel | Tipo | Foto Atual |
-|--------|------|------------|
-| Residencial Palm Beach | Apartamento | /images/property-1.jpg |
-| Casa Jardim Europa | Casa | /images/property-2.jpg |
-| Sala Comercial Faria Lima | Sala Comercial | /images/property-3.jpg |
-| Cobertura Skyline | Apartamento (cobertura) | /images/property-4.jpg |
-| Loja Centro Historico | Loja | /images/property-5.jpg |
+### 1. Card "Status dos Imoveis" (OccupancyChart)
+- Usa `div` manual em vez do componente `Card` padrao, causando inconsistencia visual
+- Conteudo colado no topo (sem espacamento adequado)
+- Grafico donut centralizado verticalmente mas sem preenchimento inferior
 
-## O que sera feito
+### 2. Card "Recomendacoes IA" (PlusAICard)
+- O overlay de upgrade fica flutuando no topo porque o conteudo borrado por tras e pequeno
+- O `CardContent` nao tem altura minima, entao o overlay fica comprimido
 
-1. Gerar 5 imagens realistas usando IA (modelo de geracao de imagens) para cada tipo de imovel
-2. Fazer upload de cada imagem para o storage do projeto (bucket `property-photos`)
-3. Atualizar o campo `photo_url` de cada imovel no banco com a URL publica do storage
+### 3. Falta de padrao visual nos CTAs de Upgrade
+Atualmente existem **4 implementacoes diferentes** do overlay/banner de upgrade:
+- `LockedSection.tsx` -- overlay com blur, icone Lock, botao com Crown
+- `PlusAICard.tsx` -- overlay com blur, icone Sparkles, botao com Crown (cor diferente do badge)
+- `ProFeaturesCard.tsx` -- overlay com blur, icone Lock, botao com Crown
+- `PropertyLimitBanner.tsx` -- banner horizontal, sem blur
+- `UnarchiveBlockedDialog.tsx` -- dialog modal
 
-## Imagens que serao geradas
+Cada um usa cores, tamanhos e estilos ligeiramente diferentes.
 
-- **Residencial Palm Beach**: Fachada de predio residencial moderno com piscina
-- **Casa Jardim Europa**: Casa terrea elegante com jardim
-- **Sala Comercial Faria Lima**: Escritorio moderno com vista panoramica
-- **Cobertura Skyline**: Cobertura luxuosa com terraço e vista da cidade
-- **Loja Centro Historico**: Fachada de loja comercial em area historica
+## Solucao
 
-## Detalhes Tecnicos
+### Etapa 1: Criar componente `UpgradeOverlay` reutilizavel
+Novo componente em `src/components/common/UpgradeOverlay.tsx` que padroniza:
+- Fundo com `backdrop-blur-md` e `bg-card/80`
+- Icone centralizado no topo (customizavel)
+- Titulo + descricao
+- Botao seguindo o padrao: `<Crown /> Upgrade para [Plano]`
+- Badge no header seguindo: `<Lock /> Plano [Nome]`
+- Cores por plano: Pro (primary), Plus (purple), Enterprise (amber)
 
-- Criar uma edge function temporaria `generate-property-images` que usa o modelo `google/gemini-2.5-flash-image` para gerar as imagens
-- Cada imagem gerada sera convertida de base64 para arquivo e armazenada no bucket `property-photos` no caminho `{user_id}/{property_id}/cover.jpg`
-- Apos upload, atualizar o campo `photo_url` de cada propriedade com a URL publica
-- A edge function sera executada uma unica vez e pode ser removida depois
+### Etapa 2: Corrigir OccupancyChart
+- Substituir `div` wrapper por componentes `Card`, `CardHeader`, `CardContent`
+- Manter o layout horizontal (donut + legenda lado a lado, conforme memoria do projeto)
+- Garantir espacamento consistente com os demais cards
 
-Alternativa mais simples: usar imagens de stock gratuitas (Unsplash) com URLs diretas, sem necessidade de edge function. Isso e mais rapido e nao consome creditos de IA.
+### Etapa 3: Corrigir PlusAICard
+- Adicionar `min-h-[220px]` no `CardContent` para que o overlay tenha espaco suficiente
+- Substituir overlay inline pelo novo `UpgradeOverlay`
+- Manter badge purple para Plus
+
+### Etapa 4: Atualizar ProFeaturesCard
+- Substituir overlay inline pelo `UpgradeOverlay`
+
+### Etapa 5: Atualizar LockedSection
+- Substituir overlay inline pelo `UpgradeOverlay`
+
+## Arquivos Modificados
+
+| Arquivo | Alteracao |
+|---------|-----------|
+| `src/components/common/UpgradeOverlay.tsx` | **Novo** -- componente reutilizavel |
+| `src/components/dashboard/OccupancyChart.tsx` | Migrar para Card, ajustar espacamento |
+| `src/components/dashboard/PlusAICard.tsx` | Usar UpgradeOverlay, min-height |
+| `src/components/dashboard/ProFeaturesCard.tsx` | Usar UpgradeOverlay |
+| `src/components/dashboard/LockedSection.tsx` | Usar UpgradeOverlay |
+
+Nota: `PropertyLimitBanner` e `UnarchiveBlockedDialog` nao serao alterados pois sao formatos diferentes (banner e dialog) que fazem sentido no contexto onde aparecem.
