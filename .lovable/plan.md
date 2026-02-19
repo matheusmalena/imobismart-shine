@@ -1,45 +1,34 @@
 
+# Remover Cabecalho Superior e Adicionar Modo Noturno nas Configuracoes
 
-# Corrigir Exclusao de Usuario no Admin
+## O que muda
 
-## Problema
-
-O `DeleteUserDialog` atual tenta deletar apenas `subscriptions`, `user_roles` e `profiles` usando o client-side SDK. Isso falha porque:
-
-1. **Nao remove o usuario do sistema de autenticacao** - o usuario continua existindo em `auth.users`, e os triggers `handle_new_user` e `handle_new_user_role` recriam o profile e subscription automaticamente
-2. **Nao remove dados vinculados** (properties, tenants, contracts, etc.) - restricoes de chave estrangeira podem bloquear a exclusao do profile
-3. **Nao verifica erros** nas primeiras chamadas de delete - mostra "sucesso" mesmo quando falhou
-
-## Solucao
-
-Criar uma Edge Function `delete-user-admin` que usa `SUPABASE_SERVICE_ROLE_KEY` para:
-1. Deletar todos os dados relacionados ao usuario em todas as tabelas (mesma logica do cleanup que ja fizemos)
-2. Remover arquivos dos buckets de storage
-3. Remover o usuario de `auth.users` via `supabase.auth.admin.deleteUser()`
-
-Atualizar o `DeleteUserDialog` para chamar essa Edge Function em vez de fazer deletes diretos.
-
-## Arquivos
-
-| Arquivo | Acao |
-|---------|------|
-| `supabase/functions/delete-user-admin/index.ts` | Criar - Edge Function com service_role para exclusao completa |
-| `supabase/config.toml` | Adicionar config da nova funcao com `verify_jwt = false` |
-| `src/components/admin/DeleteUserDialog.tsx` | Atualizar para chamar a Edge Function em vez de deletes diretos |
+1. **Remover o header/top bar** do `DashboardLayout.tsx` - a barra fixa no topo com o botao de tema e o botao de menu mobile
+2. **Mover o botao de menu mobile** para dentro do conteudo (ou sidebar) para que continue funcional em telas pequenas
+3. **Adicionar secao "Aparencia"** na pagina de Configuracoes com toggle de modo claro/escuro
 
 ## Detalhes Tecnicos
 
-### Edge Function `delete-user-admin`
-- Recebe `{ userId }` no body
-- Valida que o chamador e admin (verifica JWT + role na tabela `user_roles`)
-- Impede exclusao do proprio admin
-- Deleta em cascata: `whatsapp_scheduled` > `whatsapp_messages` > `whatsapp_settings` > `ai_chat_messages` > `property_gallery` > `documents` > `lease_contracts` > `tenants` > `properties` > `organization_invitations` > `organization_members` > `organizations` (onde owner_id = userId) > `plan_audit_logs` > `rate_limits` > `enterprise_checkout_links` > `subscriptions` > `user_roles` > `profiles`
-- Limpa arquivos nos buckets `avatars`, `property-photos`, `property-documents`
-- Remove de `auth.users` via admin API
-- Retorna resultado com contagem de registros removidos
+### Arquivo 1: `src/components/layout/DashboardLayout.tsx`
+- Remover o bloco `<header>` (linhas 237-249) que contem o top bar sticky com ThemeToggle
+- Mover o botao hamburguer (Menu) para um botao fixo/flutuante visivel apenas em mobile (`lg:hidden`), posicionado no topo do conteudo principal
+- Remover import do `ThemeToggle`
+- Ajustar o padding do conteudo principal removendo a compensacao do header (`sticky top-0 z-30 h-16`)
 
-### DeleteUserDialog
-- Substitui os deletes diretos por uma chamada `fetch` a Edge Function
-- Passa o token de autorizacao do usuario logado no header
-- Trata erros retornados pela funcao
+### Arquivo 2: `src/pages/Settings.tsx`
+- Adicionar nova secao "Aparencia" entre "Seguranca" e "Assinatura"
+- Card com icone de paleta/sol/lua
+- Toggle switch entre modo Claro e Escuro usando o hook `useTheme` do ThemeProvider
+- Importar `useTheme` de `@/components/ThemeProvider`
+- Importar `Switch` de `@/components/ui/switch`
+- Importar icones `Sun`, `Moon` ou `Palette` de lucide-react
 
+### Layout do botao mobile
+O botao hamburguer sera posicionado como um botao fixo no canto superior esquerdo, visivel apenas em mobile (`lg:hidden fixed top-4 left-4 z-30`), com fundo semi-transparente para manter visibilidade sobre o conteudo.
+
+## Arquivos Modificados
+
+| Arquivo | Alteracao |
+|---------|----------|
+| `src/components/layout/DashboardLayout.tsx` | Remover header, mover botao mobile para posicao fixa |
+| `src/pages/Settings.tsx` | Adicionar card de Aparencia com toggle de tema |
