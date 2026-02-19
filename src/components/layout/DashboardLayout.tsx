@@ -102,7 +102,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       >
         <div className="flex h-full flex-col">
           {/* Logo */}
-          <div className="flex h-16 items-center gap-3 px-6 border-b border-sidebar-border">
+          <div className="flex h-16 items-center gap-3 px-6">
             <div className="flex-1">
               <LogoText size="md" variant="sidebar" />
             </div>
