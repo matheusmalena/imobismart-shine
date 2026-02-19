@@ -100,9 +100,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex h-full flex-col">
+        <div className="flex h-full flex-col pt-4 lg:pt-8">
           {/* Logo */}
-          <div className="flex h-16 items-center gap-3 px-6">
+          <div className="flex items-center gap-3 px-6 mb-6">
             <div className="flex-1">
               <LogoText size="md" variant="sidebar" />
             </div>
@@ -115,7 +115,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+          <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href;
               return (
