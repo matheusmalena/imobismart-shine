@@ -25,7 +25,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { User, Mail, Crown, Calendar, CreditCard, AlertTriangle, Shield, ArrowUpRight, Lock, Camera, Phone } from 'lucide-react';
+import { User, Mail, Crown, Calendar, CreditCard, AlertTriangle, Shield, ArrowUpRight, Lock, Camera, Phone, Sun, Moon } from 'lucide-react';
+import { useTheme } from '@/components/ThemeProvider';
+import { Switch } from '@/components/ui/switch';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -63,6 +65,41 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: 'bg-destructive/10 text-destructive border-destructive/20',
   trial: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
 };
+
+function AppearanceCard() {
+  const { theme, setTheme } = useTheme();
+  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10">
+            {isDark ? <Moon className="h-5 w-5 text-primary" /> : <Sun className="h-5 w-5 text-primary" />}
+          </div>
+          <div>
+            <CardTitle>Aparência</CardTitle>
+            <CardDescription>Personalize a interface do sistema</CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <Label className="text-foreground font-medium">Modo Escuro</Label>
+            <p className="text-sm text-muted-foreground">
+              {isDark ? 'Tema escuro ativado' : 'Tema claro ativado'}
+            </p>
+          </div>
+          <Switch
+            checked={isDark}
+            onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -273,6 +310,9 @@ export default function Settings() {
             <TwoFactorSetup />
           </CardContent>
         </Card>
+
+        {/* Appearance Section */}
+        <AppearanceCard />
 
         {/* Subscription Section */}
         <Card>

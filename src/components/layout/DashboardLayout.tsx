@@ -27,7 +27,7 @@ import {
   Link2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ThemeToggle } from '@/components/ThemeToggle';
+
 import { TutorialModal } from '@/components/onboarding/TutorialModal';
 import { LogoText } from '@/components/common/LogoText';
 import { PortfolioCopilot, PortfolioCopilotRef } from '@/components/ai/PortfolioCopilot';
@@ -235,23 +235,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
       </aside>
 
+      {/* Mobile menu button */}
+      <button
+        className="lg:hidden fixed top-4 left-4 z-30 p-2 rounded-lg bg-background/80 backdrop-blur-sm border border-border shadow-sm hover:bg-secondary transition-colors"
+        onClick={() => setSidebarOpen(true)}
+      >
+        <Menu className="h-5 w-5" />
+      </button>
+
       {/* Main content */}
       <div className="lg:pl-64">
-        {/* Top bar - Simplified without AI input */}
-        <header className="sticky top-0 z-30 h-16 bg-background/80 backdrop-blur-xl border-b border-border flex items-center justify-between px-4 lg:px-8">
-          <button
-            className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-secondary transition-colors"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-          
-          <div className="flex-1" />
-
-          <ThemeToggle />
-        </header>
-
-        {/* Page content */}
         <main className="p-4 lg:p-8">
           {children}
         </main>
