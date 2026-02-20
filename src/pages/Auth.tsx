@@ -11,7 +11,8 @@ import { MFAVerification } from '@/components/auth/MFAVerification';
 import { useToast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { LogoText } from '@/components/common/LogoText';
-import { Eye, EyeOff, Loader2, Mail, Lock, User, Building2, BarChart3, Shield, Phone } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Mail, Lock, User, Building2, BarChart3, Shield, Phone, ArrowLeft } from 'lucide-react';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { z } from 'zod';
 
 // Client-side rate limiting for auth (before DB check)
@@ -75,6 +76,11 @@ export default function Auth() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [resendingCode, setResendingCode] = useState(false);
   
   // Login form
   const [loginEmail, setLoginEmail] = useState('');
@@ -238,10 +244,11 @@ export default function Auth() {
       });
     } else {
       toast({
-        title: 'Conta criada!',
-        description: 'Sua conta foi criada com sucesso.',
+        title: 'Código enviado!',
+        description: 'Verifique seu email para o código de verificação.',
       });
-      navigate('/dashboard');
+      setPendingEmail(signupEmail);
+      setShowEmailVerification(true);
     }
   };
 
@@ -258,6 +265,74 @@ export default function Auth() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <MFAVerification onSuccess={handleMFASuccess} onCancel={handleMFACancel} />
+      </div>
+    );
+  }
+
+  const handleVerifyOtp = async () => {
+    if (otpCode.length !== 6) return;
+    setVerifyingOtp(true);
+    const { error } = await supabase.auth.verifyOtp({ email: pendingEmail, token: otpCode, type: 'signup' });
+    setVerifyingOtp(false);
+    if (error) {
+      toast({ title: 'Código inválido', description: 'Verifique o código e tente novamente.', variant: 'destructive' });
+    } else {
+      toast({ title: 'Email verificado!', description: 'Sua conta foi ativada com sucesso.' });
+      navigate('/dashboard');
+    }
+  };
+
+  const handleResendCode = async () => {
+    setResendingCode(true);
+    const { error } = await supabase.auth.resend({ type: 'signup', email: pendingEmail });
+    setResendingCode(false);
+    if (error) {
+      toast({ title: 'Erro ao reenviar', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Código reenviado!', description: 'Verifique seu email.' });
+    }
+  };
+
+  // Show email verification screen
+  if (showEmailVerification) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md border-0 shadow-xl">
+          <CardHeader className="text-center space-y-2">
+            <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+              <Mail className="h-6 w-6 text-primary" />
+            </div>
+            <CardTitle className="text-2xl font-bold">Verifique seu email</CardTitle>
+            <CardDescription>
+              Enviamos um código de 6 dígitos para <span className="font-medium text-foreground">{pendingEmail}</span>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex justify-center">
+              <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode}>
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
+            <Button className="w-full" size="lg" onClick={handleVerifyOtp} disabled={otpCode.length !== 6 || verifyingOtp}>
+              {verifyingOtp ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Verificando...</> : 'Verificar'}
+            </Button>
+            <div className="flex items-center justify-between text-sm">
+              <button type="button" onClick={handleResendCode} disabled={resendingCode} className="text-primary hover:underline disabled:opacity-50">
+                {resendingCode ? 'Reenviando...' : 'Reenviar código'}
+              </button>
+              <button type="button" onClick={() => { setShowEmailVerification(false); setOtpCode(''); }} className="text-muted-foreground hover:text-foreground flex items-center gap-1">
+                <ArrowLeft className="h-3 w-3" /> Voltar
+              </button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
