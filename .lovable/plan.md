@@ -1,34 +1,45 @@
 
-# Remover Cabecalho Superior e Adicionar Modo Noturno nas Configuracoes
+# Verificacao de Email com Codigo OTP no Cadastro
 
 ## O que muda
 
-1. **Remover o header/top bar** do `DashboardLayout.tsx` - a barra fixa no topo com o botao de tema e o botao de menu mobile
-2. **Mover o botao de menu mobile** para dentro do conteudo (ou sidebar) para que continue funcional em telas pequenas
-3. **Adicionar secao "Aparencia"** na pagina de Configuracoes com toggle de modo claro/escuro
+Apos criar a conta, o usuario vera uma tela pedindo o codigo OTP de 6 digitos enviado ao email dele. So apos digitar o codigo correto ele sera autenticado e redirecionado ao dashboard.
+
+## Fluxo do usuario
+
+1. Usuario preenche o formulario de cadastro e clica "Criar conta"
+2. Um email com codigo de 6 digitos e enviado automaticamente
+3. A tela muda para um formulario de verificacao com 6 campos para digitar o codigo
+4. Usuario digita o codigo e clica "Verificar"
+5. Se valido, usuario e autenticado e redirecionado ao dashboard
+6. Opcao de "Reenviar codigo" disponivel caso nao receba
 
 ## Detalhes Tecnicos
 
-### Arquivo 1: `src/components/layout/DashboardLayout.tsx`
-- Remover o bloco `<header>` (linhas 237-249) que contem o top bar sticky com ThemeToggle
-- Mover o botao hamburguer (Menu) para um botao fixo/flutuante visivel apenas em mobile (`lg:hidden`), posicionado no topo do conteudo principal
-- Remover import do `ThemeToggle`
-- Ajustar o padding do conteudo principal removendo a compensacao do header (`sticky top-0 z-30 h-16`)
+### 1. Configuracao de Auth
+- Desabilitar auto-confirm de email usando a ferramenta configure-auth, para que o email precise ser verificado antes de ativar a conta
 
-### Arquivo 2: `src/pages/Settings.tsx`
-- Adicionar nova secao "Aparencia" entre "Seguranca" e "Assinatura"
-- Card com icone de paleta/sol/lua
-- Toggle switch entre modo Claro e Escuro usando o hook `useTheme` do ThemeProvider
-- Importar `useTheme` de `@/components/ThemeProvider`
-- Importar `Switch` de `@/components/ui/switch`
-- Importar icones `Sun`, `Moon` ou `Palette` de lucide-react
+### 2. Arquivo: `src/pages/Auth.tsx`
+- Adicionar estados `showEmailVerification` (boolean) e `pendingEmail` (string)
+- Importar `InputOTP`, `InputOTPGroup`, `InputOTPSlot` de `@/components/ui/input-otp`
+- Importar icone `ArrowLeft` de lucide-react
+- No `handleSignUp`: apos sucesso, em vez de navegar ao dashboard, setar `showEmailVerification = true` e guardar o email em `pendingEmail`
+- Adicionar tela condicional de verificacao OTP (similar a tela MFA existente) com:
+  - Icone de email no topo
+  - Titulo "Verifique seu email"
+  - Texto informando que o codigo foi enviado ao email
+  - 6 campos OTP usando o componente `InputOTP` ja existente no projeto
+  - Botao "Verificar" que chama `supabase.auth.verifyOtp({ email, token, type: 'signup' })`
+  - Botao "Reenviar codigo" que chama `supabase.auth.resend({ type: 'signup', email })`
+  - Botao "Voltar" para retornar ao formulario de cadastro
+- Mensagem de sucesso atualizada para informar que o codigo foi enviado
 
-### Layout do botao mobile
-O botao hamburguer sera posicionado como um botao fixo no canto superior esquerdo, visivel apenas em mobile (`lg:hidden fixed top-4 left-4 z-30`), com fundo semi-transparente para manter visibilidade sobre o conteudo.
+### 3. Arquivo: `src/contexts/AuthContext.tsx`
+- Nenhuma alteracao necessaria - o `signUp` ja retorna o erro/sucesso e o Supabase cuida do envio do OTP quando auto-confirm esta desabilitado
 
 ## Arquivos Modificados
 
 | Arquivo | Alteracao |
 |---------|----------|
-| `src/components/layout/DashboardLayout.tsx` | Remover header, mover botao mobile para posicao fixa |
-| `src/pages/Settings.tsx` | Adicionar card de Aparencia com toggle de tema |
+| `src/pages/Auth.tsx` | Adicionar tela de verificacao OTP apos cadastro |
+| Auth config | Desabilitar auto-confirm de email |
