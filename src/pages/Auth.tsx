@@ -232,9 +232,9 @@ export default function Auth() {
 
     setIsLoading(true);
     const { error } = await signUp(signupEmail, signupPassword, signupFullName, signupMobileNumber || undefined);
-    setIsLoading(false);
 
     if (error) {
+      setIsLoading(false);
       toast({
         title: 'Erro ao cadastrar',
         description: error.message === 'User already registered'
@@ -242,14 +242,33 @@ export default function Auth() {
           : error.message,
         variant: 'destructive',
       });
-    } else {
-      toast({
-        title: 'Código enviado!',
-        description: 'Verifique seu email para o código de verificação.',
-      });
-      setPendingEmail(signupEmail);
-      setShowEmailVerification(true);
+      return;
     }
+
+    // Send OTP via Resend
+    try {
+      const { data, error: otpError } = await supabase.functions.invoke('send-verification-otp', {
+        body: { email: signupEmail },
+      });
+      if (otpError) throw otpError;
+      if (data?.error) throw new Error(data.error);
+    } catch (err: any) {
+      setIsLoading(false);
+      toast({
+        title: 'Erro ao enviar código',
+        description: err.message || 'Tente novamente.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsLoading(false);
+    toast({
+      title: 'Código enviado!',
+      description: 'Verifique seu email para o código de verificação.',
+    });
+    setPendingEmail(signupEmail);
+    setShowEmailVerification(true);
   };
 
   if (loading) {
@@ -272,24 +291,42 @@ export default function Auth() {
   const handleVerifyOtp = async () => {
     if (otpCode.length !== 6) return;
     setVerifyingOtp(true);
-    const { error } = await supabase.auth.verifyOtp({ email: pendingEmail, token: otpCode, type: 'signup' });
-    setVerifyingOtp(false);
-    if (error) {
-      toast({ title: 'Código inválido', description: 'Verifique o código e tente novamente.', variant: 'destructive' });
-    } else {
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-email-otp', {
+        body: { email: pendingEmail, otp: otpCode },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      
+      // Re-login after email confirmation
+      const { error: loginError } = await supabase.auth.signInWithPassword({
+        email: pendingEmail,
+        password: signupPassword,
+      });
+      if (loginError) throw loginError;
+      
       toast({ title: 'Email verificado!', description: 'Sua conta foi ativada com sucesso.' });
       navigate('/dashboard');
+    } catch (err: any) {
+      toast({ title: 'Código inválido', description: err.message || 'Verifique o código e tente novamente.', variant: 'destructive' });
+    } finally {
+      setVerifyingOtp(false);
     }
   };
 
   const handleResendCode = async () => {
     setResendingCode(true);
-    const { error } = await supabase.auth.resend({ type: 'signup', email: pendingEmail });
-    setResendingCode(false);
-    if (error) {
-      toast({ title: 'Erro ao reenviar', description: error.message, variant: 'destructive' });
-    } else {
+    try {
+      const { data, error } = await supabase.functions.invoke('send-verification-otp', {
+        body: { email: pendingEmail },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
       toast({ title: 'Código reenviado!', description: 'Verifique seu email.' });
+    } catch (err: any) {
+      toast({ title: 'Erro ao reenviar', description: err.message, variant: 'destructive' });
+    } finally {
+      setResendingCode(false);
     }
   };
 
