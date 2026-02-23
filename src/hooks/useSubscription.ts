@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserData } from '@/hooks/useUserData';
 import { toast } from 'sonner';
 
-export type SubscriptionPlan = 'starter' | 'pro' | 'enterprise' | 'plus';
+export type SubscriptionPlan = 'free' | 'starter' | 'pro' | 'enterprise' | 'plus';
 export type SubscriptionStatus = 'active' | 'inactive' | 'cancelled' | 'trial';
 
 export interface Subscription {
