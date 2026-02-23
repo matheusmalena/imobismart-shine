@@ -58,21 +58,15 @@ export default function Subscription() {
     return null;
   }
 
-  const handleManagePayment = async () => {
+  const handleCheckSubscription = async () => {
     setIsOpeningPortal(true);
     try {
-      const { data, error } = await supabase.functions.invoke('create-stripe-portal');
-      if (error) throw new Error(error.message);
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      } else {
-        throw new Error('URL do portal não retornada');
-      }
+      await supabase.functions.invoke('check-subscription');
+      refetch();
+      toast.success('Status da assinatura atualizado');
     } catch (error) {
-      console.error('Portal error:', error);
-      toast.error('Erro ao abrir portal de pagamento', {
-        description: error instanceof Error ? error.message : 'Tente novamente.',
-      });
+      console.error('Check subscription error:', error);
+      toast.error('Erro ao verificar assinatura');
     } finally {
       setIsOpeningPortal(false);
     }
@@ -144,10 +138,10 @@ export default function Subscription() {
               )}
 
               <div className="pt-4 border-t space-y-3">
-                {isPaid && (
-                  <Button variant="outline" className="w-full gap-2" onClick={handleManagePayment} disabled={isOpeningPortal}>
-                    {isOpeningPortal ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
-                    Gerenciar Pagamento
+              {isPaid && (
+                  <Button variant="outline" className="w-full gap-2" onClick={handleCheckSubscription} disabled={isOpeningPortal}>
+                    {isOpeningPortal ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                    Verificar Status
                   </Button>
                 )}
                 {currentPlan === 'free' && currentStatus !== 'cancelled' && (
@@ -231,7 +225,7 @@ export default function Subscription() {
             <div className="flex-1">
               <h4 className="font-medium text-foreground mb-1">Sobre renovações</h4>
               <p className="text-sm text-muted-foreground">
-                Sua assinatura é renovada automaticamente a cada mês. Imóveis excedentes são cobrados na próxima fatura. Gerencie tudo pelo portal de pagamento.
+                Sua assinatura é renovada automaticamente a cada mês. Imóveis excedentes são cobrados na próxima fatura. Pagamentos via PIX, Boleto ou Cartão.
               </p>
             </div>
           </CardContent>

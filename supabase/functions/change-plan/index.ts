@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
@@ -7,6 +6,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const ASAAS_API_URL = "https://api.asaas.com/v3";
 
 const logStep = (step: string, details?: unknown) => {
   const d = details ? ` - ${JSON.stringify(details)}` : "";
@@ -39,7 +40,15 @@ serve(async (req) => {
     const { planId } = await req.json();
     logStep("Plan change requested", { planId, userId: user.id });
 
-    // 1. Get current subscription from DB
+    const ASAAS_API_KEY = Deno.env.get("ASAAS_API_KEY");
+    if (!ASAAS_API_KEY) throw new Error("ASAAS_API_KEY not configured");
+
+    const headers = {
+      "Content-Type": "application/json",
+      access_token: ASAAS_API_KEY,
+    };
+
+    // Get current subscription from DB
     const { data: subscription, error: subError } = await supabase
       .from("subscriptions")
       .select("*")
@@ -48,31 +57,34 @@ serve(async (req) => {
 
     if (subError) throw new Error(`Subscription fetch error: ${subError.message}`);
 
-    const stripeSubId = subscription?.stripe_subscription_id;
+    const asaasSubId = subscription?.asaas_subscription_id;
 
-    if (!stripeSubId) {
-      // No active Stripe subscription — tell frontend to use checkout instead
+    if (!asaasSubId) {
       return new Response(
         JSON.stringify({ action: "checkout_required" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
       );
     }
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2025-08-27.basil",
-    });
-
-    // 2. Handle downgrade to FREE — cancel the Stripe subscription
+    // Handle downgrade to FREE — cancel the Asaas subscription
     if (planId === "free") {
-      logStep("Cancelling subscription for free downgrade", { stripeSubId });
+      logStep("Cancelling subscription for free downgrade", { asaasSubId });
 
-      await stripe.subscriptions.cancel(stripeSubId);
+      const cancelRes = await fetch(`${ASAAS_API_URL}/subscriptions/${asaasSubId}`, {
+        method: "DELETE",
+        headers,
+      });
 
-      // DB will be updated by the webhook (customer.subscription.deleted)
-      // But we also update immediately for instant UI feedback
+      const cancelData = await cancelRes.json();
+      logStep("Cancel response", cancelData);
+
       await supabase
         .from("subscriptions")
-        .update({ plan: "free", status: "cancelled", stripe_subscription_id: null })
+        .update({
+          plan: "free",
+          status: "cancelled",
+          asaas_subscription_id: null,
+        })
         .eq("user_id", user.id);
 
       return new Response(
@@ -81,42 +93,37 @@ serve(async (req) => {
       );
     }
 
-    // 3. Handle upgrade/downgrade between paid plans
-    // Get the new plan's stripe_price_id
+    // Handle upgrade/downgrade between paid plans
     const { data: newPlan, error: planError } = await supabase
       .from("plans")
-      .select("stripe_price_id, name")
+      .select("id, name, price")
       .eq("id", planId)
       .single();
 
-    if (planError || !newPlan?.stripe_price_id) {
-      throw new Error("Plan not found or no Stripe price configured");
+    if (planError || !newPlan) {
+      throw new Error("Plan not found");
     }
 
-    logStep("Updating subscription", { stripeSubId, newPriceId: newPlan.stripe_price_id });
+    logStep("Updating Asaas subscription", { asaasSubId, newValue: newPlan.price });
 
-    // Get current subscription items from Stripe
-    const currentSub = await stripe.subscriptions.retrieve(stripeSubId);
-    const currentItemId = currentSub.items.data[0]?.id;
-
-    if (!currentItemId) {
-      throw new Error("No subscription item found in current subscription");
-    }
-
-    // Update the subscription with the new price
-    const updatedSub = await stripe.subscriptions.update(stripeSubId, {
-      items: [
-        {
-          id: currentItemId,
-          price: newPlan.stripe_price_id,
-        },
-      ],
-      proration_behavior: "create_prorations",
+    const updateRes = await fetch(`${ASAAS_API_URL}/subscriptions/${asaasSubId}`, {
+      method: "PUT",
+      headers,
+      body: JSON.stringify({
+        value: newPlan.price,
+        description: `ImobiSmart - Plano ${newPlan.name}`,
+        externalReference: JSON.stringify({ user_id: user.id, plan_id: planId }),
+      }),
     });
 
-    logStep("Subscription updated", { newStatus: updatedSub.status });
+    const updateData = await updateRes.json();
+    logStep("Update response", updateData);
 
-    // Update DB immediately for instant UI feedback
+    if (updateData.errors) {
+      throw new Error(`Asaas update error: ${JSON.stringify(updateData.errors)}`);
+    }
+
+    // Update DB immediately
     await supabase
       .from("subscriptions")
       .update({ plan: planId, status: "active" })

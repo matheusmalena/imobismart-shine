@@ -1,22 +1,17 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const ASAAS_API_URL = "https://api.asaas.com/v3";
 
 const logStep = (step: string, details?: unknown) => {
-  const d = details ? ` - ${JSON.stringify(details)}` : '';
+  const d = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[CHECK-SUBSCRIPTION] ${step}${d}`);
-};
-
-// Map Stripe price IDs to plan IDs
-const PRICE_TO_PLAN: Record<string, string> = {
-  "price_1T40TyA9DGgSi5xOCh6NSsSg": "starter",
-  "price_1T40URA9DGgSi5xOk5tRe07L": "pro",
-  "price_1T40UhA9DGgSi5xOJP6h262D": "plus",
 };
 
 serve(async (req) => {
@@ -42,70 +37,95 @@ serve(async (req) => {
     const user = userData.user;
     if (!user?.email) throw new Error("User not authenticated");
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2025-08-27.basil",
-    });
+    // Get subscription from DB
+    const { data: subscription } = await supabase
+      .from("subscriptions")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
 
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    const asaasSubId = subscription?.asaas_subscription_id;
 
-    if (customers.data.length === 0) {
-      logStep("No Stripe customer found");
-      return new Response(JSON.stringify({ subscribed: false, plan: "free" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
+    if (!asaasSubId) {
+      logStep("No Asaas subscription found");
+      return new Response(
+        JSON.stringify({ subscribed: false, plan: "free" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
     }
 
-    const customerId = customers.data[0].id;
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      status: "active",
-      limit: 1,
-    });
+    const ASAAS_API_KEY = Deno.env.get("ASAAS_API_KEY");
+    if (!ASAAS_API_KEY) throw new Error("ASAAS_API_KEY not configured");
 
-    if (subscriptions.data.length === 0) {
-      logStep("No active subscription");
+    const headers = {
+      "Content-Type": "application/json",
+      access_token: ASAAS_API_KEY,
+    };
+
+    // Check subscription status in Asaas
+    const subRes = await fetch(`${ASAAS_API_URL}/subscriptions/${asaasSubId}`, { headers });
+    const subData = await subRes.json();
+
+    logStep("Asaas subscription status", { status: subData.status, id: subData.id });
+
+    if (subData.status === "ACTIVE") {
+      // Parse plan from externalReference
+      let plan = subscription?.plan || "free";
+      if (subData.externalReference) {
+        try {
+          const ref = JSON.parse(subData.externalReference);
+          if (ref.plan_id) plan = ref.plan_id;
+        } catch {
+          // ignore
+        }
+      }
 
       // Sync DB
       await supabase
         .from("subscriptions")
-        .update({ plan: "free", status: "cancelled", stripe_customer_id: customerId })
+        .update({
+          plan,
+          status: "active",
+          asaas_subscription_id: asaasSubId,
+        })
         .eq("user_id", user.id);
 
-      return new Response(JSON.stringify({ subscribed: false, plan: "free" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
+      return new Response(
+        JSON.stringify({ subscribed: true, plan }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
     }
 
-    const sub = subscriptions.data[0];
-    const priceId = sub.items.data[0]?.price?.id;
-    const plan = priceId ? PRICE_TO_PLAN[priceId] || "free" : "free";
-    const subscriptionEnd = new Date(sub.current_period_end * 1000).toISOString();
+    if (subData.status === "INACTIVE" || subData.status === "EXPIRED") {
+      // Subscription no longer active
+      await supabase
+        .from("subscriptions")
+        .update({
+          plan: "free",
+          status: "cancelled",
+          asaas_subscription_id: null,
+        })
+        .eq("user_id", user.id);
 
-    logStep("Active subscription found", { plan, customerId });
+      return new Response(
+        JSON.stringify({ subscribed: false, plan: "free" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
 
-    // Sync DB
-    await supabase
-      .from("subscriptions")
-      .update({
-        plan,
-        status: "active",
-        stripe_customer_id: customerId,
-        stripe_subscription_id: sub.id,
-        expires_at: subscriptionEnd,
-      })
-      .eq("user_id", user.id);
-
+    // Default: return current DB state
     return new Response(
-      JSON.stringify({ subscribed: true, plan, subscription_end: subscriptionEnd }),
+      JSON.stringify({
+        subscribed: subscription?.status === "active",
+        plan: subscription?.plan || "free",
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   } catch (error) {
     logStep("ERROR", { message: (error as Error).message });
-    return new Response(JSON.stringify({ error: (error as Error).message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
+    return new Response(
+      JSON.stringify({ error: (error as Error).message }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+    );
   }
 });

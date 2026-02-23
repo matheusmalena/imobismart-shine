@@ -57,7 +57,7 @@ export default function Plans() {
   const [pendingDowngradePlan, setPendingDowngradePlan] = useState<string | null>(null);
 
   const currentPlan = subscription?.plan || 'free';
-  const hasStripeSubscription = !!subscription?.stripe_subscription_id;
+  const hasActiveSubscription = !!subscription?.asaas_subscription_id || !!subscription?.stripe_subscription_id;
   const isLoading = authLoading || subscriptionLoading || plansLoading;
 
   useEffect(() => {
@@ -119,7 +119,7 @@ export default function Plans() {
   const executePlanChange = async (planId: string) => {
     setLoadingPlan(planId);
     try {
-      if (hasStripeSubscription) {
+      if (hasActiveSubscription) {
         // User already has a Stripe subscription — use change-plan
         const { data, error } = await supabase.functions.invoke('change-plan', {
           body: { planId },
@@ -159,7 +159,7 @@ export default function Plans() {
   };
 
   const redirectToCheckout = async (planId: string) => {
-    const { data, error } = await supabase.functions.invoke('create-stripe-checkout', {
+    const { data, error } = await supabase.functions.invoke('create-asaas-checkout', {
       body: { planId },
     });
 

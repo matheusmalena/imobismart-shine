@@ -28,6 +28,8 @@ export interface Subscription {
   updated_at: string;
   stripe_subscription_id?: string | null;
   stripe_customer_id?: string | null;
+  asaas_subscription_id?: string | null;
+  asaas_customer_id?: string | null;
 }
 
 interface UserData {
