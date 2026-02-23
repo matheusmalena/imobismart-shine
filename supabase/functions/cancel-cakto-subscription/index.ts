@@ -34,7 +34,7 @@ serve(async (req) => {
       .from("subscriptions")
       .update({
         status: "cancelled",
-        plan: "starter",
+        plan: "free",
         updated_at: new Date().toISOString(),
       })
       .eq("user_id", user.id);
