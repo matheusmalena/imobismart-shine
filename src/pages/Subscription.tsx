@@ -52,7 +52,8 @@ const itemVariants = {
 };
 
 const PLAN_NAMES: Record<string, string> = {
-  starter: 'Gratuito',
+  free: 'Gratuito',
+  starter: 'Starter',
   pro: 'Pro',
   plus: 'Plus',
   enterprise: 'Enterprise',
@@ -119,11 +120,11 @@ export default function Subscription() {
     );
   }
 
-  const currentPlan = subscription?.plan || 'starter';
+  const currentPlan = subscription?.plan || 'free';
   const currentStatus = subscription?.status || 'trial';
   const statusConfig = STATUS_CONFIG[currentStatus] || STATUS_CONFIG.inactive;
-  const canCancel = currentPlan !== 'starter' && currentStatus !== 'cancelled';
-  const isPaid = currentPlan === 'pro' || currentPlan === 'plus';
+  const canCancel = currentPlan !== 'free' && currentStatus !== 'cancelled';
+  const isPaid = currentPlan === 'starter' || currentPlan === 'pro' || currentPlan === 'plus' || currentPlan === 'enterprise';
 
   return (
     <DashboardLayout>
@@ -244,7 +245,7 @@ export default function Subscription() {
                     </Button>
                   )}
 
-                  {currentPlan === 'starter' && currentStatus !== 'cancelled' && (
+                  {currentPlan === 'free' && currentStatus !== 'cancelled' && (
                     <Button onClick={() => navigate('/plans')} className="w-full gap-2">
                       <Crown className="h-4 w-4" />
                       Fazer Upgrade

@@ -32,7 +32,7 @@ export function PricingSection() {
 
   const getCtaText = (planId: string) => {
     switch (planId) {
-      case 'starter':
+      case 'free':
         return 'Começar Grátis';
       case 'enterprise':
         return 'Falar com Vendas';

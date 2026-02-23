@@ -19,7 +19,8 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 const PLAN_LABELS: Record<string, string> = {
-  starter: 'Gratuito',
+  free: 'Gratuito',
+  starter: 'Starter',
   pro: 'Pro',
   plus: 'Plus',
   enterprise: 'Enterprise',
@@ -204,7 +205,8 @@ export default function AdminClients() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos Planos</SelectItem>
-                    <SelectItem value="starter">Gratuito</SelectItem>
+                    <SelectItem value="free">Gratuito</SelectItem>
+                    <SelectItem value="starter">Starter</SelectItem>
                     <SelectItem value="pro">Pro</SelectItem>
                     <SelectItem value="plus">Plus</SelectItem>
                     <SelectItem value="enterprise">Enterprise</SelectItem>

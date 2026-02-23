@@ -28,10 +28,12 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useState } from 'react';
 
-const PLAN_LABELS = {
-  starter: 'Gratuito',
+const PLAN_LABELS: Record<string, string> = {
+  free: 'Gratuito',
+  starter: 'Starter',
   pro: 'Pro',
-  enterprise: 'Plus',
+  plus: 'Plus',
+  enterprise: 'Enterprise',
 };
 
 const STATUS_LABELS = {

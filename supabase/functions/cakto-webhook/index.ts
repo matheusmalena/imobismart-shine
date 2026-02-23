@@ -68,7 +68,7 @@ serve(async (req) => {
     const userId = profile.user_id;
 
     // Determine plan from product name/id
-    let plan = "starter";
+    let plan = "free";
     const nameLower = productName.toLowerCase();
     if (nameLower.includes("enterprise")) {
       plan = "enterprise";
@@ -110,7 +110,7 @@ serve(async (req) => {
       const { error: updateError } = await supabase
         .from("subscriptions")
         .update({
-          plan: "starter",
+          plan: "free",
           status: "cancelled",
           payment_method: "cakto",
           updated_at: new Date().toISOString(),
