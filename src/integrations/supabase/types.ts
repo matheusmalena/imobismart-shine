@@ -390,6 +390,7 @@ export type Database = {
           checkout_url: string | null
           created_at: string
           description: string | null
+          extra_property_price: number | null
           features: Json
           id: string
           is_active: boolean
@@ -399,12 +400,15 @@ export type Database = {
           price_label: string
           property_limit: number
           sort_order: number
+          stripe_metered_price_id: string | null
+          stripe_price_id: string | null
           updated_at: string
         }
         Insert: {
           checkout_url?: string | null
           created_at?: string
           description?: string | null
+          extra_property_price?: number | null
           features?: Json
           id: string
           is_active?: boolean
@@ -414,12 +418,15 @@ export type Database = {
           price_label?: string
           property_limit?: number
           sort_order?: number
+          stripe_metered_price_id?: string | null
+          stripe_price_id?: string | null
           updated_at?: string
         }
         Update: {
           checkout_url?: string | null
           created_at?: string
           description?: string | null
+          extra_property_price?: number | null
           features?: Json
           id?: string
           is_active?: boolean
@@ -429,6 +436,8 @@ export type Database = {
           price_label?: string
           property_limit?: number
           sort_order?: number
+          stripe_metered_price_id?: string | null
+          stripe_price_id?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -688,6 +697,8 @@ export type Database = {
           created_at: string
           expires_at: string | null
           external_subscription_id: string | null
+          extra_properties_amount: number
+          extra_properties_count: number
           id: string
           mp_payer_email: string | null
           mp_subscription_id: string | null
@@ -696,6 +707,8 @@ export type Database = {
           plan: Database["public"]["Enums"]["subscription_plan"]
           started_at: string
           status: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
           updated_at: string
           user_id: string
         }
@@ -703,6 +716,8 @@ export type Database = {
           created_at?: string
           expires_at?: string | null
           external_subscription_id?: string | null
+          extra_properties_amount?: number
+          extra_properties_count?: number
           id?: string
           mp_payer_email?: string | null
           mp_subscription_id?: string | null
@@ -711,6 +726,8 @@ export type Database = {
           plan?: Database["public"]["Enums"]["subscription_plan"]
           started_at?: string
           status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -718,6 +735,8 @@ export type Database = {
           created_at?: string
           expires_at?: string | null
           external_subscription_id?: string | null
+          extra_properties_amount?: number
+          extra_properties_count?: number
           id?: string
           mp_payer_email?: string | null
           mp_subscription_id?: string | null
@@ -726,6 +745,8 @@ export type Database = {
           plan?: Database["public"]["Enums"]["subscription_plan"]
           started_at?: string
           status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -1085,7 +1106,7 @@ export type Database = {
         | "sala"
         | "loja"
         | "outro"
-      subscription_plan: "starter" | "pro" | "enterprise" | "plus"
+      subscription_plan: "starter" | "pro" | "enterprise" | "plus" | "free"
       subscription_status: "active" | "inactive" | "cancelled" | "trial"
     }
     CompositeTypes: {
@@ -1229,7 +1250,7 @@ export const Constants = {
         "loja",
         "outro",
       ],
-      subscription_plan: ["starter", "pro", "enterprise", "plus"],
+      subscription_plan: ["starter", "pro", "enterprise", "plus", "free"],
       subscription_status: ["active", "inactive", "cancelled", "trial"],
     },
   },
