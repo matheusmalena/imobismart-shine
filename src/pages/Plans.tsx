@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { usePlans } from '@/hooks/usePlans';
+import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,49 +27,23 @@ import { toast } from 'sonner';
 
 const containerVariants = {
   hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
+  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
 };
 
 const itemVariants = {
   hidden: { opacity: 0, y: 30, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      duration: 0.5,
-      ease: [0.25, 0.46, 0.45, 0.94] as const,
-    },
-  },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as const } },
 };
 
 const FAQ_ITEMS = [
-  {
-    question: 'Posso trocar de plano a qualquer momento?',
-    answer: 'Sim! Você pode fazer upgrade ou downgrade do seu plano quando quiser. As alterações são aplicadas imediatamente e o valor é calculado proporcionalmente.',
-  },
-  {
-    question: 'Como funciona o período de teste?',
-    answer: 'Novos usuários podem experimentar o plano Pro gratuitamente por 7 dias. Não é necessário cartão de crédito para começar.',
-  },
-  {
-    question: 'Quais formas de pagamento são aceitas?',
-    answer: 'Aceitamos cartão de crédito, débito, Pix e boleto bancário. Os pagamentos são processados de forma segura.',
-  },
-  {
-    question: 'O que acontece se eu cancelar meu plano?',
-    answer: 'Ao cancelar, você mantém acesso aos recursos até o fim do período pago. Depois, sua conta volta para o plano Gratuito com limite de imóveis reduzido.',
-  },
-  {
-    question: 'Existe desconto para pagamento anual?',
-    answer: 'Sim! Ao optar pelo pagamento anual, você economiza até 20% em comparação ao pagamento mensal.',
-  },
+  { question: 'Posso trocar de plano a qualquer momento?', answer: 'Sim! Você pode fazer upgrade ou downgrade do seu plano quando quiser. As alterações são aplicadas imediatamente.' },
+  { question: 'O que acontece se eu ultrapassar o limite de imóveis?', answer: 'Você não é bloqueado! Imóveis adicionais são cobrados automaticamente na sua fatura mensal pelo valor indicado no seu plano.' },
+  { question: 'Quais formas de pagamento são aceitas?', answer: 'Aceitamos cartão de crédito e débito. Os pagamentos são processados de forma segura via Stripe.' },
+  { question: 'O que acontece se eu cancelar meu plano?', answer: 'Ao cancelar, você mantém acesso até o fim do período pago. Depois, sua conta volta para o plano Free com limite de 2 imóveis.' },
+  { question: 'Existe desconto para pagamento anual?', answer: 'Em breve! Estamos preparando planos anuais com até 20% de desconto.' },
 ];
+
+const PLAN_ORDER = ['free', 'starter', 'pro', 'plus', 'enterprise'];
 
 export default function Plans() {
   const navigate = useNavigate();
@@ -78,25 +53,25 @@ export default function Plans() {
   const { activePlans, isLoading: plansLoading } = usePlans();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
-  const currentPlan = subscription?.plan || 'starter';
+  const currentPlan = subscription?.plan || 'free';
   const isLoading = authLoading || subscriptionLoading || plansLoading;
 
-  // Handle return from checkout
   useEffect(() => {
     const status = searchParams.get('status');
     const plan = searchParams.get('plan');
-    
     if (status === 'success' && plan) {
       toast.success('Pagamento em processamento! Seu plano será ativado em breve.', {
         description: 'Você receberá uma confirmação quando o pagamento for aprovado.',
         duration: 6000,
       });
-      refetchSubscription();
+      // Check subscription status after a short delay
+      setTimeout(() => {
+        supabase.functions.invoke('check-subscription').then(() => refetchSubscription());
+      }, 3000);
       navigate('/plans', { replace: true });
     }
   }, [searchParams, navigate, refetchSubscription]);
 
-  // Redirect if not authenticated
   if (!authLoading && !user) {
     navigate('/auth');
     return null;
@@ -115,59 +90,53 @@ export default function Plans() {
     );
   }
 
-  const getPlanIndex = (planId: string): number => {
-    const order = ['starter', 'pro', 'plus', 'enterprise'];
-    return order.indexOf(planId);
-  };
+  const getPlanIndex = (planId: string): number => PLAN_ORDER.indexOf(planId);
 
   const getCtaText = (planId: string, isCurrentPlan: boolean, isUpgrade: boolean, isDowngrade: boolean) => {
     if (isCurrentPlan) return 'Plano Atual';
     if (planId === 'enterprise') return 'Falar com Vendas';
+    if (planId === 'free') return 'Plano Gratuito';
     if (isUpgrade) return 'Fazer Upgrade';
     if (isDowngrade) return 'Fazer Downgrade';
     return 'Selecionar';
   };
 
   const handleSelectPlan = async (planId: string) => {
-    // Enterprise - WhatsApp contact
     if (planId === 'enterprise') {
       window.open('https://wa.me/5511999999999?text=Olá! Tenho interesse no plano Enterprise do ImobiSmart.', '_blank');
       return;
     }
 
-    // Starter - no payment needed (downgrade)
-    if (planId === 'starter') {
-      toast.info('Para fazer downgrade para o plano Gratuito, entre em contato com nosso suporte.');
+    if (planId === 'free') {
+      toast.info('Para fazer downgrade para o plano Free, acesse "Gerenciar Pagamento" na sua assinatura.');
       return;
     }
 
-    // Pro or Plus - redirect to Cakto checkout URL from plans table
-    if (planId === 'pro' || planId === 'plus') {
-      setLoadingPlan(planId);
-      
-      try {
-        const plan = activePlans.find(p => p.id === planId);
-        const checkoutUrl = (plan as any)?.checkout_url;
+    // Stripe Checkout
+    setLoadingPlan(planId);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-stripe-checkout', {
+        body: { planId },
+      });
 
-        if (!checkoutUrl) {
-          throw new Error('Link de checkout não configurado para este plano. Entre em contato com o suporte.');
-        }
-
-        window.location.href = checkoutUrl;
-      } catch (error) {
-        console.error('Checkout error:', error);
-        toast.error('Erro ao iniciar pagamento', {
-          description: error instanceof Error ? error.message : 'Tente novamente em alguns instantes.',
-        });
-        setLoadingPlan(null);
+      if (error) throw new Error(error.message);
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('URL de checkout não retornada');
       }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast.error('Erro ao iniciar pagamento', {
+        description: error instanceof Error ? error.message : 'Tente novamente.',
+      });
+      setLoadingPlan(null);
     }
   };
 
   return (
     <DashboardLayout>
       <div className="space-y-8 pb-8">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Planos</h1>
@@ -179,12 +148,11 @@ export default function Plans() {
           </Button>
         </div>
 
-        {/* Plans Grid - Same style as landing page */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-[1400px] mx-auto"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 max-w-[1500px] mx-auto"
         >
           {activePlans.map((plan) => {
             const isCurrentPlan = plan.id === currentPlan;
@@ -193,12 +161,13 @@ export default function Plans() {
             const isUpgrade = planIndex > currentPlanIndex;
             const isDowngrade = planIndex < currentPlanIndex;
             const features = Array.isArray(plan.features) ? plan.features : [];
+            const extraPrice = (plan as any).extra_property_price;
 
             return (
               <motion.div
                 key={plan.id}
                 variants={itemVariants}
-                className={`relative flex flex-col bg-card rounded-2xl p-6 border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+                className={`relative flex flex-col bg-card rounded-2xl p-5 border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
                   isCurrentPlan
                     ? "border-primary shadow-lg shadow-primary/15 ring-2 ring-primary/20 lg:scale-105 z-10"
                     : plan.is_highlighted && !isCurrentPlan
@@ -206,55 +175,56 @@ export default function Plans() {
                     : "border-border/50 shadow-card hover:border-primary/30"
                 }`}
               >
-                {/* Badges */}
                 {isCurrentPlan ? (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold shadow-lg">
-                      <Check className="h-3.5 w-3.5" />
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold shadow-lg">
+                      <Check className="h-3 w-3" />
                       Plano Atual
                     </span>
                   </div>
                 ) : plan.is_highlighted ? (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold shadow-lg">
-                      <Crown className="h-3.5 w-3.5" />
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold shadow-lg">
+                      <Crown className="h-3 w-3" />
                       Mais Popular
                     </span>
                   </div>
                 ) : null}
 
-                {/* Plan Content */}
-                <div className="text-center mb-6 pt-2">
-                  <h3 className="text-lg font-bold text-card-foreground mb-2">{plan.name}</h3>
-                  <p className="text-xs text-muted-foreground mb-4 min-h-[32px]">{plan.description}</p>
+                <div className="text-center mb-5 pt-2">
+                  <h3 className="text-lg font-bold text-card-foreground mb-1">{plan.name}</h3>
+                  <p className="text-xs text-muted-foreground mb-3 min-h-[28px]">{plan.description}</p>
                   <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-3xl md:text-4xl font-bold text-foreground">
-                      {plan.price_label.includes('consulta') ? plan.price_label : `R$ ${plan.price}`}
+                    <span className="text-3xl font-bold text-foreground">
+                      {plan.price_label.includes('consulta') ? plan.price_label : plan.price === 0 ? 'Grátis' : `R$ ${plan.price}`}
                     </span>
                     {!plan.price_label.includes('consulta') && plan.price > 0 && (
                       <span className="text-sm text-muted-foreground">/mês</span>
                     )}
                   </div>
+                  {extraPrice && extraPrice > 0 && plan.id !== 'enterprise' && (
+                    <p className="text-xs text-primary mt-1.5 font-medium">
+                      + R$ {Number(extraPrice).toFixed(2).replace('.', ',')}/imóvel extra
+                    </p>
+                  )}
                 </div>
 
-                {/* Features */}
-                <ul className="space-y-3 mb-6 flex-grow">
+                <ul className="space-y-2.5 mb-5 flex-grow">
                   {features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-2">
                       <div className="p-0.5 rounded-full bg-primary/10 mt-0.5 shrink-0">
-                        <Check className="h-3.5 w-3.5 text-primary" />
+                        <Check className="h-3 w-3 text-primary" />
                       </div>
-                      <span className="text-sm text-muted-foreground leading-tight">{String(feature)}</span>
+                      <span className="text-xs text-muted-foreground leading-tight">{String(feature)}</span>
                     </li>
                   ))}
                 </ul>
 
-                {/* CTA Button */}
                 <Button
                   className={`w-full mt-auto ${isCurrentPlan || plan.is_highlighted ? "shadow-lg" : ""}`}
                   variant={isCurrentPlan ? "secondary" : (plan.is_highlighted || isUpgrade) ? "default" : "outline"}
-                  size="lg"
-                  disabled={isCurrentPlan || loadingPlan === plan.id}
+                  size="sm"
+                  disabled={isCurrentPlan || loadingPlan === plan.id || plan.id === 'free'}
                   onClick={() => !isCurrentPlan && handleSelectPlan(plan.id)}
                 >
                   {loadingPlan === plan.id ? (
@@ -276,7 +246,7 @@ export default function Plans() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="max-w-4xl mx-auto"
+          className="max-w-5xl mx-auto"
         >
           <Card>
             <CardHeader className="text-center">
@@ -284,9 +254,7 @@ export default function Plans() {
                 <FileText className="h-5 w-5 text-primary" />
                 Comparativo de Recursos
               </CardTitle>
-              <CardDescription>
-                Veja todos os recursos disponíveis em cada plano
-              </CardDescription>
+              <CardDescription>Veja todos os recursos disponíveis em cada plano</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -294,7 +262,8 @@ export default function Plans() {
                   <thead>
                     <tr className="border-b">
                       <th className="text-left py-3 px-2">Recurso</th>
-                      <th className="text-center py-3 px-2">Gratuito</th>
+                      <th className="text-center py-3 px-2">Free</th>
+                      <th className="text-center py-3 px-2">Starter</th>
                       <th className="text-center py-3 px-2">Pro</th>
                       <th className="text-center py-3 px-2">Plus</th>
                       <th className="text-center py-3 px-2">Enterprise</th>
@@ -303,75 +272,30 @@ export default function Plans() {
                   <tbody className="divide-y">
                     {(() => {
                       const getPlanLimit = (planId: string) => {
-                        const plan = activePlans.find(p => p.id === planId);
-                        if (!plan) return '—';
-                        return plan.property_limit === -1 ? 'Ilimitado' : plan.property_limit;
+                        const p = activePlans.find(pl => pl.id === planId);
+                        if (!p) return '—';
+                        return p.property_limit === -1 ? 'Ilimitado' : p.property_limit;
                       };
+                      const getExtraPrice = (planId: string) => {
+                        const p = activePlans.find(pl => pl.id === planId);
+                        const ep = (p as any)?.extra_property_price;
+                        if (!ep || ep === 0) return '—';
+                        return `R$ ${Number(ep).toFixed(2).replace('.', ',')}`;
+                      };
+                      const Chk = () => <Check className="h-4 w-4 text-primary mx-auto" />;
+                      const Nope = () => <X className="h-4 w-4 text-destructive mx-auto" />;
                       return (
                         <>
-                          <tr className="transition-colors hover:bg-muted/50">
-                            <td className="py-3 px-2">Limite de imóveis</td>
-                            <td className="text-center py-3 px-2">{getPlanLimit('starter')}</td>
-                            <td className="text-center py-3 px-2">{getPlanLimit('pro')}</td>
-                            <td className="text-center py-3 px-2">{getPlanLimit('plus')}</td>
-                            <td className="text-center py-3 px-2">{getPlanLimit('enterprise')}</td>
-                          </tr>
-                          <tr className="transition-colors hover:bg-muted/50">
-                            <td className="py-3 px-2">Dashboard básico</td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                          </tr>
-                          <tr className="transition-colors hover:bg-muted/50">
-                            <td className="py-3 px-2">Gestão de inquilinos</td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                          </tr>
-                          <tr className="transition-colors hover:bg-muted/50">
-                            <td className="py-3 px-2">Exportação CSV/Excel/JSON</td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                          </tr>
-                          <tr className="transition-colors hover:bg-muted/50">
-                            <td className="py-3 px-2">Análise avançada</td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                          </tr>
-                          <tr className="transition-colors hover:bg-muted/50">
-                            <td className="py-3 px-2">Relatórios PDF</td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                          </tr>
-                          <tr className="transition-colors hover:bg-muted/50">
-                            <td className="py-3 px-2">Recomendações IA</td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                          </tr>
-                          <tr className="transition-colors hover:bg-muted/50">
-                            <td className="py-3 px-2">Gestão de equipe</td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                          </tr>
-                          <tr className="transition-colors hover:bg-muted/50">
-                            <td className="py-3 px-2">Suporte prioritário</td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                          </tr>
+                          <tr className="hover:bg-muted/50"><td className="py-3 px-2">Limite de imóveis</td><td className="text-center py-3 px-2">{getPlanLimit('free')}</td><td className="text-center py-3 px-2">{getPlanLimit('starter')}</td><td className="text-center py-3 px-2">{getPlanLimit('pro')}</td><td className="text-center py-3 px-2">{getPlanLimit('plus')}</td><td className="text-center py-3 px-2">{getPlanLimit('enterprise')}</td></tr>
+                          <tr className="hover:bg-muted/50"><td className="py-3 px-2">Imóvel extra</td><td className="text-center py-3 px-2">—</td><td className="text-center py-3 px-2">{getExtraPrice('starter')}</td><td className="text-center py-3 px-2">{getExtraPrice('pro')}</td><td className="text-center py-3 px-2">{getExtraPrice('plus')}</td><td className="text-center py-3 px-2">{getExtraPrice('enterprise')}</td></tr>
+                          <tr className="hover:bg-muted/50"><td className="py-3 px-2">Dashboard básico</td><td className="text-center py-3 px-2"><Chk /></td><td className="text-center py-3 px-2"><Chk /></td><td className="text-center py-3 px-2"><Chk /></td><td className="text-center py-3 px-2"><Chk /></td><td className="text-center py-3 px-2"><Chk /></td></tr>
+                          <tr className="hover:bg-muted/50"><td className="py-3 px-2">Gestão de inquilinos</td><td className="text-center py-3 px-2"><Chk /></td><td className="text-center py-3 px-2"><Chk /></td><td className="text-center py-3 px-2"><Chk /></td><td className="text-center py-3 px-2"><Chk /></td><td className="text-center py-3 px-2"><Chk /></td></tr>
+                          <tr className="hover:bg-muted/50"><td className="py-3 px-2">Exportação CSV/Excel</td><td className="text-center py-3 px-2"><Nope /></td><td className="text-center py-3 px-2"><Chk /></td><td className="text-center py-3 px-2"><Chk /></td><td className="text-center py-3 px-2"><Chk /></td><td className="text-center py-3 px-2"><Chk /></td></tr>
+                          <tr className="hover:bg-muted/50"><td className="py-3 px-2">Análise avançada</td><td className="text-center py-3 px-2"><Nope /></td><td className="text-center py-3 px-2"><Nope /></td><td className="text-center py-3 px-2"><Chk /></td><td className="text-center py-3 px-2"><Chk /></td><td className="text-center py-3 px-2"><Chk /></td></tr>
+                          <tr className="hover:bg-muted/50"><td className="py-3 px-2">Relatórios PDF</td><td className="text-center py-3 px-2"><Nope /></td><td className="text-center py-3 px-2"><Nope /></td><td className="text-center py-3 px-2"><Nope /></td><td className="text-center py-3 px-2"><Chk /></td><td className="text-center py-3 px-2"><Chk /></td></tr>
+                          <tr className="hover:bg-muted/50"><td className="py-3 px-2">Recomendações IA</td><td className="text-center py-3 px-2"><Nope /></td><td className="text-center py-3 px-2"><Nope /></td><td className="text-center py-3 px-2"><Nope /></td><td className="text-center py-3 px-2"><Chk /></td><td className="text-center py-3 px-2"><Chk /></td></tr>
+                          <tr className="hover:bg-muted/50"><td className="py-3 px-2">Gestão de equipe</td><td className="text-center py-3 px-2"><Nope /></td><td className="text-center py-3 px-2"><Nope /></td><td className="text-center py-3 px-2"><Nope /></td><td className="text-center py-3 px-2"><Nope /></td><td className="text-center py-3 px-2"><Chk /></td></tr>
+                          <tr className="hover:bg-muted/50"><td className="py-3 px-2">Suporte prioritário</td><td className="text-center py-3 px-2"><Nope /></td><td className="text-center py-3 px-2"><Nope /></td><td className="text-center py-3 px-2"><Nope /></td><td className="text-center py-3 px-2"><Chk /></td><td className="text-center py-3 px-2"><Chk /></td></tr>
                         </>
                       );
                     })()}
@@ -395,20 +319,13 @@ export default function Plans() {
                 <HelpCircle className="h-5 w-5 text-primary" />
                 Perguntas Frequentes
               </CardTitle>
-              <CardDescription>
-                Tire suas dúvidas sobre os planos e pagamentos
-              </CardDescription>
             </CardHeader>
             <CardContent>
               <Accordion type="single" collapsible className="w-full">
-                {FAQ_ITEMS.map((item, index) => (
+                {FAQ_ITEMS.map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index}`}>
-                    <AccordionTrigger className="text-left">
-                      {item.question}
-                    </AccordionTrigger>
-                    <AccordionContent className="text-muted-foreground">
-                      {item.answer}
-                    </AccordionContent>
+                    <AccordionTrigger className="text-left">{faq.question}</AccordionTrigger>
+                    <AccordionContent className="text-muted-foreground">{faq.answer}</AccordionContent>
                   </AccordionItem>
                 ))}
               </Accordion>

@@ -5,9 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { Lock, Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type PlanTier = 'pro' | 'plus' | 'enterprise';
+type PlanTier = 'starter' | 'pro' | 'plus' | 'enterprise';
 
 const PLAN_CONFIG: Record<PlanTier, { label: string; badgeClass: string; iconBg: string }> = {
+  starter: {
+    label: 'Starter',
+    badgeClass: 'bg-blue-500/10 text-blue-600 border-blue-200 dark:text-blue-400 dark:border-blue-800',
+    iconBg: 'bg-blue-500/10',
+  },
   pro: {
     label: 'Pro',
     badgeClass: 'bg-primary/10 text-primary border-primary/20',

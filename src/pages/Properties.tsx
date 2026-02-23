@@ -37,7 +37,7 @@ export default function Properties() {
     duplicateProperty 
   } = useProperties();
   
-  const { canAddProperty, remainingSlots, isAtLimit, plan, limit, activeCount: planActiveCount } = usePropertyLimit();
+  const { canAddProperty, remainingSlots, isAtLimit, plan, limit, activeCount: planActiveCount, excessCount, estimatedExtraCost } = usePropertyLimit();
   const { canCreate, canDelete } = useOrgPermissions();
   const { getPlanById } = usePlans();
   const [formOpen, setFormOpen] = useState(false);
@@ -225,6 +225,8 @@ export default function Properties() {
           isAtLimit={isAtLimit} 
           plan={plan}
           limit={limit}
+          excessCount={excessCount}
+          estimatedExtraCost={estimatedExtraCost}
         />
 
         {/* Filters */}
