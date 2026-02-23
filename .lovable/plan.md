@@ -1,196 +1,89 @@
 
 
-# Migracao de Planos e Pagamentos: Cakto para Stripe
+# Proximos Passos da Migracao Stripe
 
-## Visao Geral
+## Resumo
 
-Migrar completamente o sistema de assinaturas da Cakto para o Stripe, reestruturando os planos com pricing baseado em uso (imoveis excedentes) e cobranca recorrente automatica.
+Completar a integracao Stripe com 4 tarefas pendentes: configurar o webhook secret, atualizar a pagina Enterprise Links para Stripe, criar a edge function de report-usage, e limpar referencias a Cakto.
 
-## Novos Planos
+---
 
-| Plano | Preco | Limite | Extra/imovel | Stripe Price ID |
-|-------|-------|--------|-------------|-----------------|
-| Free (starter) | R$ 0 | 2 | -- | Sem subscription |
-| Starter | R$ 49/mes | 15 | R$ 3,50 | Criado via Stripe tool |
-| Pro (Popular) | R$ 79/mes | 30 | R$ 3,00 | Criado via Stripe tool |
-| Plus | R$ 129/mes | 60 | R$ 2,50 | Criado via Stripe tool |
-| Enterprise | Sob consulta | Ilimitado | R$ 2,00 (base contratual) | Manual/custom |
+## Tarefa 1: Configurar STRIPE_WEBHOOK_SECRET
 
-**Nota importante sobre o enum:** O enum `subscription_plan` atual tem `starter, pro, enterprise, plus`. Precisaremos renomear `starter` para `free` e adicionar o novo `starter` (R$49), ou manter `starter` como Free e usar um novo valor. A abordagem mais segura e adicionar `free` ao enum e migrar os registros existentes de `starter` para `free`.
+O secret `STRIPE_WEBHOOK_SECRET` ainda nao esta configurado no projeto. Ele e necessario para que o `stripe-webhook` valide as assinaturas dos eventos recebidos do Stripe.
 
-## Fases de Implementacao
+**Acao:** Solicitar ao usuario que adicione o secret via ferramenta `add_secret`. O valor deve ser obtido no painel do Stripe ao configurar o endpoint de webhook:
+`https://wwgmfrtiexjfhjoaifnr.supabase.co/functions/v1/stripe-webhook`
 
-### Fase 1: Habilitar Stripe e Configurar Produtos
+---
 
-1. Habilitar integracao Stripe via ferramenta nativa do Lovable
-2. Criar produtos e precos no Stripe:
-   - **ImobiSmart Starter** - R$ 49/mes (subscription) + R$ 3,50/imovel (metered)
-   - **ImobiSmart Pro** - R$ 79/mes (subscription) + R$ 3,00/imovel (metered)
-   - **ImobiSmart Plus** - R$ 129/mes (subscription) + R$ 2,50/imovel (metered)
-3. Configurar Stripe Webhooks automaticamente
+## Tarefa 2: Atualizar Enterprise Links para Stripe
 
-### Fase 2: Atualizar Banco de Dados
+A pagina `/admin/enterprise-links` ainda referencia "Cakto" nos labels e placeholders. Precisa ser atualizada para funcionar com Stripe Payment Links ou Stripe Checkout customizado.
 
-**Migration SQL:**
-- Adicionar `free` ao enum `subscription_plan`
-- Migrar todos os registros `starter` para `free`
-- Adicionar novo valor `starter` ao enum (agora representa R$49)
-- Adicionar colunas a tabela `subscriptions`:
-  - `stripe_customer_id` (text, nullable)
-  - `stripe_subscription_id` (text, nullable)
-  - `extra_properties_count` (integer, default 0)
-  - `extra_properties_amount` (numeric, default 0)
-- Adicionar colunas a tabela `plans`:
-  - `extra_property_price` (numeric, nullable) -- preco por imovel extra
-  - `stripe_price_id` (text, nullable)
-  - `stripe_metered_price_id` (text, nullable)
-- Atualizar dados da tabela `plans` com os novos valores e precos
-- Atualizar o trigger de criacao de perfil para usar `free` em vez de `starter`
+**Alteracoes em `src/pages/admin/EnterpriseLinks.tsx`:**
+- Alterar label "Link de Checkout (Cakto)" para "Link de Checkout (Stripe)"
+- Alterar placeholder de `https://pay.cakto.com.br/...` para `https://checkout.stripe.com/...` ou URL de Payment Link do Stripe
 
-### Fase 3: Edge Functions - Backend Stripe
+---
 
-1. **`stripe-webhook`** (nova) - Processar eventos do Stripe:
-   - `checkout.session.completed` - Ativar assinatura
-   - `invoice.paid` - Confirmar pagamento
-   - `invoice.payment_failed` - Marcar como inadimplente
-   - `customer.subscription.deleted` - Cancelar/downgrade para Free
-   - `customer.subscription.updated` - Atualizar plano
+## Tarefa 3: Corrigir cakto-webhook para usar `free` em vez de `starter`
 
-2. **`create-stripe-checkout`** (nova) - Criar sessao de checkout:
-   - Recebe `planId` do frontend
-   - Cria ou busca Stripe Customer pelo email
-   - Cria Checkout Session com o price correto
-   - Retorna URL do checkout
+O `cakto-webhook` ainda faz downgrade para `starter` (linha 120). Como `starter` agora e um plano pago (R$49), cancelamentos via Cakto devem fazer downgrade para `free`.
 
-3. **`create-stripe-portal`** (nova) - Portal de gerenciamento:
-   - Cria sessao do Customer Portal do Stripe
-   - Permite trocar cartao, ver faturas, cancelar
+**Alteracoes em `supabase/functions/cakto-webhook/index.ts`:**
+- Linha 77: mudar default de `"starter"` para `"free"` (ou manter logica de deteccao de plano)
+- Linha 120: mudar `plan: "starter"` para `plan: "free"` no bloco de cancelamento
 
-4. **`report-usage`** (nova) - Reportar imoveis excedentes:
-   - Executada periodicamente (ou via cron/scheduled)
-   - Conta imoveis ativos por usuario
-   - Se excede limite do plano, reporta usage ao Stripe via metered billing
-   - Stripe inclui automaticamente na proxima fatura
+**Alteracoes em `supabase/functions/cancel-cakto-subscription/index.ts`:**
+- Linha 36: mudar `plan: "starter"` para `plan: "free"`
 
-5. **Remover/deprecar:**
-   - `cakto-webhook` (manter temporariamente para transicao)
-   - `cancel-cakto-subscription` (substituido pelo Stripe Portal)
+---
 
-### Fase 4: Frontend - Atualizacoes de UI
+## Tarefa 4: Criar Edge Function `report-usage` (metered billing)
 
-1. **`src/hooks/useUserData.ts`**
-   - Atualizar tipos para incluir `free` no SubscriptionPlan
-   - Adicionar flags: `isFree`, atualizar `isStarter` (agora R$49)
-   - Adicionar campos de excedentes ao retorno
+Criar uma nova edge function que conta imoveis excedentes por usuario e reporta ao Stripe como usage record. Pode ser executada via pg_cron ou chamada manualmente.
 
-2. **`src/hooks/usePlans.ts`**
-   - Adicionar campo `extra_property_price` ao tipo Plan
-   - Funcao para calcular custo de excedentes
+**Novo arquivo: `supabase/functions/report-usage/index.ts`**
 
-3. **`src/hooks/usePropertyLimit.ts`**
-   - Remover bloqueio hard -- permitir adicionar alem do limite
-   - Calcular `excessCount` e `estimatedExtraCost`
-   - Retornar esses valores para exibicao no painel
+Logica:
+1. Buscar todos os usuarios com plano pago (starter/pro/plus) e seus limites
+2. Contar imoveis ativos de cada usuario
+3. Calcular excedentes (ativos - limite)
+4. Para cada usuario com excedentes, buscar o Stripe subscription e reportar usage via `stripe.subscriptionItems.createUsageRecord()`
 
-4. **`src/pages/Plans.tsx`**
-   - Atualizar grid para 5 planos (Free, Starter, Pro, Plus, Enterprise)
-   - Exibir "Imoveis adicionais a partir de R$ X/mes" em cada card
-   - Destacar Pro como "Mais Popular"
-   - Botoes redirecionam para Stripe Checkout (em vez de Cakto)
-   - Atualizar tabela comparativa
+**Prerequisito:** Criar metered prices no Stripe para cada plano (R$3,50, R$3,00, R$2,50 por imovel). Esses price IDs devem ser salvos na coluna `stripe_metered_price_id` da tabela `plans`.
 
-5. **`src/components/landing/PricingSection.tsx`**
-   - Mesmas atualizacoes dos cards de preco
-   - Exibir preco de imovel extra
+**Nota:** Esta tarefa depende da criacao dos metered prices no Stripe, que pode ser feita via Stripe Dashboard. A edge function sera implementada com a logica pronta, aguardando apenas os price IDs.
 
-6. **`src/pages/Subscription.tsx`**
-   - Substituir referencia "Cakto" por "Stripe"
-   - Adicionar botao "Gerenciar Pagamento" que abre Stripe Portal
-   - Exibir secao de excedentes: limite, usados, extras, custo estimado
-   - Cancelamento via Stripe Portal (nao mais via edge function propria)
+---
 
-7. **`src/components/dashboard/`** (novo componente)
-   - Card no dashboard mostrando: "15/15 imoveis (3 extras - ~R$10,50/mes)"
-   - Banner informativo quando ha excedentes
+## Tarefa 5: Atualizar PricingSection (landing page)
 
-8. **`src/components/properties/PropertyLimitBanner.tsx`**
-   - Atualizar de "bloqueio" para "aviso informativo"
-   - Mostrar custo extra estimado em vez de impedir criacao
+Verificar e garantir que `src/components/landing/PricingSection.tsx` esta alinhada com os novos planos e usa Stripe Checkout (nao Cakto) para usuarios ja logados.
 
-9. **`src/components/settings/PlanComparison.tsx`**
-   - Atualizar para refletir novos planos
+---
 
-### Fase 5: Calculo de Excedentes
+## Detalhes Tecnicos
 
-Logica centralizada em um hook `usePropertyUsage`:
+### Arquivos modificados
+| Arquivo | Tipo de alteracao |
+|---------|------------------|
+| `src/pages/admin/EnterpriseLinks.tsx` | Atualizar labels Cakto -> Stripe |
+| `supabase/functions/cakto-webhook/index.ts` | Corrigir downgrade para `free` |
+| `supabase/functions/cancel-cakto-subscription/index.ts` | Corrigir downgrade para `free` |
+| `supabase/functions/report-usage/index.ts` | **Novo** - metered billing |
 
-```text
-+-------------------+
-| Conta imoveis     |
-| ativos do usuario |
-+--------+----------+
-         |
-         v
-+-------------------+
-| Compara com       |
-| limite do plano   |
-+--------+----------+
-         |
-    excedentes?
-    /         \
-  Nao         Sim
-   |           |
-   v           v
-  OK     Calcula:
-         excess = ativos - limite
-         custo = excess * preco_extra
-         Exibe no painel
-         Reporta ao Stripe
-```
+### Secrets necessarios
+| Secret | Status |
+|--------|--------|
+| `STRIPE_SECRET_KEY` | Configurado |
+| `STRIPE_WEBHOOK_SECRET` | **Pendente** - precisa ser adicionado |
 
-### Fase 6: Migracao de Usuarios Existentes
-
-- Usuarios no plano `starter` (agora `free`) continuam sem cobranca
-- Usuarios `pro` e `plus` (pagos via Cakto):
-  - Criar Stripe Customer com mesmo email
-  - Criar subscription no Stripe
-  - Atualizar `stripe_customer_id` e `stripe_subscription_id` no banco
-  - Cancelar na Cakto manualmente
-- Comunicar usuarios sobre a mudanca via email
-
-## Arquivos Modificados
-
-| Arquivo | Acao |
-|---------|------|
-| `src/hooks/useUserData.ts` | Atualizar tipos e flags |
-| `src/hooks/usePlans.ts` | Adicionar campos de extra pricing |
-| `src/hooks/usePropertyLimit.ts` | Remover bloqueio, calcular excedentes |
-| `src/hooks/useSubscription.ts` | Apontar para Stripe |
-| `src/pages/Plans.tsx` | Redesign com 5 planos + Stripe checkout |
-| `src/pages/Subscription.tsx` | Stripe Portal + secao excedentes |
-| `src/components/landing/PricingSection.tsx` | Novos cards de preco |
-| `src/components/settings/PlanComparison.tsx` | Atualizar comparativo |
-| `src/components/properties/PropertyLimitBanner.tsx` | Aviso em vez de bloqueio |
-| `src/components/common/UpgradeOverlay.tsx` | Ajustar tiers |
-
-## Novos Arquivos
-
-| Arquivo | Descricao |
-|---------|-----------|
-| `supabase/functions/stripe-webhook/index.ts` | Webhook do Stripe |
-| `supabase/functions/create-stripe-checkout/index.ts` | Criar sessao de checkout |
-| `supabase/functions/create-stripe-portal/index.ts` | Portal de gerenciamento |
-| `supabase/functions/report-usage/index.ts` | Reportar excedentes ao Stripe |
-| `src/hooks/usePropertyUsage.ts` | Hook de calculo de excedentes |
-
-## Secrets Necessarios
-
-- `STRIPE_SECRET_KEY` - Chave secreta do Stripe (coletada ao habilitar integracao)
-- `STRIPE_WEBHOOK_SECRET` - Secret do webhook (configurado automaticamente)
-
-## Riscos e Mitigacoes
-
-- **Dupla cobranca durante transicao**: Manter Cakto webhook ativo ate migrar todos os usuarios
-- **Enum rename (starter -> free)**: Migration cuidadosa com update em cascata em todas as tabelas e funcoes que referenciam `starter`
-- **Metered billing timing**: O report-usage precisa rodar antes do fechamento da fatura do Stripe (configurar via pg_cron ou Stripe billing anchor)
+### Ordem de execucao
+1. Adicionar `STRIPE_WEBHOOK_SECRET`
+2. Corrigir referencias Cakto (`free` em vez de `starter`)
+3. Atualizar Enterprise Links
+4. Criar `report-usage` edge function
+5. Verificar PricingSection
 
