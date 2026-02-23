@@ -77,6 +77,16 @@ serve(async (req) => {
       if (searchData.data && searchData.data.length > 0) {
         asaasCustomerId = searchData.data[0].id;
         logStep("Found existing Asaas customer", { asaasCustomerId });
+
+        // Update customer with CPF if provided and missing
+        if (cpfCnpj && cpfCnpj !== "existing" && !searchData.data[0].cpfCnpj) {
+          await fetch(`${ASAAS_API_URL}/customers/${asaasCustomerId}`, {
+            method: "PUT",
+            headers,
+            body: JSON.stringify({ cpfCnpj: cpfCnpj.replace(/\D/g, "") }),
+          });
+          logStep("Updated customer with CPF");
+        }
       } else {
         // Create new customer - requires CPF/CNPJ
         if (!cpfCnpj || cpfCnpj === "existing") {
