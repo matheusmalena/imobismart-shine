@@ -16,9 +16,6 @@ export interface Plan {
   is_active: boolean;
   sort_order: number;
   checkout_url: string | null;
-  extra_property_price: number | null;
-  stripe_price_id: string | null;
-  stripe_metered_price_id: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -316,8 +316,8 @@ export default function EnterpriseLinks() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Link de Checkout (Stripe)</Label>
-                <Input value={formData.checkout_url} onChange={e => setFormData({ ...formData, checkout_url: e.target.value })} placeholder="https://buy.stripe.com/..." />
+                <Label>Link de Checkout (Cakto)</Label>
+                <Input value={formData.checkout_url} onChange={e => setFormData({ ...formData, checkout_url: e.target.value })} placeholder="https://pay.cakto.com.br/..." />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">

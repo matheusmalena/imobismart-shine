@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 export type AppRole = 'admin' | 'user';
-export type SubscriptionPlan = 'free' | 'starter' | 'pro' | 'enterprise' | 'plus';
+export type SubscriptionPlan = 'starter' | 'pro' | 'enterprise' | 'plus';
 export type SubscriptionStatus = 'active' | 'inactive' | 'cancelled' | 'trial';
 
 export interface Profile {
@@ -26,10 +26,6 @@ export interface Subscription {
   expires_at: string | null;
   created_at: string;
   updated_at: string;
-  stripe_subscription_id?: string | null;
-  stripe_customer_id?: string | null;
-  asaas_subscription_id?: string | null;
-  asaas_customer_id?: string | null;
 }
 
 interface UserData {
@@ -107,10 +103,9 @@ export function useUserData() {
   const subscription = data?.subscription ?? null;
   const role = data?.role ?? null;
   const isAdmin = role === 'admin';
-  const plan = subscription?.plan || 'free';
+  const plan = subscription?.plan || 'starter';
   // Flags granulares para cada nível de plano
-  const isFree = plan === 'free';
-  const isStarter = plan === 'starter' || plan === 'pro' || plan === 'plus' || plan === 'enterprise'; // Starter ou superior (pago)
+  const isStarter = plan === 'starter';
   const isPro = plan === 'pro' || plan === 'plus' || plan === 'enterprise'; // Pro ou superior
   const isPlus = plan === 'plus' || plan === 'enterprise'; // Plus ou superior
   const isEnterprise = plan === 'enterprise'; // Apenas Enterprise (exclusivo)
@@ -121,7 +116,6 @@ export function useUserData() {
     role,
     isAdmin,
     plan,
-    isFree,
     isStarter,
     isPro,
     isPlus,

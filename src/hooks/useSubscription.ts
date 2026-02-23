@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserData } from '@/hooks/useUserData';
 import { toast } from 'sonner';
 
-export type SubscriptionPlan = 'free' | 'starter' | 'pro' | 'enterprise' | 'plus';
+export type SubscriptionPlan = 'starter' | 'pro' | 'enterprise' | 'plus';
 export type SubscriptionStatus = 'active' | 'inactive' | 'cancelled' | 'trial';
 
 export interface Subscription {
@@ -16,10 +16,6 @@ export interface Subscription {
   expires_at: string | null;
   created_at: string;
   updated_at: string;
-  stripe_subscription_id?: string | null;
-  stripe_customer_id?: string | null;
-  asaas_subscription_id?: string | null;
-  asaas_customer_id?: string | null;
 }
 
 /**

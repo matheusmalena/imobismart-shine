@@ -95,33 +95,6 @@ export type Database = {
           },
         ]
       }
-      email_verifications: {
-        Row: {
-          created_at: string
-          email: string
-          expires_at: string
-          id: string
-          otp_code: string
-          verified: boolean
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          expires_at?: string
-          id?: string
-          otp_code: string
-          verified?: boolean
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          expires_at?: string
-          id?: string
-          otp_code?: string
-          verified?: boolean
-        }
-        Relationships: []
-      }
       enterprise_checkout_links: {
         Row: {
           checkout_url: string
@@ -390,7 +363,6 @@ export type Database = {
           checkout_url: string | null
           created_at: string
           description: string | null
-          extra_property_price: number | null
           features: Json
           id: string
           is_active: boolean
@@ -400,15 +372,12 @@ export type Database = {
           price_label: string
           property_limit: number
           sort_order: number
-          stripe_metered_price_id: string | null
-          stripe_price_id: string | null
           updated_at: string
         }
         Insert: {
           checkout_url?: string | null
           created_at?: string
           description?: string | null
-          extra_property_price?: number | null
           features?: Json
           id: string
           is_active?: boolean
@@ -418,15 +387,12 @@ export type Database = {
           price_label?: string
           property_limit?: number
           sort_order?: number
-          stripe_metered_price_id?: string | null
-          stripe_price_id?: string | null
           updated_at?: string
         }
         Update: {
           checkout_url?: string | null
           created_at?: string
           description?: string | null
-          extra_property_price?: number | null
           features?: Json
           id?: string
           is_active?: boolean
@@ -436,8 +402,6 @@ export type Database = {
           price_label?: string
           property_limit?: number
           sort_order?: number
-          stripe_metered_price_id?: string | null
-          stripe_price_id?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -694,13 +658,9 @@ export type Database = {
       }
       subscriptions: {
         Row: {
-          asaas_customer_id: string | null
-          asaas_subscription_id: string | null
           created_at: string
           expires_at: string | null
           external_subscription_id: string | null
-          extra_properties_amount: number
-          extra_properties_count: number
           id: string
           mp_payer_email: string | null
           mp_subscription_id: string | null
@@ -709,19 +669,13 @@ export type Database = {
           plan: Database["public"]["Enums"]["subscription_plan"]
           started_at: string
           status: Database["public"]["Enums"]["subscription_status"]
-          stripe_customer_id: string | null
-          stripe_subscription_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
-          asaas_customer_id?: string | null
-          asaas_subscription_id?: string | null
           created_at?: string
           expires_at?: string | null
           external_subscription_id?: string | null
-          extra_properties_amount?: number
-          extra_properties_count?: number
           id?: string
           mp_payer_email?: string | null
           mp_subscription_id?: string | null
@@ -730,19 +684,13 @@ export type Database = {
           plan?: Database["public"]["Enums"]["subscription_plan"]
           started_at?: string
           status?: Database["public"]["Enums"]["subscription_status"]
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
-          asaas_customer_id?: string | null
-          asaas_subscription_id?: string | null
           created_at?: string
           expires_at?: string | null
           external_subscription_id?: string | null
-          extra_properties_amount?: number
-          extra_properties_count?: number
           id?: string
           mp_payer_email?: string | null
           mp_subscription_id?: string | null
@@ -751,8 +699,6 @@ export type Database = {
           plan?: Database["public"]["Enums"]["subscription_plan"]
           started_at?: string
           status?: Database["public"]["Enums"]["subscription_status"]
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -1046,7 +992,6 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_invitations: { Args: never; Returns: undefined }
-      cleanup_expired_otps: { Args: never; Returns: undefined }
       cleanup_rate_limits: { Args: never; Returns: undefined }
       decrypt_api_key: { Args: { encrypted_key: string }; Returns: string }
       decrypt_api_key_with_key: {
@@ -1112,7 +1057,7 @@ export type Database = {
         | "sala"
         | "loja"
         | "outro"
-      subscription_plan: "starter" | "pro" | "enterprise" | "plus" | "free"
+      subscription_plan: "starter" | "pro" | "enterprise" | "plus"
       subscription_status: "active" | "inactive" | "cancelled" | "trial"
     }
     CompositeTypes: {
@@ -1256,7 +1201,7 @@ export const Constants = {
         "loja",
         "outro",
       ],
-      subscription_plan: ["starter", "pro", "enterprise", "plus", "free"],
+      subscription_plan: ["starter", "pro", "enterprise", "plus"],
       subscription_status: ["active", "inactive", "cancelled", "trial"],
     },
   },

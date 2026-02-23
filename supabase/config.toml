@@ -12,16 +12,3 @@ verify_jwt = false
 [functions.cancel-cakto-subscription]
 verify_jwt = false
 
-[functions.delete-user-admin]
-verify_jwt = false
-
-[functions.send-verification-otp]
-verify_jwt = false
-
-[functions.verify-email-otp]
-verify_jwt = false
-
-[functions.asaas-webhook]
-verify_jwt = false
-
-

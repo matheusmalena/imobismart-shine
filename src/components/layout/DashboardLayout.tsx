@@ -27,7 +27,7 @@ import {
   Link2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { TutorialModal } from '@/components/onboarding/TutorialModal';
 import { LogoText } from '@/components/common/LogoText';
 import { PortfolioCopilot, PortfolioCopilotRef } from '@/components/ai/PortfolioCopilot';
@@ -100,9 +100,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex h-full flex-col pt-4 lg:pt-8">
+        <div className="flex h-full flex-col">
           {/* Logo */}
-          <div className="flex items-center gap-3 px-6 mb-6">
+          <div className="flex h-16 items-center gap-3 px-6 border-b border-sidebar-border">
             <div className="flex-1">
               <LogoText size="md" variant="sidebar" />
             </div>
@@ -115,7 +115,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+          <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href;
               return (
@@ -235,16 +235,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
       </aside>
 
-      {/* Mobile menu button */}
-      <button
-        className="lg:hidden fixed top-4 left-4 z-30 p-2 rounded-lg bg-background/80 backdrop-blur-sm border border-border shadow-sm hover:bg-secondary transition-colors"
-        onClick={() => setSidebarOpen(true)}
-      >
-        <Menu className="h-5 w-5" />
-      </button>
-
       {/* Main content */}
       <div className="lg:pl-64">
+        {/* Top bar - Simplified without AI input */}
+        <header className="sticky top-0 z-30 h-16 bg-background/80 backdrop-blur-xl border-b border-border flex items-center justify-between px-4 lg:px-8">
+          <button
+            className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-secondary transition-colors"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          
+          <div className="flex-1" />
+
+          <ThemeToggle />
+        </header>
+
+        {/* Page content */}
         <main className="p-4 lg:p-8">
           {children}
         </main>

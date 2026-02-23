@@ -1,115 +1,64 @@
 
+# Padronizacao Visual da Plataforma
 
-# Migrar de Stripe para Asaas
+## Inconsistencias Encontradas
 
-## Resumo
+### 1. Titulos de Pagina (h1)
+| Pagina | Tamanho | Estilo |
+|--------|---------|--------|
+| Dashboard | `text-2xl sm:text-3xl font-bold` | Com saudacao |
+| Properties | `text-3xl font-bold` | Sem subtitulo `mt-1` |
+| Documents | `text-3xl font-bold` | Sem subtitulo `mt-1` |
+| Tenants | `text-3xl font-bold` | Sem subtitulo `mt-1` |
+| Settings | `text-3xl font-bold` | Sem subtitulo `mt-1` |
+| Team | `text-3xl font-bold` | Sem subtitulo `mt-1` |
+| **WhatsApp** | **`text-2xl font-bold`** | **Diferente!** Sem `mt-1` no subtitulo |
+| **Reports (Pro)** | **`text-2xl font-bold`** | **Diferente!** Sem subtitulo |
+| **Subscription** | **`text-2xl font-bold`** | **Diferente!** Layout diferente com botao Voltar |
 
-Substituir toda a integracao com Stripe pela plataforma Asaas, que e brasileira e ja suporta PIX, Boleto e Cartao de Credito nativamente -- sem necessidade de aprovacao pendente de metodos de pagamento.
+**Padrao correto:** `text-3xl font-bold text-foreground` para o h1, e `text-muted-foreground mt-1` para o subtitulo.
 
----
+### 2. Cards do Dashboard: RevenueChart usa `div` manual
+O `RevenueChart` ainda usa `div` com classes manuais (`bg-card rounded-xl p-6 shadow-card border border-border/50`) em vez do componente `Card` padrao. O `OccupancyChart` ja foi corrigido.
 
-## O que muda para o usuario
+### 3. Cards do Dashboard: Titulos internos inconsistentes
+| Card | Titulo | Classe |
+|------|--------|--------|
+| RevenueChart | `h3 text-lg font-semibold text-card-foreground` | Manual |
+| OccupancyChart | `CardTitle text-base` | Componente padrao |
+| ProFeaturesCard | `CardTitle text-base` | Componente padrao |
+| PlusAICard | `CardTitle text-base` | Componente padrao |
 
-- O checkout passa a ser feito via **Asaas Checkout** (link gerado pela API), com opcoes de **PIX, Boleto e Cartao**
-- O portal de gerenciamento de pagamento (Stripe Billing Portal) sera substituido por uma pagina interna que exibe status da assinatura
-- Webhooks do Asaas substituem os do Stripe para sincronizar pagamentos
+**Padrao correto:** Usar `CardTitle` com `text-base` em todos.
 
----
+### 4. Reports: Upgrade prompt nao segue o padrao
+A pagina Reports (para usuarios nao-Pro) usa um design proprio de upgrade que nao usa o componente `UpgradeOverlay`. Usa `CardTitle text-2xl`, um botao `size="lg" w-full`, e badges com estilos inline em vez do `UpgradeBadge`.
 
-## Arquitetura da Migracao
+### 5. Subscription: Info banner inconsistente com Dashboard upgrade banner
+O banner de upgrade do Dashboard usa `border-primary/30 bg-primary/5` enquanto o info banner de Subscription usa `border-primary/20 bg-primary/5`.
 
-### Edge Functions a criar/reescrever
+### 6. Subtitulos de pagina sem consistencia de espacamento
+Algumas paginas usam `mt-1` no subtitulo, outras nao tem `mt-1`. WhatsApp nao usa.
 
-| Funcao | Acao |
-|--------|------|
-| `create-asaas-checkout` (nova) | Cria customer no Asaas + cria subscription com checkout link |
-| `asaas-webhook` (nova) | Recebe eventos `PAYMENT_RECEIVED`, `PAYMENT_CREATED`, `SUBSCRIPTION_DELETED`, etc. |
-| `change-plan` (reescrever) | Atualiza subscription no Asaas via `PUT /v3/subscriptions/{id}` ou cancela |
-| `check-subscription` (reescrever) | Consulta subscription no Asaas via API em vez do Stripe |
+## Plano de Correcao
 
-### Edge Functions a remover
+### Etapa 1: Padronizar titulos de pagina
+Corrigir `WhatsApp.tsx`, `Reports.tsx` (versao Pro) e `Subscription.tsx` para usar `text-3xl font-bold text-foreground` no h1 e `text-muted-foreground mt-1` no subtitulo.
 
-| Funcao | Motivo |
-|--------|--------|
-| `create-stripe-checkout` | Substituida por `create-asaas-checkout` |
-| `create-stripe-portal` | Asaas nao tem portal de billing; gerenciamento sera interno |
-| `stripe-webhook` | Substituida por `asaas-webhook` |
+### Etapa 2: Migrar RevenueChart para componente Card
+Substituir os `div` manuais por `Card`, `CardHeader`, `CardTitle` e `CardContent`, da mesma forma que o `OccupancyChart` ja foi corrigido.
 
-### Edge Functions que permanecem iguais
+### Etapa 3: Padronizar upgrade prompt da pagina Reports
+Substituir o design custom na pagina Reports (nao-Pro) pelo padrao visual consistente, usando `UpgradeBadge` e um estilo similar ao usado nos cards de dashboard.
 
-- `report-usage` -- sera adaptada para registrar excedentes no Asaas (ou apenas no banco, pois Asaas nao tem metered billing nativo)
-- `cakto-webhook`, `cancel-cakto-subscription` -- mantidos como legado
+### Etapa 4: Alinhar info banners
+Padronizar a borda dos banners informativos para `border-primary/30 bg-primary/5`.
 
----
-
-## Detalhes Tecnicos
-
-### 1. Secret necessario
-
-- `ASAAS_API_KEY`: chave de API do Asaas (obtida em Integracoes > Chaves API no painel Asaas)
-- Ambiente: `https://api.asaas.com` (producao) ou `https://api-sandbox.asaas.com` (sandbox)
-
-### 2. Banco de dados
-
-Migrar colunas na tabela `subscriptions`:
-- Renomear `stripe_customer_id` -> manter e adicionar `asaas_customer_id` (text)
-- Renomear `stripe_subscription_id` -> manter e adicionar `asaas_subscription_id` (text)
-
-Migrar colunas na tabela `plans`:
-- `stripe_price_id` -> manter e adicionar `asaas_value` (ja existe como `price`)
-- `stripe_metered_price_id` -> nao necessario (Asaas nao tem metered billing nativo; excedentes serao cobrados via cobranca avulsa)
-
-### 3. `create-asaas-checkout` (nova Edge Function)
-
-```text
-POST /v3/customers  (criar customer com email/cpf)
-POST /v3/subscriptions  (criar subscription mensal)
-  - customer: asaas_customer_id
-  - billingType: "UNDEFINED" (permite PIX, Boleto, Cartao)
-  - value: plan.price
-  - cycle: "MONTHLY"
-  - nextDueDate: hoje
-  - externalReference: user_id + plan_id
-Retorna: first payment link ou checkout URL
-```
-
-### 4. `asaas-webhook` (nova Edge Function)
-
-Eventos tratados:
-- `PAYMENT_RECEIVED` / `PAYMENT_CONFIRMED`: ativa subscription no banco
-- `PAYMENT_OVERDUE`: marca como inativa
-- `SUBSCRIPTION_DELETED` / `SUBSCRIPTION_INACTIVATED`: downgrade para free
-- `SUBSCRIPTION_UPDATED`: atualiza plano
-
-Seguranca: validar via `asaas-access-token` header ou webhook token
-
-### 5. `change-plan` (reescrever)
-
-- Para upgrade/downgrade entre planos pagos: `PUT /v3/subscriptions/{id}` com novo `value`
-- Para downgrade para free: `DELETE /v3/subscriptions/{id}` (remove subscription no Asaas)
-- Se nao tem subscription: redirecionar para `create-asaas-checkout`
-
-### 6. Frontend
+## Arquivos Modificados
 
 | Arquivo | Alteracao |
 |---------|-----------|
-| `src/pages/Plans.tsx` | Trocar invocacao de `create-stripe-checkout` por `create-asaas-checkout`; trocar `change-plan` para nova versao |
-| `src/pages/Subscription.tsx` | Remover botao "Gerenciar Pagamento" (portal Stripe); substituir por info interna |
-| `src/hooks/useSubscription.ts` | Trocar `stripe_subscription_id` por `asaas_subscription_id` na interface |
-| `src/hooks/useUserData.ts` | Idem |
-| `src/components/subscription/PaymentHistory.tsx` | Remover referencia a "painel da Cakto" |
-| `supabase/config.toml` | Adicionar `asaas-webhook` com `verify_jwt = false` |
-
-### 7. Excedentes de imoveis
-
-Como o Asaas nao tem "metered billing" nativo, a estrategia sera:
-- O `report-usage` calcula excedentes como ja faz
-- Em vez de reportar ao Stripe, cria uma **cobranca avulsa** no Asaas (`POST /v3/payments`) com o valor dos imoveis extras
-- Ou: simplesmente registra no banco e soma na proxima fatura da subscription (manual)
-
-### 8. Limpeza
-
-- Remover imports de `Stripe` de todas as Edge Functions migradas
-- O secret `STRIPE_SECRET_KEY` e `STRIPE_WEBHOOK_SECRET` podem ser mantidos por seguranca mas nao serao mais usados
-- Deletar as Edge Functions `create-stripe-checkout`, `create-stripe-portal`, `stripe-webhook` apos confirmar que tudo funciona
-
+| `src/pages/WhatsApp.tsx` | h1 de `text-2xl` para `text-3xl`, subtitulo com `mt-1` |
+| `src/pages/Reports.tsx` | h1 Pro de `text-2xl` para `text-3xl` + subtitulo; upgrade prompt padronizado |
+| `src/pages/Subscription.tsx` | h1 de `text-2xl` para `text-3xl`; info banner border alinhado |
+| `src/components/dashboard/RevenueChart.tsx` | Migrar de `div` para `Card/CardHeader/CardTitle/CardContent` |

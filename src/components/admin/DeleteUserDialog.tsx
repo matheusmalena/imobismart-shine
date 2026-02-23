@@ -27,36 +27,26 @@ export function DeleteUserDialog({ userId, userName }: DeleteUserDialogProps) {
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) throw new Error('Não autenticado');
-
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user-admin`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({ userId }),
-        }
-      );
-
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.error || 'Erro ao excluir usuário');
-      }
-      return result;
+      // Delete related data in order (due to foreign keys)
+      // Delete subscriptions
+      await supabase.from('subscriptions').delete().eq('user_id', userId);
+      
+      // Delete user roles
+      await supabase.from('user_roles').delete().eq('user_id', userId);
+      
+      // Delete profile
+      const { error } = await supabase.from('profiles').delete().eq('user_id', userId);
+      
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-clients'] });
-      toast.success('Usuário excluído com sucesso!');
+      toast.success('Dados do usuário excluídos com sucesso!');
       setOpen(false);
     },
     onError: (error) => {
       console.error('Error deleting user:', error);
-      toast.error(error.message || 'Erro ao excluir usuário.');
+      toast.error('Erro ao excluir dados do usuário. Verifique se existem dados vinculados.');
     },
   });
 
@@ -80,7 +70,7 @@ export function DeleteUserDialog({ userId, userName }: DeleteUserDialogProps) {
               Tem certeza que deseja excluir "{userName || 'este usuário'}"?
             </p>
             <p className="font-semibold text-destructive">
-              Esta ação é irreversível e removerá todos os dados associados, incluindo imóveis, inquilinos, contratos e a conta de acesso.
+              Esta ação é irreversível e removerá todos os dados associados ao perfil.
             </p>
           </AlertDialogDescription>
         </AlertDialogHeader>

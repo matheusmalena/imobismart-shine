@@ -20,22 +20,16 @@ serve(async (req) => {
       throw new Error("Missing environment variables");
     }
 
-    // Validate webhook secret - MANDATORY
-    if (!CAKTO_WEBHOOK_SECRET) {
-      console.error("CAKTO_WEBHOOK_SECRET not configured");
-      return new Response(JSON.stringify({ error: "Service misconfigured" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      });
-    }
-
-    const webhookSecret = req.headers.get("x-webhook-secret") || req.headers.get("authorization");
-    if (webhookSecret !== CAKTO_WEBHOOK_SECRET && webhookSecret !== `Bearer ${CAKTO_WEBHOOK_SECRET}`) {
-      console.error("Invalid webhook secret");
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 401,
-      });
+    // Validate webhook secret if configured
+    if (CAKTO_WEBHOOK_SECRET) {
+      const webhookSecret = req.headers.get("x-webhook-secret") || req.headers.get("authorization");
+      if (webhookSecret !== CAKTO_WEBHOOK_SECRET && webhookSecret !== `Bearer ${CAKTO_WEBHOOK_SECRET}`) {
+        console.error("Invalid webhook secret");
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 401,
+        });
+      }
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -74,7 +68,7 @@ serve(async (req) => {
     const userId = profile.user_id;
 
     // Determine plan from product name/id
-    let plan = "free";
+    let plan = "starter";
     const nameLower = productName.toLowerCase();
     if (nameLower.includes("enterprise")) {
       plan = "enterprise";
@@ -116,7 +110,7 @@ serve(async (req) => {
       const { error: updateError } = await supabase
         .from("subscriptions")
         .update({
-          plan: "free",
+          plan: "starter",
           status: "cancelled",
           payment_method: "cakto",
           updated_at: new Date().toISOString(),

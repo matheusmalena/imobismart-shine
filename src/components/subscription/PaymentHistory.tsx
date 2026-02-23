@@ -75,7 +75,7 @@ export function PaymentHistory() {
           </div>
 
           <p className="text-xs text-muted-foreground text-center">
-            Os pagamentos são processados via Asaas com suporte a PIX, Boleto e Cartão.
+            O histórico detalhado de pagamentos está disponível no painel da Cakto.
           </p>
         </div>
       </CardContent>
