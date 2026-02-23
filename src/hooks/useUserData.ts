@@ -26,6 +26,8 @@ export interface Subscription {
   expires_at: string | null;
   created_at: string;
   updated_at: string;
+  stripe_subscription_id?: string | null;
+  stripe_customer_id?: string | null;
 }
 
 interface UserData {
