@@ -1,55 +1,44 @@
 
-# Automacao Enterprise: Vincular Cliente por Email
 
-## Problema Atual
-O webhook da Cakto identifica o plano pelo nome do produto (precisa conter "enterprise"). Isso e fragil — se o admin escrever o nome errado na Cakto, o plano nao e ativado corretamente. Alem disso, o campo "ID Externo" no EditSubscriptionDialog e desnecessario para a maioria dos casos.
+# Criar 3 Contas de Teste (Plano Free)
 
-## Solucao
+## Objetivo
 
-### 1. Melhorar o webhook para consultar a tabela `enterprise_checkout_links`
+Criar 3 contas de teste no plano **free** (padrao), para que voce possa testar o fluxo completo de pagamento: enviar o link de checkout da Cakto, simular o pagamento, e verificar se o webhook ativa o plano correto automaticamente.
 
-Quando o webhook receber um pagamento e NAO conseguir determinar o plano pelo nome do produto, ele vai consultar a tabela `enterprise_checkout_links` pelo `client_email` do comprador. Se encontrar um registro ativo, ativa o plano Enterprise automaticamente.
+## Contas a serem criadas
 
-Fluxo atualizado do webhook:
+| Email | Nome | Senha | Plano Inicial |
+|-------|------|-------|---------------|
+| starter@teste.com | Starter Teste | 123456 | free |
+| plus@teste.com | Plus Teste | 123456 | free |
+| enterprise@teste.com | Enterprise Teste | 123456 | free |
+
+## Como sera feito
+
+1. Criar uma Edge Function temporaria (`create-test-users`) que usa a Admin API para criar os 3 usuarios com email ja confirmado (sem OTP)
+2. Os triggers automaticos do banco criam perfil, role e subscription no plano `free`
+3. Nenhuma alteracao de plano sera feita -- ficam no free
+4. Executar a function uma vez para criar as contas
+5. Deletar a function apos confirmar que as contas existem
+
+## Fluxo de teste esperado
 
 ```text
-Webhook recebe pagamento
-  |
-  v
-Tenta determinar plano pelo nome do produto
-  |
-  +--> Nome contem "enterprise" --> plano = enterprise
-  +--> Nome contem "plus" --> plano = plus
-  +--> Nome contem "pro" --> plano = pro
-  +--> Nome contem "starter" --> plano = starter
-  +--> Nenhum match --> consulta enterprise_checkout_links pelo email
-        |
-        +--> Encontrou registro ativo --> plano = enterprise
-        +--> Nao encontrou --> plano = free (fallback)
+1. Logar como starter@teste.com (plano free)
+2. Enviar link de checkout do plano Starter na Cakto
+3. Simular/completar pagamento
+4. Webhook recebe evento --> ativa plano "starter"
+5. Verificar no app que o plano mudou
 ```
 
-### 2. Simplificar o EditSubscriptionDialog
+O mesmo vale para plus@teste.com e enterprise@teste.com com seus respectivos links.
 
-Remover o campo "ID Externo (Cakto / Produto)" ja que nao e necessario. Manter apenas o campo "Email do Pagador" para rastreabilidade.
+## Arquivo temporario
 
-### 3. Atualizar a pagina Enterprise Links
-
-Adicionar um indicador visual de "vinculado" quando o email do link corresponde a um usuario ativo com plano enterprise no sistema.
-
-## Arquivos Modificados
-
-| Arquivo | Alteracao |
+| Arquivo | Descricao |
 |---------|-----------|
-| `supabase/functions/cakto-webhook/index.ts` | Adicionar consulta a `enterprise_checkout_links` como fallback para determinar plano |
-| `src/components/admin/EditSubscriptionDialog.tsx` | Remover campo `externalId`, simplificar |
+| `supabase/functions/create-test-users/index.ts` | Edge Function temporaria para criar as 3 contas |
 
-## Resultado Final
+Sera deletada imediatamente apos a criacao das contas.
 
-O passo a passo para o admin fica:
-
-1. Crie o produto na Cakto (qualquer nome)
-2. Cadastre o link na pagina "Links Enterprise" com o nome, email e link de checkout do cliente
-3. Envie o link ao cliente
-4. Cliente paga, webhook ativa Enterprise automaticamente pelo email
-
-Nao precisa copiar ID, nao precisa editar assinatura manualmente, nao depende do nome do produto conter "enterprise".
