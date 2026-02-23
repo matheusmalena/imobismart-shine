@@ -3,7 +3,10 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useUserData } from '@/hooks/useUserData';
+import { useProperties } from '@/hooks/useProperties';
 import { usePlans } from '@/hooks/usePlans';
+import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,6 +18,16 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Crown,
   Check,
   X,
@@ -23,6 +36,7 @@ import {
   HelpCircle,
   ArrowLeft,
   Loader2,
+  AlertTriangle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -77,11 +91,19 @@ export default function Plans() {
   const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const { subscription, isLoading: subscriptionLoading, refetch: refetchSubscription } = useSubscription();
+  const { plan: currentUserPlan } = useUserData();
+  const { activeProperties } = useProperties();
   const { activePlans, isLoading: plansLoading } = usePlans();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [showDowngradeDialog, setShowDowngradeDialog] = useState(false);
+  const [isDowngrading, setIsDowngrading] = useState(false);
 
-  const currentPlan = subscription?.plan || 'starter';
+  const currentPlan = currentUserPlan;
   const isLoading = authLoading || subscriptionLoading || plansLoading;
+
+  const activeCount = activeProperties.length;
+  const freeLimit = 2;
+  const excessCount = Math.max(0, activeCount - freeLimit);
 
   // Handle return from checkout
   useEffect(() => {
@@ -118,7 +140,7 @@ export default function Plans() {
   }
 
   const getPlanIndex = (planId: string): number => {
-    const order = ['starter', 'pro', 'plus', 'enterprise'];
+    const order = ['free', 'starter', 'pro', 'plus', 'enterprise'];
     return order.indexOf(planId);
   };
 
@@ -130,6 +152,34 @@ export default function Plans() {
     return 'Selecionar';
   };
 
+  const handleDowngradeToFree = async () => {
+    setIsDowngrading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('downgrade-to-free');
+
+      if (error) {
+        throw new Error(error.message || 'Erro ao fazer downgrade');
+      }
+
+      const result = data as { success: boolean; archived_count: number; kept_count: number; message: string };
+
+      toast.success('Downgrade realizado!', {
+        description: result.message,
+        duration: 6000,
+      });
+
+      refetchSubscription();
+      setShowDowngradeDialog(false);
+    } catch (error) {
+      console.error('Downgrade error:', error);
+      toast.error('Erro ao fazer downgrade', {
+        description: error instanceof Error ? error.message : 'Tente novamente.',
+      });
+    } finally {
+      setIsDowngrading(false);
+    }
+  };
+
   const handleSelectPlan = async (planId: string) => {
     // Enterprise - WhatsApp contact
     if (planId === 'enterprise') {
@@ -137,32 +187,30 @@ export default function Plans() {
       return;
     }
 
-    // Starter - no payment needed (downgrade)
-    if (planId === 'starter') {
-      toast.info('Para fazer downgrade para o plano Gratuito, entre em contato com nosso suporte.');
+    // Free - downgrade with archiving
+    if (planId === 'free') {
+      setShowDowngradeDialog(true);
       return;
     }
 
-    // Pro or Plus - redirect to Cakto checkout URL from plans table
-    if (planId === 'pro' || planId === 'plus') {
-      setLoadingPlan(planId);
-      
-      try {
-        const plan = activePlans.find(p => p.id === planId);
-        const checkoutUrl = (plan as any)?.checkout_url;
+    // Starter / Pro / Plus - redirect to Cakto checkout URL from plans table
+    setLoadingPlan(planId);
+    
+    try {
+      const plan = activePlans.find(p => p.id === planId);
+      const checkoutUrl = (plan as any)?.checkout_url;
 
-        if (!checkoutUrl) {
-          throw new Error('Link de checkout não configurado para este plano. Entre em contato com o suporte.');
-        }
-
-        window.location.href = checkoutUrl;
-      } catch (error) {
-        console.error('Checkout error:', error);
-        toast.error('Erro ao iniciar pagamento', {
-          description: error instanceof Error ? error.message : 'Tente novamente em alguns instantes.',
-        });
-        setLoadingPlan(null);
+      if (!checkoutUrl) {
+        throw new Error('Link de checkout não configurado para este plano. Entre em contato com o suporte.');
       }
+
+      window.location.href = checkoutUrl;
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast.error('Erro ao iniciar pagamento', {
+        description: error instanceof Error ? error.message : 'Tente novamente em alguns instantes.',
+      });
+      setLoadingPlan(null);
     }
   };
 
@@ -311,11 +359,12 @@ export default function Plans() {
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b">
                       <th className="text-left py-3 px-2">Recurso</th>
                       <th className="text-center py-3 px-2">Gratuito</th>
+                      <th className="text-center py-3 px-2">Starter</th>
                       <th className="text-center py-3 px-2">Pro</th>
                       <th className="text-center py-3 px-2">Plus</th>
                       <th className="text-center py-3 px-2">Enterprise</th>
@@ -332,6 +381,7 @@ export default function Plans() {
                         <>
                           <tr className="transition-colors hover:bg-muted/50">
                             <td className="py-3 px-2">Limite de imóveis</td>
+                            <td className="text-center py-3 px-2">{getPlanLimit('free')}</td>
                             <td className="text-center py-3 px-2">{getPlanLimit('starter')}</td>
                             <td className="text-center py-3 px-2">{getPlanLimit('pro')}</td>
                             <td className="text-center py-3 px-2">{getPlanLimit('plus')}</td>
@@ -343,9 +393,11 @@ export default function Plans() {
                             <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                             <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                             <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                           </tr>
                           <tr className="transition-colors hover:bg-muted/50">
                             <td className="py-3 px-2">Gestão de inquilinos</td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                             <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                             <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                             <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
@@ -354,12 +406,14 @@ export default function Plans() {
                           <tr className="transition-colors hover:bg-muted/50">
                             <td className="py-3 px-2">Exportação CSV/Excel/JSON</td>
                             <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
                             <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                             <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                             <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                           </tr>
                           <tr className="transition-colors hover:bg-muted/50">
                             <td className="py-3 px-2">Análise avançada</td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
                             <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
                             <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                             <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
@@ -369,11 +423,13 @@ export default function Plans() {
                             <td className="py-3 px-2">Relatórios PDF</td>
                             <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
                             <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
                             <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                             <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                           </tr>
                           <tr className="transition-colors hover:bg-muted/50">
                             <td className="py-3 px-2">Recomendações IA</td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
                             <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
                             <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
                             <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
@@ -384,10 +440,12 @@ export default function Plans() {
                             <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
                             <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
                             <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
                             <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                           </tr>
                           <tr className="transition-colors hover:bg-muted/50">
                             <td className="py-3 px-2">Suporte prioritário</td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
                             <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
                             <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
                             <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
@@ -437,6 +495,54 @@ export default function Plans() {
           </Card>
         </motion.div>
       </div>
+
+      {/* Downgrade to Free Confirmation Dialog */}
+      <AlertDialog open={showDowngradeDialog} onOpenChange={setShowDowngradeDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-warning" />
+              Confirmar Downgrade para Gratuito
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                Ao fazer downgrade para o plano Gratuito, seu limite de imóveis será reduzido para <strong>{freeLimit} imóveis</strong>.
+              </p>
+              {excessCount > 0 ? (
+                <div className="p-3 rounded-lg bg-warning/10 border border-warning/30 text-warning-foreground">
+                  <p className="font-medium">
+                    ⚠️ Você possui {activeCount} imóveis ativos. {excessCount} {excessCount === 1 ? 'imóvel será arquivado' : 'imóveis serão arquivados'} automaticamente.
+                  </p>
+                  <p className="text-sm mt-1 text-muted-foreground">
+                    Os {freeLimit} imóveis mais recentes serão mantidos. Você pode desarquivar os demais fazendo upgrade novamente.
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Você possui {activeCount} {activeCount === 1 ? 'imóvel ativo' : 'imóveis ativos'}, dentro do limite. Nenhum imóvel será arquivado.
+                </p>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDowngrading}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDowngradeToFree}
+              disabled={isDowngrading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDowngrading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processando...
+                </>
+              ) : (
+                'Confirmar Downgrade'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }

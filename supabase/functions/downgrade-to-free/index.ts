@@ -17,12 +17,16 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error("Missing environment variables");
+    }
+
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       throw new Error("Authorization header required");
     }
 
-    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
@@ -31,45 +35,65 @@ serve(async (req) => {
       throw new Error("Invalid or expired token");
     }
 
-    // Update local subscription status to cancelled/free
+    // 1. Update subscription to free plan
     const { error: updateError } = await supabase
       .from("subscriptions")
       .update({
-        status: "cancelled",
         plan: "free",
+        status: "active",
         updated_at: new Date().toISOString(),
       })
       .eq("user_id", user.id);
 
     if (updateError) {
+      console.error("Error updating subscription:", updateError);
       throw updateError;
     }
 
-    // Archive excess properties (keep only 2 most recent)
-    const { data: activeProperties } = await supabase
+    // 2. Get active (non-archived) properties ordered by created_at DESC
+    const { data: activeProperties, error: propertiesError } = await supabase
       .from("properties")
       .select("id")
       .eq("user_id", user.id)
       .or("is_archived.is.null,is_archived.eq.false")
       .order("created_at", { ascending: false });
 
+    if (propertiesError) {
+      console.error("Error fetching properties:", propertiesError);
+      throw propertiesError;
+    }
+
     let archivedCount = 0;
+    const keptCount = Math.min(activeProperties?.length || 0, FREE_PLAN_LIMIT);
+
+    // 3. Archive properties beyond the limit (keep the most recent ones)
     if (activeProperties && activeProperties.length > FREE_PLAN_LIMIT) {
-      const idsToArchive = activeProperties.slice(FREE_PLAN_LIMIT).map(p => p.id);
-      await supabase
+      const propertiesToArchive = activeProperties.slice(FREE_PLAN_LIMIT);
+      const idsToArchive = propertiesToArchive.map(p => p.id);
+
+      const { error: archiveError } = await supabase
         .from("properties")
         .update({ is_archived: true, updated_at: new Date().toISOString() })
         .in("id", idsToArchive);
+
+      if (archiveError) {
+        console.error("Error archiving properties:", archiveError);
+        throw archiveError;
+      }
+
       archivedCount = idsToArchive.length;
     }
 
-    console.log(`Subscription cancelled for user ${user.id}, archived ${archivedCount} properties`);
+    console.log(`Downgrade to free for user ${user.id}: archived=${archivedCount}, kept=${keptCount}`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Assinatura cancelada com sucesso. Cancele também no painel da Cakto.",
         archived_count: archivedCount,
+        kept_count: keptCount,
+        message: archivedCount > 0
+          ? `Downgrade realizado. ${archivedCount} ${archivedCount === 1 ? 'imóvel foi arquivado' : 'imóveis foram arquivados'}.`
+          : "Downgrade realizado com sucesso.",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -78,7 +102,7 @@ serve(async (req) => {
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error:", errorMessage);
+    console.error("Downgrade error:", errorMessage);
     return new Response(
       JSON.stringify({ error: errorMessage }),
       {
@@ -88,3 +112,4 @@ serve(async (req) => {
     );
   }
 });
+

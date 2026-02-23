@@ -12,3 +12,6 @@ verify_jwt = false
 [functions.cancel-cakto-subscription]
 verify_jwt = false
 
+[functions.downgrade-to-free]
+verify_jwt = false
+

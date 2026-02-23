@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -21,7 +21,6 @@ import {
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Pencil } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface EditSubscriptionDialogProps {
   client: {
@@ -34,7 +33,8 @@ interface EditSubscriptionDialogProps {
 }
 
 const PLAN_OPTIONS = [
-  { value: 'starter', label: 'Gratuito' },
+  { value: 'free', label: 'Gratuito' },
+  { value: 'starter', label: 'Starter' },
   { value: 'pro', label: 'Pro' },
   { value: 'plus', label: 'Plus' },
   { value: 'enterprise', label: 'Enterprise' },
@@ -51,23 +51,35 @@ export function EditSubscriptionDialog({ client }: EditSubscriptionDialogProps) 
   const [open, setOpen] = useState(false);
   const [plan, setPlan] = useState(client.plan);
   const [status, setStatus] = useState(client.subscription_status);
+  const [externalId, setExternalId] = useState('');
+  const [payerEmail, setPayerEmail] = useState('');
   const queryClient = useQueryClient();
 
   const updateSubscription = useMutation({
     mutationFn: async () => {
-      // Cast plan to the expected type (database enum includes 'plus' now)
+      const updateData: Record<string, any> = {
+        plan: plan as any,
+        status,
+      };
+
+      // Add optional fields if provided
+      if (externalId.trim()) {
+        updateData.external_subscription_id = externalId.trim();
+      }
+      if (payerEmail.trim()) {
+        updateData.payer_email = payerEmail.trim();
+      }
+
       const { error } = await supabase
         .from('subscriptions')
-        .update({ 
-          plan: plan as any, 
-          status 
-        })
+        .update(updateData)
         .eq('user_id', client.user_id);
 
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-clients'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-client-subscription', client.user_id] });
       toast.success('Assinatura atualizada com sucesso');
       setOpen(false);
     },
@@ -77,11 +89,23 @@ export function EditSubscriptionDialog({ client }: EditSubscriptionDialogProps) 
     },
   });
 
-  const handleOpen = () => {
+  const handleOpen = async () => {
     setPlan(client.plan);
     setStatus(client.subscription_status);
+    
+    // Load current subscription details
+    const { data } = await supabase
+      .from('subscriptions')
+      .select('external_subscription_id, payer_email')
+      .eq('user_id', client.user_id)
+      .maybeSingle();
+    
+    setExternalId(data?.external_subscription_id || '');
+    setPayerEmail(data?.payer_email || '');
     setOpen(true);
   };
+
+  const isEnterprise = plan === 'enterprise';
 
   return (
     <>
@@ -100,7 +124,7 @@ export function EditSubscriptionDialog({ client }: EditSubscriptionDialogProps) 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Plano</Label>
-              <Select value={plan} onValueChange={(v) => setPlan(v as typeof plan)}>
+              <Select value={plan} onValueChange={(v) => setPlan(v)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -129,6 +153,36 @@ export function EditSubscriptionDialog({ client }: EditSubscriptionDialogProps) 
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Enterprise-specific fields */}
+            {isEnterprise && (
+              <>
+                <div className="space-y-2">
+                  <Label>ID Externo (Cakto / Produto)</Label>
+                  <Input
+                    placeholder="ID do produto ou assinatura na Cakto"
+                    value={externalId}
+                    onChange={(e) => setExternalId(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    ID para vincular este cliente ao produto específico na Cakto
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Email do Pagador</Label>
+                  <Input
+                    type="email"
+                    placeholder="email@exemplo.com"
+                    value={payerEmail}
+                    onChange={(e) => setPayerEmail(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Email usado no pagamento para rastreabilidade
+                  </p>
+                </div>
+              </>
+            )}
           </div>
 
           <DialogFooter>

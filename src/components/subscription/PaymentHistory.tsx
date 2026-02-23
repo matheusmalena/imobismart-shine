@@ -19,7 +19,8 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
 };
 
 const PLAN_NAMES: Record<string, string> = {
-  starter: 'Gratuito',
+  free: 'Gratuito',
+  starter: 'Starter',
   pro: 'Pro',
   plus: 'Plus',
   enterprise: 'Enterprise',
@@ -28,7 +29,7 @@ const PLAN_NAMES: Record<string, string> = {
 export function PaymentHistory() {
   const { subscription } = useSubscription();
 
-  const currentPlan = subscription?.plan || 'starter';
+  const currentPlan = subscription?.plan || 'free';
   const currentStatus = subscription?.status || 'trial';
   const statusConfig = STATUS_CONFIG[currentStatus] || STATUS_CONFIG.trial;
 

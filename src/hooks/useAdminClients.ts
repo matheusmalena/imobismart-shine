@@ -67,7 +67,7 @@ export function useAdminClients() {
           full_name: profile.full_name,
           created_at: profile.created_at,
           role: (userRole?.role as 'admin' | 'user') || 'user',
-          plan: userSub?.plan || 'starter',
+          plan: userSub?.plan || 'free',
           subscription_status: (userSub?.status as 'active' | 'inactive' | 'cancelled' | 'trial') || 'trial',
           properties_count: propertyCountMap[profile.user_id] || 0,
         };
