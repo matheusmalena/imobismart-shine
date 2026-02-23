@@ -7,6 +7,8 @@ import { usePlans } from '@/hooks/usePlans';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -15,6 +17,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,6 +65,9 @@ export default function Plans() {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [downgradeDialogOpen, setDowngradeDialogOpen] = useState(false);
   const [pendingDowngradePlan, setPendingDowngradePlan] = useState<string | null>(null);
+  const [cpfDialogOpen, setCpfDialogOpen] = useState(false);
+  const [cpfCnpj, setCpfCnpj] = useState('');
+  const [pendingCheckoutPlan, setPendingCheckoutPlan] = useState<string | null>(null);
 
   const currentPlan = subscription?.plan || 'free';
   const hasActiveSubscription = !!subscription?.asaas_subscription_id || !!subscription?.stripe_subscription_id;
@@ -159,8 +172,18 @@ export default function Plans() {
   };
 
   const redirectToCheckout = async (planId: string) => {
+    // If user already has an Asaas customer, skip CPF dialog
+    if (subscription?.asaas_customer_id) {
+      await doCheckout(planId);
+    } else {
+      setPendingCheckoutPlan(planId);
+      setCpfDialogOpen(true);
+    }
+  };
+
+  const doCheckout = async (planId: string, cpf?: string) => {
     const { data, error } = await supabase.functions.invoke('create-asaas-checkout', {
-      body: { planId },
+      body: { planId, cpfCnpj: cpf || 'existing' },
     });
 
     if (error) throw new Error(error.message);
@@ -168,6 +191,30 @@ export default function Plans() {
       window.location.href = data.url;
     } else {
       throw new Error('URL de checkout não retornada');
+    }
+  };
+
+  const handleCpfSubmit = async () => {
+    const cleaned = cpfCnpj.replace(/\D/g, '');
+    if (cleaned.length < 11) {
+      toast.error('CPF/CNPJ inválido', { description: 'Insira um CPF (11 dígitos) ou CNPJ (14 dígitos) válido.' });
+      return;
+    }
+    setCpfDialogOpen(false);
+    if (pendingCheckoutPlan) {
+      setLoadingPlan(pendingCheckoutPlan);
+      try {
+        await doCheckout(pendingCheckoutPlan, cleaned);
+      } catch (error) {
+        console.error('Checkout error:', error);
+        toast.error('Erro ao criar checkout', {
+          description: error instanceof Error ? error.message : 'Tente novamente.',
+        });
+      } finally {
+        setLoadingPlan(null);
+        setPendingCheckoutPlan(null);
+        setCpfCnpj('');
+      }
     }
   };
 
@@ -242,6 +289,36 @@ export default function Plans() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* CPF/CNPJ Dialog */}
+        <Dialog open={cpfDialogOpen} onOpenChange={(open) => { setCpfDialogOpen(open); if (!open) { setPendingCheckoutPlan(null); setCpfCnpj(''); } }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Informe seu CPF ou CNPJ</DialogTitle>
+              <DialogDescription>
+                Para processar o pagamento, precisamos do seu CPF ou CNPJ.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2 py-4">
+              <Label htmlFor="cpfCnpj">CPF ou CNPJ</Label>
+              <Input
+                id="cpfCnpj"
+                placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                value={cpfCnpj}
+                onChange={(e) => setCpfCnpj(e.target.value)}
+                maxLength={18}
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => { setCpfDialogOpen(false); setPendingCheckoutPlan(null); setCpfCnpj(''); }}>
+                Cancelar
+              </Button>
+              <Button onClick={handleCpfSubmit} disabled={cpfCnpj.replace(/\D/g, '').length < 11}>
+                Continuar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );

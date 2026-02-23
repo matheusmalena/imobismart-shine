@@ -37,7 +37,7 @@ serve(async (req) => {
     const user = userData.user;
     if (!user?.email) throw new Error("User not authenticated");
 
-    const { planId } = await req.json();
+    const { planId, cpfCnpj } = await req.json();
     logStep("Plan requested", { planId, email: user.email });
 
     // Get plan details from DB
@@ -78,13 +78,17 @@ serve(async (req) => {
         asaasCustomerId = searchData.data[0].id;
         logStep("Found existing Asaas customer", { asaasCustomerId });
       } else {
-        // Create new customer
+        // Create new customer - requires CPF/CNPJ
+        if (!cpfCnpj || cpfCnpj === "existing") {
+          throw new Error("CPF ou CNPJ é obrigatório para novos clientes");
+        }
         const createRes = await fetch(`${ASAAS_API_URL}/customers`, {
           method: "POST",
           headers,
           body: JSON.stringify({
             name: user.user_metadata?.full_name || user.email.split("@")[0],
             email: user.email,
+            cpfCnpj: cpfCnpj.replace(/\D/g, ""),
             notificationDisabled: false,
           }),
         });
