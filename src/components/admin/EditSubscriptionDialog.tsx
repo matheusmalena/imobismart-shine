@@ -51,7 +51,6 @@ export function EditSubscriptionDialog({ client }: EditSubscriptionDialogProps) 
   const [open, setOpen] = useState(false);
   const [plan, setPlan] = useState(client.plan);
   const [status, setStatus] = useState(client.subscription_status);
-  const [externalId, setExternalId] = useState('');
   const [payerEmail, setPayerEmail] = useState('');
   const queryClient = useQueryClient();
 
@@ -62,10 +61,6 @@ export function EditSubscriptionDialog({ client }: EditSubscriptionDialogProps) 
         status,
       };
 
-      // Add optional fields if provided
-      if (externalId.trim()) {
-        updateData.external_subscription_id = externalId.trim();
-      }
       if (payerEmail.trim()) {
         updateData.payer_email = payerEmail.trim();
       }
@@ -96,11 +91,10 @@ export function EditSubscriptionDialog({ client }: EditSubscriptionDialogProps) 
     // Load current subscription details
     const { data } = await supabase
       .from('subscriptions')
-      .select('external_subscription_id, payer_email')
+      .select('payer_email')
       .eq('user_id', client.user_id)
       .maybeSingle();
     
-    setExternalId(data?.external_subscription_id || '');
     setPayerEmail(data?.payer_email || '');
     setOpen(true);
   };
@@ -156,32 +150,18 @@ export function EditSubscriptionDialog({ client }: EditSubscriptionDialogProps) 
 
             {/* Enterprise-specific fields */}
             {isEnterprise && (
-              <>
-                <div className="space-y-2">
-                  <Label>ID Externo (Cakto / Produto)</Label>
-                  <Input
-                    placeholder="ID do produto ou assinatura na Cakto"
-                    value={externalId}
-                    onChange={(e) => setExternalId(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    ID para vincular este cliente ao produto específico na Cakto
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Email do Pagador</Label>
-                  <Input
-                    type="email"
-                    placeholder="email@exemplo.com"
-                    value={payerEmail}
-                    onChange={(e) => setPayerEmail(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Email usado no pagamento para rastreabilidade
-                  </p>
-                </div>
-              </>
+              <div className="space-y-2">
+                <Label>Email do Pagador</Label>
+                <Input
+                  type="email"
+                  placeholder="email@exemplo.com"
+                  value={payerEmail}
+                  onChange={(e) => setPayerEmail(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Email usado no pagamento para rastreabilidade
+                </p>
+              </div>
             )}
           </div>
 
