@@ -76,6 +76,24 @@ serve(async (req) => {
       plan = "plus";
     } else if (nameLower.includes("pro")) {
       plan = "pro";
+    } else if (nameLower.includes("starter")) {
+      plan = "starter";
+    }
+
+    // Fallback: if no plan matched by name, check enterprise_checkout_links by buyer email
+    if (plan === "free" && buyerEmail) {
+      const { data: enterpriseLink } = await supabase
+        .from("enterprise_checkout_links")
+        .select("id")
+        .eq("client_email", buyerEmail)
+        .eq("is_active", true)
+        .limit(1)
+        .maybeSingle();
+
+      if (enterpriseLink) {
+        plan = "enterprise";
+        console.log(`Plan determined via enterprise_checkout_links for email: ${buyerEmail}`);
+      }
     }
 
     // Handle different event types

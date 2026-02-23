@@ -92,6 +92,33 @@ export default function EnterpriseLinks() {
     },
   });
 
+  // Check which emails have active enterprise subscriptions
+  const { data: linkedEmails = [] } = useQuery({
+    queryKey: ['enterprise-linked-emails', links.map(l => l.client_email)],
+    queryFn: async () => {
+      if (links.length === 0) return [];
+      const emails = links.map(l => l.client_email);
+      const { data } = await supabase
+        .from('profiles')
+        .select('email, user_id')
+        .in('email', emails);
+      if (!data || data.length === 0) return [];
+
+      const userIds = data.map(p => p.user_id);
+      const { data: subs } = await supabase
+        .from('subscriptions')
+        .select('user_id, plan, status')
+        .in('user_id', userIds)
+        .eq('plan', 'enterprise' as any)
+        .eq('status', 'active');
+
+      if (!subs) return [];
+      const activeUserIds = new Set(subs.map(s => s.user_id));
+      return data.filter(p => activeUserIds.has(p.user_id)).map(p => p.email);
+    },
+    enabled: links.length > 0,
+  });
+
   const saveMutation = useMutation({
     mutationFn: async (data: LinkFormData & { id?: string }) => {
       if (data.id) {
@@ -253,9 +280,14 @@ export default function EnterpriseLinks() {
                     {links.map(link => (
                       <TableRow key={link.id}>
                         <TableCell>
-                          <div>
-                            <div className="font-medium text-foreground">{link.client_name}</div>
-                            <div className="text-xs text-muted-foreground">{link.client_email}</div>
+                          <div className="flex items-center gap-2">
+                            <div>
+                              <div className="font-medium text-foreground">{link.client_name}</div>
+                              <div className="text-xs text-muted-foreground">{link.client_email}</div>
+                            </div>
+                            {linkedEmails.includes(link.client_email) && (
+                              <Badge variant="default" className="text-[10px] px-1.5 py-0">Vinculado</Badge>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>
