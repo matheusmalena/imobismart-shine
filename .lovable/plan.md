@@ -1,105 +1,115 @@
 
 
-# Finalizar Fluxo de Upgrade/Downgrade Funcional
+# Migrar de Stripe para Asaas
 
-## Problema Atual
+## Resumo
 
-O `create-stripe-checkout` sempre cria uma **nova** assinatura. Para usuarios que ja possuem um plano pago e querem trocar (upgrade ou downgrade), o sistema precisa **atualizar** a assinatura existente no Stripe em vez de criar outra.
-
-Alem disso, o botao "Fazer Downgrade" para o plano Free esta desabilitado. O usuario precisa de um caminho claro para cancelar/downgrade.
+Substituir toda a integracao com Stripe pela plataforma Asaas, que e brasileira e ja suporta PIX, Boleto e Cartao de Credito nativamente -- sem necessidade de aprovacao pendente de metodos de pagamento.
 
 ---
 
-## Solucao
+## O que muda para o usuario
 
-### 1. Criar Edge Function `change-plan` (novo arquivo)
-
-**Arquivo:** `supabase/functions/change-plan/index.ts`
-
-Logica:
-1. Receber `planId` do frontend
-2. Buscar a subscription do usuario no banco (com `stripe_subscription_id`)
-3. Se o usuario **nao tem** subscription ativa no Stripe -> redirecionar para `create-stripe-checkout` (novo assinante)
-4. Se o usuario **ja tem** subscription ativa:
-   - Se o novo plano e `free` -> cancelar a subscription no Stripe (`stripe.subscriptions.cancel()`) e o webhook cuida do downgrade
-   - Se o novo plano e pago -> usar `stripe.subscriptions.update()` para trocar o price_id, com `proration_behavior: 'create_prorations'` (cobra proporcional)
-5. Retornar o resultado ao frontend
-
-### 2. Atualizar `src/pages/Plans.tsx`
-
-Modificar `handleSelectPlan`:
-- Se o usuario ja tem um plano pago (`subscription?.stripe_subscription_id` existe):
-  - Chamar a nova edge function `change-plan` em vez de `create-stripe-checkout`
-  - Para downgrade para Free: mostrar confirmacao antes de cancelar
-  - Para upgrade/downgrade entre planos pagos: chamar `change-plan` que faz a troca instantanea
-- Se o usuario nao tem subscription (plano Free sem Stripe): continuar usando `create-stripe-checkout`
-- Habilitar o botao do plano Free para permitir downgrade (com dialog de confirmacao)
-
-### 3. Adicionar Dialog de Confirmacao de Downgrade
-
-Criar um dialog simples que aparece quando o usuario clica em "Fazer Downgrade" para o Free:
-- Aviso: "Ao cancelar, voce mantem acesso ate o fim do periodo pago. Depois, sua conta volta para o plano Free com limite de 2 imoveis."
-- Botoes: "Cancelar" / "Confirmar Downgrade"
-
-### 4. Atualizar `useSubscription` hook
-
-Adicionar campo `stripe_subscription_id` ao tipo `Subscription` para que o frontend saiba se o usuario ja tem uma subscription ativa no Stripe.
+- O checkout passa a ser feito via **Asaas Checkout** (link gerado pela API), com opcoes de **PIX, Boleto e Cartao**
+- O portal de gerenciamento de pagamento (Stripe Billing Portal) sera substituido por uma pagina interna que exibe status da assinatura
+- Webhooks do Asaas substituem os do Stripe para sincronizar pagamentos
 
 ---
 
-## Fluxo Resultante
+## Arquitetura da Migracao
 
-```text
-Usuario clica em plano
-        |
-        v
-  Tem subscription Stripe?
-   /              \
- NAO              SIM
-  |                |
-  v                v
-create-stripe    Qual plano?
--checkout        /        \
-(novo)        Free      Pago
-               |          |
-               v          v
-          Dialog de    change-plan
-          confirmar    (update sub)
-               |          |
-               v          v
-          cancel sub   Troca
-          via Stripe   instantanea
-```
+### Edge Functions a criar/reescrever
+
+| Funcao | Acao |
+|--------|------|
+| `create-asaas-checkout` (nova) | Cria customer no Asaas + cria subscription com checkout link |
+| `asaas-webhook` (nova) | Recebe eventos `PAYMENT_RECEIVED`, `PAYMENT_CREATED`, `SUBSCRIPTION_DELETED`, etc. |
+| `change-plan` (reescrever) | Atualiza subscription no Asaas via `PUT /v3/subscriptions/{id}` ou cancela |
+| `check-subscription` (reescrever) | Consulta subscription no Asaas via API em vez do Stripe |
+
+### Edge Functions a remover
+
+| Funcao | Motivo |
+|--------|--------|
+| `create-stripe-checkout` | Substituida por `create-asaas-checkout` |
+| `create-stripe-portal` | Asaas nao tem portal de billing; gerenciamento sera interno |
+| `stripe-webhook` | Substituida por `asaas-webhook` |
+
+### Edge Functions que permanecem iguais
+
+- `report-usage` -- sera adaptada para registrar excedentes no Asaas (ou apenas no banco, pois Asaas nao tem metered billing nativo)
+- `cakto-webhook`, `cancel-cakto-subscription` -- mantidos como legado
 
 ---
 
 ## Detalhes Tecnicos
 
-### Edge Function `change-plan`
+### 1. Secret necessario
 
-| Campo | Descricao |
-|-------|-----------|
-| Input | `{ planId: string }` |
-| Auth | Bearer token do usuario |
-| Acoes | Busca subscription no DB, busca `stripe_price_id` do novo plano, atualiza no Stripe |
-| Output | `{ success: true, action: 'updated' | 'cancelled' }` |
+- `ASAAS_API_KEY`: chave de API do Asaas (obtida em Integracoes > Chaves API no painel Asaas)
+- Ambiente: `https://api.asaas.com` (producao) ou `https://api-sandbox.asaas.com` (sandbox)
 
-### Alteracoes no `stripe-webhook`
+### 2. Banco de dados
 
-O webhook ja trata `customer.subscription.updated` e `customer.subscription.deleted`, entao upgrades/downgrades e cancelamentos serao sincronizados automaticamente no banco.
+Migrar colunas na tabela `subscriptions`:
+- Renomear `stripe_customer_id` -> manter e adicionar `asaas_customer_id` (text)
+- Renomear `stripe_subscription_id` -> manter e adicionar `asaas_subscription_id` (text)
 
-### Proration (cobranca proporcional)
+Migrar colunas na tabela `plans`:
+- `stripe_price_id` -> manter e adicionar `asaas_value` (ja existe como `price`)
+- `stripe_metered_price_id` -> nao necessario (Asaas nao tem metered billing nativo; excedentes serao cobrados via cobranca avulsa)
 
-Ao fazer upgrade de Starter (R$49) para Pro (R$79) no meio do mes, o Stripe calcula automaticamente:
-- Credito pelo tempo restante do Starter
-- Cobranca proporcional do Pro
-- Diferenca cobrada na proxima fatura
+### 3. `create-asaas-checkout` (nova Edge Function)
 
-### Arquivos modificados/criados
+```text
+POST /v3/customers  (criar customer com email/cpf)
+POST /v3/subscriptions  (criar subscription mensal)
+  - customer: asaas_customer_id
+  - billingType: "UNDEFINED" (permite PIX, Boleto, Cartao)
+  - value: plan.price
+  - cycle: "MONTHLY"
+  - nextDueDate: hoje
+  - externalReference: user_id + plan_id
+Retorna: first payment link ou checkout URL
+```
 
-| Arquivo | Tipo |
-|---------|------|
-| `supabase/functions/change-plan/index.ts` | Novo |
-| `src/pages/Plans.tsx` | Modificado - logica de handleSelectPlan |
-| `src/hooks/useSubscription.ts` | Modificado - adicionar stripe_subscription_id |
+### 4. `asaas-webhook` (nova Edge Function)
+
+Eventos tratados:
+- `PAYMENT_RECEIVED` / `PAYMENT_CONFIRMED`: ativa subscription no banco
+- `PAYMENT_OVERDUE`: marca como inativa
+- `SUBSCRIPTION_DELETED` / `SUBSCRIPTION_INACTIVATED`: downgrade para free
+- `SUBSCRIPTION_UPDATED`: atualiza plano
+
+Seguranca: validar via `asaas-access-token` header ou webhook token
+
+### 5. `change-plan` (reescrever)
+
+- Para upgrade/downgrade entre planos pagos: `PUT /v3/subscriptions/{id}` com novo `value`
+- Para downgrade para free: `DELETE /v3/subscriptions/{id}` (remove subscription no Asaas)
+- Se nao tem subscription: redirecionar para `create-asaas-checkout`
+
+### 6. Frontend
+
+| Arquivo | Alteracao |
+|---------|-----------|
+| `src/pages/Plans.tsx` | Trocar invocacao de `create-stripe-checkout` por `create-asaas-checkout`; trocar `change-plan` para nova versao |
+| `src/pages/Subscription.tsx` | Remover botao "Gerenciar Pagamento" (portal Stripe); substituir por info interna |
+| `src/hooks/useSubscription.ts` | Trocar `stripe_subscription_id` por `asaas_subscription_id` na interface |
+| `src/hooks/useUserData.ts` | Idem |
+| `src/components/subscription/PaymentHistory.tsx` | Remover referencia a "painel da Cakto" |
+| `supabase/config.toml` | Adicionar `asaas-webhook` com `verify_jwt = false` |
+
+### 7. Excedentes de imoveis
+
+Como o Asaas nao tem "metered billing" nativo, a estrategia sera:
+- O `report-usage` calcula excedentes como ja faz
+- Em vez de reportar ao Stripe, cria uma **cobranca avulsa** no Asaas (`POST /v3/payments`) com o valor dos imoveis extras
+- Ou: simplesmente registra no banco e soma na proxima fatura da subscription (manual)
+
+### 8. Limpeza
+
+- Remover imports de `Stripe` de todas as Edge Functions migradas
+- O secret `STRIPE_SECRET_KEY` e `STRIPE_WEBHOOK_SECRET` podem ser mantidos por seguranca mas nao serao mais usados
+- Deletar as Edge Functions `create-stripe-checkout`, `create-stripe-portal`, `stripe-webhook` apos confirmar que tudo funciona
 
