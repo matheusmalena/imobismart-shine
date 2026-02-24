@@ -66,23 +66,23 @@ const itemVariants = {
 const FAQ_ITEMS = [
   {
     question: 'Posso trocar de plano a qualquer momento?',
-    answer: 'Sim! Você pode fazer upgrade ou downgrade do seu plano quando quiser. As alterações são aplicadas imediatamente e o valor é calculado proporcionalmente.',
+    answer: 'Sim! Você pode fazer upgrade ou downgrade do seu plano quando quiser. As alterações são aplicadas imediatamente.',
   },
   {
-    question: 'Como funciona o período de teste?',
-    answer: 'Novos usuários podem experimentar o plano Pro gratuitamente por 7 dias. Não é necessário cartão de crédito para começar.',
+    question: 'Cada plano tem um limite fixo de imóveis?',
+    answer: 'Sim. Cada plano possui um limite fixo: Free (2), Starter (10), Pro (25), Plus (50). Não há cobrança por excedente. Se precisar de mais de 50 imóveis, entre em contato para o plano Enterprise.',
   },
   {
     question: 'Quais formas de pagamento são aceitas?',
-    answer: 'Aceitamos cartão de crédito, débito, Pix e boleto bancário. Os pagamentos são processados de forma segura.',
+    answer: 'Aceitamos cartão de crédito, débito, Pix e boleto bancário. Os pagamentos são processados de forma segura pela Cakto.',
   },
   {
     question: 'O que acontece se eu cancelar meu plano?',
-    answer: 'Ao cancelar, você mantém acesso aos recursos até o fim do período pago. Depois, sua conta volta para o plano Gratuito com limite de imóveis reduzido.',
+    answer: 'Ao cancelar, você mantém acesso aos recursos até o fim do período pago. Depois, sua conta volta para o plano Gratuito com limite de 2 imóveis. Os imóveis excedentes serão arquivados automaticamente.',
   },
   {
-    question: 'Existe desconto para pagamento anual?',
-    answer: 'Sim! Ao optar pelo pagamento anual, você economiza até 20% em comparação ao pagamento mensal.',
+    question: 'Como funciona o plano Enterprise?',
+    answer: 'O plano Enterprise é para quem precisa de mais de 50 imóveis. O limite é personalizado e a contratação é feita via atendimento direto. Entre em contato pelo WhatsApp.',
   },
 ];
 
