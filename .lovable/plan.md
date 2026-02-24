@@ -1,107 +1,63 @@
 
 
-# Historico de Pagamentos + Corrigir Webhook Cakto
+# Adicionar Status "Vendido" + Outras Comodidades como Tags
 
-## Diagnostico do Webhook
+## 1. Adicionar "Vendido" ao status do imovel
 
-O webhook `cakto-webhook` **nunca recebeu nenhuma chamada** — zero logs no historico. Isso indica que:
-- A URL do webhook nao esta configurada corretamente no painel da Cakto, **OU**
-- A Cakto nao esta enviando o header de autenticacao correto
+O campo `status` usa um enum no banco de dados (`property_status`) com os valores atuais: `alugado`, `vago`, `em_reforma`, `a_venda`. Para adicionar "Vendido", e necessario:
 
-A URL correta que deve estar configurada na Cakto e:
-
-```text
-https://wwgmfrtiexjfhjoaifnr.supabase.co/functions/v1/cakto-webhook
+### Migration SQL
+```sql
+ALTER TYPE property_status ADD VALUE 'vendido';
 ```
 
-E o header de autenticacao deve ser:
-- Header: `x-webhook-secret` ou `Authorization`
-- Valor: o mesmo valor configurado no secret `CAKTO_WEBHOOK_SECRET`
+### Sugestoes de status adicionais
+Alem de "Vendido", sugiro tambem:
+- **Reservado** (`reservado`) - imovel com negociacao em andamento
 
-**Acao necessaria do usuario:** Verificar no painel da Cakto se a URL e o secret estao corretos.
+Se quiser, posso adicionar esse tambem. Caso contrario, seguimos apenas com "Vendido".
 
----
-
-## Plano de Implementacao
-
-### 1. Criar tabela `payment_history` (Migration SQL)
-
-Nova tabela para registrar todos os eventos recebidos pelo webhook:
-
-| Coluna | Tipo | Descricao |
-|--------|------|-----------|
-| id | uuid | PK |
-| user_id | uuid | Usuario associado |
-| event | text | Tipo do evento (purchase_approved, etc) |
-| plan | text | Plano identificado |
-| status | text | approved, cancelled, refunded |
-| amount | numeric | Valor (se enviado pela Cakto) |
-| transaction_id | text | ID da transacao na Cakto |
-| payer_email | text | Email do pagador |
-| raw_payload | jsonb | Payload completo para debug |
-| created_at | timestamptz | Data do evento |
-
-RLS: usuarios veem apenas seus proprios registros. Service role (webhook) insere via service key.
-
-### 2. Atualizar `cakto-webhook` Edge Function
-
-- Apos processar o evento, inserir um registro na tabela `payment_history` com os dados do pagamento
-- Registrar tanto eventos de ativacao quanto cancelamento
-
-### 3. Atualizar componente `PaymentHistory.tsx`
-
-Substituir o conteudo atual (que so mostra info estatica) por uma tabela real com:
-- Data do evento
-- Tipo (Ativacao, Cancelamento, Reembolso)
-- Plano
-- Status (badge colorido)
-- Email do pagador
-
-Buscar dados da nova tabela `payment_history` filtrando pelo `user_id`.
-
-### 4. Criar hook `usePaymentHistory.ts`
-
-Hook simples para buscar o historico de pagamentos do usuario logado.
-
----
-
-## Arquivos Modificados
+### Arquivos modificados para o status
 
 | Arquivo | Alteracao |
 |---------|-----------|
-| Migration SQL | Criar tabela `payment_history` com RLS |
-| `supabase/functions/cakto-webhook/index.ts` | Inserir registro no `payment_history` apos processar evento |
-| `src/hooks/usePaymentHistory.ts` | Novo hook para buscar historico |
-| `src/components/subscription/PaymentHistory.tsx` | Tabela real com dados do banco |
+| Migration SQL | `ALTER TYPE property_status ADD VALUE 'vendido'` |
+| `src/types/property.ts` | Adicionar `'vendido'` ao tipo `PropertyStatus` e ao `PROPERTY_STATUS_LABELS` |
+| `src/components/properties/PropertyCard.tsx` | Adicionar cor para o badge "vendido" no `getStatusColor` |
+
+---
+
+## 2. Outras Comodidades como tags editaveis
+
+Atualmente o campo "Outras Comodidades" e um textarea de texto livre. A proposta e transformar em um sistema de tags:
+
+- Um input onde o usuario digita uma comodidade e pressiona Enter (ou clica em um botao "+")
+- A comodidade aparece como uma tag/badge ao lado das comodidades padrao (Piscina, Academia, etc.)
+- Cada tag tem um botao "x" para remover
+- Os valores continuam salvos no campo `other_amenities` como texto separado por virgula (sem mudanca no banco)
+
+### Arquivos modificados
+
+| Arquivo | Alteracao |
+|---------|-----------|
+| `src/components/properties/PropertyForm.tsx` | Substituir o Textarea de "Outras Comodidades" por um input + lista de tags. Ao digitar e pressionar Enter, adiciona a tag. As tags ficam junto com as comodidades padrao visualmente. |
+
+### Comportamento
+- O usuario digita no input e pressiona Enter
+- A tag aparece como badge junto com as comodidades existentes
+- Cada tag tem "x" para remover
+- Internamente, o array de tags e convertido para string separada por virgula no campo `other_amenities`
+- Ao editar um imovel existente, o valor e parseado de volta para tags
 
 ## Detalhes Tecnicos
 
-### Migration SQL
+### Armazenamento das tags
+O campo `other_amenities` continua como `text` no banco. As tags sao armazenadas como string separada por virgula (ex: `"Sauna, Playground, Portaria 24h"`). Nenhuma migracao adicional necessaria para isso.
 
-```sql
-CREATE TABLE public.payment_history (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL,
-  event text NOT NULL,
-  plan text,
-  status text NOT NULL DEFAULT 'approved',
-  amount numeric DEFAULT 0,
-  transaction_id text,
-  payer_email text,
-  raw_payload jsonb DEFAULT '{}'::jsonb,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-
-ALTER TABLE public.payment_history ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can view own payment history"
-  ON public.payment_history FOR SELECT
-  USING (auth.uid() = user_id);
-
-CREATE POLICY "Service role can insert payment history"
-  ON public.payment_history FOR INSERT
-  WITH CHECK (true);
-```
-
-A policy de INSERT com `true` funciona porque o webhook usa a service role key (nao passa por RLS). Usuarios autenticados nao conseguem inserir pois a policy e restrictive e nao ha policy permissive de INSERT para authenticated.
+### Componente de tags no formulario
+Sera implementado inline no `PropertyForm.tsx`:
+- Estado local `amenityTags: string[]` derivado de `formData.other_amenities.split(',')`
+- Input com `onKeyDown` para capturar Enter
+- Renderizar tags como badges com botao de remocao
+- Sincronizar de volta para `formData.other_amenities` via `tags.join(', ')`
 
