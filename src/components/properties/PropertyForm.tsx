@@ -8,8 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, Search, Plus, X } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Loader2, Search, Plus, X, CheckCircle } from 'lucide-react';
 import { PhotoUpload } from './PhotoUpload';
 import { PropertyGallery } from './PropertyGallery';
 import { usePhotoUpload } from '@/hooks/usePhotoUpload';
@@ -686,36 +685,40 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                     />
                   </div>
                 </div>
+
+                  {/* Custom amenity tags inline with standard amenities */}
+                  {formData.other_amenities
+                    .split(',')
+                    .map(t => t.trim())
+                    .filter(Boolean)
+                    .map((tag, index) => (
+                      <div key={`custom-${index}`} className="flex items-center justify-between space-x-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <CheckCircle className="h-4 w-4 text-success shrink-0" />
+                          <span className="text-sm truncate">{tag}</span>
+                        </div>
+                        <button
+                          type="button"
+                          className="p-1 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                          onClick={() => {
+                            const tags = formData.other_amenities.split(',').map(t => t.trim()).filter(Boolean);
+                            tags.splice(index, 1);
+                            updateField('other_amenities', tags.join(', '));
+                          }}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                </div>
                 
-                {/* Outras Comodidades como Tags */}
+                {/* Input to add new custom amenities */}
                 <div className="mt-4 space-y-2">
-                  <Label>Outras Comodidades</Label>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {formData.other_amenities
-                      .split(',')
-                      .map(t => t.trim())
-                      .filter(Boolean)
-                      .map((tag, index) => (
-                        <Badge key={index} variant="secondary" className="gap-1 pl-2.5 pr-1.5 py-1">
-                          {tag}
-                          <button
-                            type="button"
-                            className="ml-1 rounded-full hover:bg-muted-foreground/20 p-0.5"
-                            onClick={() => {
-                              const tags = formData.other_amenities.split(',').map(t => t.trim()).filter(Boolean);
-                              tags.splice(index, 1);
-                              updateField('other_amenities', tags.join(', '));
-                            }}
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </Badge>
-                      ))}
-                  </div>
+                  <Label>Adicionar outra comodidade</Label>
                   <div className="flex gap-2">
                     <Input
                       id="other_amenities_input"
-                      placeholder="Digite e pressione Enter..."
+                      placeholder="Ex: Sauna, Playground..."
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();

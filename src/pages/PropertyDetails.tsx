@@ -96,7 +96,7 @@ export function PropertyDetails({ property, onEdit, onClose }: PropertyDetailsPr
       case "vago": return "bg-warning/10 text-warning border-warning/20";
       case "em_reforma": return "bg-info/10 text-info border-info/20";
       case "a_venda": return "bg-primary/10 text-primary border-primary/20";
-      default: return "bg-muted text-muted-foreground";
+      case "vendido": return "bg-destructive/10 text-destructive border-destructive/20";
     }
   };
 
@@ -292,6 +292,18 @@ export function PropertyDetails({ property, onEdit, onClose }: PropertyDetailsPr
                         ) : (
                           <XCircle className="h-4 w-4 text-muted-foreground" />
                         )}
+                      </div>
+                    </div>
+                  ))}
+                  {/* Custom amenities from other_amenities field */}
+                  {property.other_amenities && property.other_amenities.split(',').map(t => t.trim()).filter(Boolean).map((amenity) => (
+                    <div key={amenity} className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-success/10">
+                        <CheckCircle className="h-4 w-4 text-success" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm">{amenity}</span>
+                        <CheckCircle className="h-4 w-4 text-success" />
                       </div>
                     </div>
                   ))}
