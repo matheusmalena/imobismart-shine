@@ -684,7 +684,6 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                       onCheckedChange={(checked) => updateField('is_furnished', checked)}
                     />
                   </div>
-                </div>
 
                   {/* Custom amenity tags inline with standard amenities */}
                   {formData.other_amenities
