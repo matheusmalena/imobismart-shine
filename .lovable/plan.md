@@ -1,68 +1,107 @@
 
 
-# Atualizar Sistema de Billing para Modelo Fixo sem Add-ons
+# Historico de Pagamentos + Corrigir Webhook Cakto
 
-## Estado Atual
+## Diagnostico do Webhook
 
-Os planos no banco de dados ja estao com os precos e limites **quase corretos**:
+O webhook `cakto-webhook` **nunca recebeu nenhuma chamada** — zero logs no historico. Isso indica que:
+- A URL do webhook nao esta configurada corretamente no painel da Cakto, **OU**
+- A Cakto nao esta enviando o header de autenticacao correto
 
-| Plano | Preco Atual | Limite Atual | Preco Novo | Limite Novo |
-|-------|-------------|--------------|------------|-------------|
-| Free | R$0 | 2 | R$0 | **2** (ok) |
-| Starter | R$49 | **15** | R$49 | **10** |
-| Pro | R$79 | **30** | R$79 | **25** |
-| Plus | R$129 | **60** | R$129 | **50** |
-| Enterprise | Sob consulta | Ilimitado | Sob consulta | Ilimitado (ok) |
+A URL correta que deve estar configurada na Cakto e:
 
-A tabela `subscription_addons` existe no banco mas **nao e usada no codigo** (nenhuma referencia encontrada). Portanto, o sistema ja opera sem add-ons na pratica.
+```text
+https://wwgmfrtiexjfhjoaifnr.supabase.co/functions/v1/cakto-webhook
+```
 
-## Alteracoes Necessarias
+E o header de autenticacao deve ser:
+- Header: `x-webhook-secret` ou `Authorization`
+- Valor: o mesmo valor configurado no secret `CAKTO_WEBHOOK_SECRET`
 
-### 1. Atualizar limites no banco de dados (Migration SQL)
+**Acao necessaria do usuario:** Verificar no painel da Cakto se a URL e o secret estao corretos.
 
-Atualizar os `property_limit` dos planos Starter (15 → 10), Pro (30 → 25) e Plus (60 → 50) diretamente na tabela `plans`.
+---
 
-### 2. Atualizar pagina de Assinatura (`src/pages/Subscription.tsx`)
+## Plano de Implementacao
 
-Adicionar secao de uso de imoveis mostrando:
-- Plano atual e status (ja existe)
-- Imoveis incluidos no plano (limite do plano)
-- Quantidade utilizada (imoveis ativos)
-- Barra de progresso visual
+### 1. Criar tabela `payment_history` (Migration SQL)
 
-Isso requer importar `useProperties` e `usePlans` para buscar o limite e a contagem.
+Nova tabela para registrar todos os eventos recebidos pelo webhook:
 
-### 3. Atualizar FAQ na pagina de Planos (`src/pages/Plans.tsx`)
+| Coluna | Tipo | Descricao |
+|--------|------|-----------|
+| id | uuid | PK |
+| user_id | uuid | Usuario associado |
+| event | text | Tipo do evento (purchase_approved, etc) |
+| plan | text | Plano identificado |
+| status | text | approved, cancelled, refunded |
+| amount | numeric | Valor (se enviado pela Cakto) |
+| transaction_id | text | ID da transacao na Cakto |
+| payer_email | text | Email do pagador |
+| raw_payload | jsonb | Payload completo para debug |
+| created_at | timestamptz | Data do evento |
 
-- Remover referencia a "periodo de teste de 7 dias" (FAQ item 2)
-- Remover referencia a "desconto anual de 20%" (FAQ item 5)
-- Ajustar texto para refletir modelo fixo sem add-ons
+RLS: usuarios veem apenas seus proprios registros. Service role (webhook) insere via service key.
 
-### 4. Nenhuma alteracao no webhook ou edge functions
+### 2. Atualizar `cakto-webhook` Edge Function
 
-O webhook `cakto-webhook` ja identifica o plano pelo nome do produto e atualiza a subscription. O `downgrade-to-free` ja arquiva imoveis excedentes. O `cancel-cakto-subscription` ja reverte para free. Tudo funciona com o modelo fixo.
+- Apos processar o evento, inserir um registro na tabela `payment_history` com os dados do pagamento
+- Registrar tanto eventos de ativacao quanto cancelamento
+
+### 3. Atualizar componente `PaymentHistory.tsx`
+
+Substituir o conteudo atual (que so mostra info estatica) por uma tabela real com:
+- Data do evento
+- Tipo (Ativacao, Cancelamento, Reembolso)
+- Plano
+- Status (badge colorido)
+- Email do pagador
+
+Buscar dados da nova tabela `payment_history` filtrando pelo `user_id`.
+
+### 4. Criar hook `usePaymentHistory.ts`
+
+Hook simples para buscar o historico de pagamentos do usuario logado.
+
+---
+
+## Arquivos Modificados
+
+| Arquivo | Alteracao |
+|---------|-----------|
+| Migration SQL | Criar tabela `payment_history` com RLS |
+| `supabase/functions/cakto-webhook/index.ts` | Inserir registro no `payment_history` apos processar evento |
+| `src/hooks/usePaymentHistory.ts` | Novo hook para buscar historico |
+| `src/components/subscription/PaymentHistory.tsx` | Tabela real com dados do banco |
 
 ## Detalhes Tecnicos
 
 ### Migration SQL
+
 ```sql
-UPDATE plans SET property_limit = 10 WHERE id = 'starter';
-UPDATE plans SET property_limit = 25 WHERE id = 'pro';
-UPDATE plans SET property_limit = 50 WHERE id = 'plus';
+CREATE TABLE public.payment_history (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  event text NOT NULL,
+  plan text,
+  status text NOT NULL DEFAULT 'approved',
+  amount numeric DEFAULT 0,
+  transaction_id text,
+  payer_email text,
+  raw_payload jsonb DEFAULT '{}'::jsonb,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.payment_history ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own payment history"
+  ON public.payment_history FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Service role can insert payment history"
+  ON public.payment_history FOR INSERT
+  WITH CHECK (true);
 ```
 
-### Arquivos Modificados
-
-| Arquivo | Alteracao |
-|---------|-----------|
-| Migration SQL | Ajustar limites: Starter=10, Pro=25, Plus=50 |
-| `src/pages/Subscription.tsx` | Adicionar secao de uso de imoveis com barra de progresso, limite e quantidade utilizada |
-| `src/pages/Plans.tsx` | Atualizar FAQ para remover mencoes a trial e desconto anual |
-
-### Nenhuma alteracao necessaria em:
-- `usePropertyLimit.ts` — ja le o limite da tabela `plans` dinamicamente
-- `usePlans.ts` — ja busca da tabela `plans`
-- `cakto-webhook` — ja funciona com modelo fixo
-- `downgrade-to-free` — ja usa `FREE_PLAN_LIMIT = 2`
-- `useSubscription.ts` / `useUserData.ts` — sem mudancas
+A policy de INSERT com `true` funciona porque o webhook usa a service role key (nao passa por RLS). Usuarios autenticados nao conseguem inserir pois a policy e restrictive e nao ha policy permissive de INSERT para authenticated.
 
