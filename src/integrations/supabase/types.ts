@@ -692,45 +692,6 @@ export type Database = {
         }
         Relationships: []
       }
-      subscription_addons: {
-        Row: {
-          addon_name: string
-          addon_price: number
-          addon_properties: number
-          created_at: string
-          id: string
-          kirvano_product_id: string | null
-          kirvano_subscription_id: string | null
-          status: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          addon_name: string
-          addon_price?: number
-          addon_properties: number
-          created_at?: string
-          id?: string
-          kirvano_product_id?: string | null
-          kirvano_subscription_id?: string | null
-          status?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          addon_name?: string
-          addon_price?: number
-          addon_properties?: number
-          created_at?: string
-          id?: string
-          kirvano_product_id?: string | null
-          kirvano_subscription_id?: string | null
-          status?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       subscriptions: {
         Row: {
           asaas_customer_id: string | null
@@ -741,8 +702,6 @@ export type Database = {
           extra_properties_amount: number
           extra_properties_count: number
           id: string
-          kirvano_customer_id: string | null
-          kirvano_subscription_id: string | null
           mp_payer_email: string | null
           mp_subscription_id: string | null
           payer_email: string | null
@@ -764,8 +723,6 @@ export type Database = {
           extra_properties_amount?: number
           extra_properties_count?: number
           id?: string
-          kirvano_customer_id?: string | null
-          kirvano_subscription_id?: string | null
           mp_payer_email?: string | null
           mp_subscription_id?: string | null
           payer_email?: string | null
@@ -787,8 +744,6 @@ export type Database = {
           extra_properties_amount?: number
           extra_properties_count?: number
           id?: string
-          kirvano_customer_id?: string | null
-          kirvano_subscription_id?: string | null
           mp_payer_email?: string | null
           mp_subscription_id?: string | null
           payer_email?: string | null

@@ -31,7 +31,7 @@ serve(async (req) => {
       throw new Error("Invalid or expired token");
     }
 
-    // 1. Cancel subscription (revert to free)
+    // Update local subscription status to cancelled/free
     const { error: updateError } = await supabase
       .from("subscriptions")
       .update({
@@ -45,21 +45,7 @@ serve(async (req) => {
       throw updateError;
     }
 
-    // 2. Cancel all active add-ons
-    const { data: cancelledAddons, error: addonError } = await supabase
-      .from("subscription_addons")
-      .update({ status: "cancelled", updated_at: new Date().toISOString() })
-      .eq("user_id", user.id)
-      .eq("status", "active")
-      .select("id");
-
-    if (addonError) {
-      console.error("Error cancelling addons:", addonError);
-    }
-
-    const cancelledAddonCount = cancelledAddons?.length || 0;
-
-    // 3. Archive excess properties (keep only FREE_PLAN_LIMIT most recent)
+    // Archive excess properties (keep only 2 most recent)
     const { data: activeProperties } = await supabase
       .from("properties")
       .select("id")
@@ -77,14 +63,13 @@ serve(async (req) => {
       archivedCount = idsToArchive.length;
     }
 
-    console.log(`Subscription cancelled for user ${user.id}, cancelled ${cancelledAddonCount} addons, archived ${archivedCount} properties`);
+    console.log(`Subscription cancelled for user ${user.id}, archived ${archivedCount} properties`);
 
     return new Response(
       JSON.stringify({
         success: true,
         message: "Assinatura cancelada com sucesso. Cancele também no painel da Cakto.",
         archived_count: archivedCount,
-        cancelled_addons: cancelledAddonCount,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

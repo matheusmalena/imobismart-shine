@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useUserData } from '@/hooks/useUserData';
-import { usePropertyLimit } from '@/hooks/usePropertyLimit';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { PaymentHistory } from '@/components/subscription/PaymentHistory';
@@ -34,8 +33,6 @@ import {
   Clock,
   Loader2,
   Sparkles,
-  Building2,
-  Package,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -43,7 +40,10 @@ import { ptBR } from 'date-fns/locale';
 
 const containerVariants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 },
+  },
 };
 
 const itemVariants = {
@@ -70,12 +70,12 @@ export default function Subscription() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { subscription, isLoading: subscriptionLoading, refetch } = useSubscription();
-  const { profile, addons } = useUserData();
-  const { limit, basePlanLimit, addonProperties, activeCount, isUnlimited } = usePropertyLimit();
+  const { profile } = useUserData();
   const [isCancelling, setIsCancelling] = useState(false);
 
   const isLoading = authLoading || subscriptionLoading;
 
+  // Redirect if not authenticated
   if (!authLoading && !user) {
     navigate('/auth');
     return null;
@@ -83,12 +83,18 @@ export default function Subscription() {
 
   const handleCancelSubscription = async () => {
     setIsCancelling(true);
+    
     try {
       const { data, error } = await supabase.functions.invoke('cancel-cakto-subscription');
-      if (error) throw new Error(error.message || 'Erro ao cancelar assinatura');
+
+      if (error) {
+        throw new Error(error.message || 'Erro ao cancelar assinatura');
+      }
+
       toast.success('Assinatura cancelada com sucesso', {
         description: 'Você foi revertido para o plano Gratuito.',
       });
+      
       refetch();
     } catch (error) {
       console.error('Cancel error:', error);
@@ -118,11 +124,16 @@ export default function Subscription() {
   const currentStatus = subscription?.status || 'trial';
   const statusConfig = STATUS_CONFIG[currentStatus] || STATUS_CONFIG.inactive;
   const canCancel = currentPlan !== 'free' && currentStatus !== 'cancelled';
-  const isPaid = currentPlan !== 'free';
+  const isPaid = currentPlan === 'starter' || currentPlan === 'pro' || currentPlan === 'plus' || currentPlan === 'enterprise';
 
   return (
     <DashboardLayout>
-      <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6 pb-8">
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="space-y-6 pb-8"
+      >
         {/* Header */}
         <motion.div variants={itemVariants} className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -151,15 +162,20 @@ export default function Subscription() {
                   <Crown className="h-5 w-5 text-primary" />
                   Plano Atual
                 </CardTitle>
-                <CardDescription>Detalhes da sua assinatura atual</CardDescription>
+                <CardDescription>
+                  Detalhes da sua assinatura atual
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Plan Name */}
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Plano</span>
                   <span className="text-2xl font-bold text-foreground">
                     {PLAN_NAMES[currentPlan] || currentPlan}
                   </span>
                 </div>
+
+                {/* Status */}
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Status</span>
                   <Badge variant="outline" className={`gap-1.5 ${statusConfig.color}`}>
@@ -167,6 +183,8 @@ export default function Subscription() {
                     {statusConfig.label}
                   </Badge>
                 </div>
+
+                {/* Start Date */}
                 {subscription?.started_at && (
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Início</span>
@@ -175,6 +193,8 @@ export default function Subscription() {
                     </span>
                   </div>
                 )}
+
+                {/* Expiration */}
                 {subscription?.expires_at && (
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Próxima cobrança</span>
@@ -183,12 +203,18 @@ export default function Subscription() {
                     </span>
                   </div>
                 )}
+
+                {/* Actions */}
                 <div className="pt-4 border-t space-y-3">
                   {canCancel && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant="destructive" className="w-full gap-2" disabled={isCancelling}>
-                          {isCancelling ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+                          {isCancelling ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <XCircle className="h-4 w-4" />
+                          )}
                           Cancelar Assinatura
                         </Button>
                       </AlertDialogTrigger>
@@ -196,9 +222,7 @@ export default function Subscription() {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Cancelar Assinatura?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Ao cancelar, você perderá acesso aos recursos do plano {PLAN_NAMES[currentPlan]}
-                            {addons.length > 0 && ` e ${addons.length} pacote(s) adicional(is)`}
-                            {' '}e será revertido para o plano Gratuito. Esta ação não pode ser desfeita.
+                            Ao cancelar, você perderá acesso aos recursos do plano {PLAN_NAMES[currentPlan]} e será revertido para o plano Gratuito. Esta ação não pode ser desfeita.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -213,12 +237,14 @@ export default function Subscription() {
                       </AlertDialogContent>
                     </AlertDialog>
                   )}
+
                   {currentStatus === 'cancelled' && (
                     <Button onClick={() => navigate('/plans')} className="w-full gap-2">
                       <Sparkles className="h-4 w-4" />
                       Reativar Assinatura
                     </Button>
                   )}
+
                   {currentPlan === 'free' && currentStatus !== 'cancelled' && (
                     <Button onClick={() => navigate('/plans')} className="w-full gap-2">
                       <Crown className="h-4 w-4" />
@@ -230,129 +256,64 @@ export default function Subscription() {
             </Card>
           </motion.div>
 
-          {/* Property Limits Card */}
+          {/* Payment Info Card */}
           <motion.div variants={itemVariants}>
             <Card className="h-full">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-primary" />
-                  Limites de Imóveis
+                  <CreditCard className="h-5 w-5 text-primary" />
+                  Pagamento
                 </CardTitle>
-                <CardDescription>Seu limite atual de imóveis ativos</CardDescription>
+                <CardDescription>
+                  Informações de pagamento e cobrança
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Base plan limit */}
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Incluídos no plano</span>
-                  <span className="font-semibold text-foreground">
-                    {isUnlimited ? 'Ilimitado' : `${basePlanLimit} imóveis`}
-                  </span>
-                </div>
+                {isPaid ? (
+                  <>
+                    {/* Payment Method */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Método</span>
+                      <Badge variant="outline" className="gap-1.5">
+                        <CreditCard className="h-3.5 w-3.5" />
+                        Cakto
+                      </Badge>
+                    </div>
 
-                {/* Add-ons */}
-                {addonProperties > 0 && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Pacotes adicionais</span>
-                    <span className="font-semibold text-foreground">+{addonProperties} imóveis</span>
-                  </div>
-                )}
+                    {/* Payer Email */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Email</span>
+                      <span className="text-foreground text-sm">
+                        {profile?.email || user?.email || '—'}
+                      </span>
+                    </div>
 
-                {/* Total */}
-                <div className="flex items-center justify-between pt-3 border-t">
-                  <span className="font-medium text-foreground">Limite total</span>
-                  <span className="text-2xl font-bold text-primary">
-                    {isUnlimited ? '∞' : limit}
-                  </span>
-                </div>
-
-                {/* Usage */}
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Em uso</span>
-                  <span className="text-foreground">{activeCount} imóveis</span>
-                </div>
-
-                {!isUnlimited && (
-                  <div className="w-full bg-muted rounded-full h-2.5">
-                    <div
-                      className="bg-primary h-2.5 rounded-full transition-all"
-                      style={{ width: `${Math.min(100, (activeCount / (limit as number)) * 100)}%` }}
-                    />
-                  </div>
-                )}
-
-                {/* Active Add-on Packages */}
-                {addons.length > 0 && (
-                  <div className="pt-4 border-t space-y-3">
-                    <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
-                      <Package className="h-4 w-4" />
-                      Pacotes Ativos
-                    </h4>
-                    {addons.map((addon) => (
-                      <div key={addon.id} className="flex items-center justify-between text-sm rounded-lg border p-3">
-                        <div>
-                          <span className="font-medium text-foreground">{addon.addon_name}</span>
-                          <span className="text-muted-foreground ml-2">(+{addon.addon_properties})</span>
-                        </div>
-                        <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200">
-                          R${addon.addon_price}/mês
-                        </Badge>
-                      </div>
-                    ))}
+                    {/* Info */}
+                    <div className="pt-4 border-t">
+                      <p className="text-sm text-muted-foreground text-center">
+                        Para gerenciar detalhes do pagamento, acesse o painel da Cakto.
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <div className="p-4 rounded-full bg-muted mb-4">
+                      <CreditCard className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="font-medium text-foreground mb-2">Nenhum pagamento ativo</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Você está no plano Gratuito. Faça upgrade para desbloquear recursos premium.
+                    </p>
+                    <Button onClick={() => navigate('/plans')} size="sm" className="gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      Ver Planos
+                    </Button>
                   </div>
                 )}
               </CardContent>
             </Card>
           </motion.div>
         </div>
-
-        {/* Payment Info Card */}
-        <motion.div variants={itemVariants}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5 text-primary" />
-                Pagamento
-              </CardTitle>
-              <CardDescription>Informações de pagamento e cobrança</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isPaid ? (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Método</span>
-                    <Badge variant="outline" className="gap-1.5">
-                      <CreditCard className="h-3.5 w-3.5" />
-                      Cakto
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Email</span>
-                    <span className="text-foreground text-sm">{profile?.email || user?.email || '—'}</span>
-                  </div>
-                  <div className="pt-4 border-t">
-                    <p className="text-sm text-muted-foreground text-center">
-                      Para gerenciar detalhes do pagamento, acesse o painel da Cakto.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <div className="p-4 rounded-full bg-muted mb-4">
-                    <CreditCard className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="font-medium text-foreground mb-2">Nenhum pagamento ativo</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Você está no plano Gratuito. Faça upgrade para desbloquear recursos premium.
-                  </p>
-                  <Button onClick={() => navigate('/plans')} size="sm" className="gap-2">
-                    <Sparkles className="h-4 w-4" />
-                    Ver Planos
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
 
         {/* Payment History */}
         <motion.div variants={itemVariants}>

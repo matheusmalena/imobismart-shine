@@ -28,22 +28,10 @@ export interface Subscription {
   updated_at: string;
 }
 
-export interface SubscriptionAddon {
-  id: string;
-  user_id: string;
-  addon_name: string;
-  addon_properties: number;
-  addon_price: number;
-  status: string;
-  created_at: string;
-  updated_at: string;
-}
-
 interface UserData {
   profile: Profile | null;
   subscription: Subscription | null;
   role: AppRole | null;
-  addons: SubscriptionAddon[];
 }
 
 /**
@@ -56,10 +44,10 @@ export function useUserData() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['user-data', user?.id],
     queryFn: async (): Promise<UserData> => {
-      if (!user) return { profile: null, subscription: null, role: null, addons: [] };
+      if (!user) return { profile: null, subscription: null, role: null };
 
       // Executar todas as queries em paralelo para máxima eficiência
-      const [profileResult, subscriptionResult, roleResult, addonsResult] = await Promise.all([
+      const [profileResult, subscriptionResult, roleResult] = await Promise.all([
         supabase
           .from('profiles')
           .select('*')
@@ -72,11 +60,6 @@ export function useUserData() {
           .maybeSingle(),
         supabase
           .rpc('get_user_role', { _user_id: user.id }),
-        supabase
-          .from('subscription_addons')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('status', 'active'),
       ]);
 
       // Log errors but don't throw - return null for failed queries
@@ -109,7 +92,6 @@ export function useUserData() {
         profile: profileResult.data as Profile | null,
         subscription,
         role: (roleResult.data as AppRole) || null,
-        addons: (addonsResult.data as SubscriptionAddon[]) || [],
       };
     },
     enabled: !!user,
@@ -120,22 +102,19 @@ export function useUserData() {
   const profile = data?.profile ?? null;
   const subscription = data?.subscription ?? null;
   const role = data?.role ?? null;
-  const addons = data?.addons ?? [];
   const isAdmin = role === 'admin';
   const plan = subscription?.plan || 'free';
+  // Flags granulares para cada nível de plano
   const isFree = plan === 'free';
-  const isStarter = plan === 'starter' || plan === 'pro' || plan === 'plus' || plan === 'enterprise';
-  const isPro = plan === 'pro' || plan === 'plus' || plan === 'enterprise';
-  const isPlus = plan === 'plus' || plan === 'enterprise';
-  const isEnterprise = plan === 'enterprise';
-  const totalAddonProperties = addons.reduce((sum, a) => sum + a.addon_properties, 0);
+  const isStarter = plan === 'starter' || plan === 'pro' || plan === 'plus' || plan === 'enterprise'; // Starter ou superior (pago)
+  const isPro = plan === 'pro' || plan === 'plus' || plan === 'enterprise'; // Pro ou superior
+  const isPlus = plan === 'plus' || plan === 'enterprise'; // Plus ou superior
+  const isEnterprise = plan === 'enterprise'; // Apenas Enterprise (exclusivo)
 
   return {
     profile,
     subscription,
     role,
-    addons,
-    totalAddonProperties,
     isAdmin,
     plan,
     isFree,
