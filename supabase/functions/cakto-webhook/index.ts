@@ -96,17 +96,24 @@ serve(async (req) => {
       }
     }
 
+    // Payment info
+    let paymentStatus = "approved";
+    const amount = body.purchase?.price || body.transaction?.amount || body.amount || 0;
+    const transactionId = body.transaction?.id || body.subscription?.id || productId;
+
     // Handle different event types
     if (event === "purchase_approved" || event === "PURCHASE_APPROVED" || 
         event === "subscription_active" || event === "SUBSCRIPTION_ACTIVE" ||
         event === "payment_approved" || event === "PAYMENT_APPROVED") {
       
+      paymentStatus = "approved";
+
       const { error: updateError } = await supabase
         .from("subscriptions")
         .update({
           plan,
           status: "active",
-          external_subscription_id: body.transaction?.id || body.subscription?.id || productId,
+          external_subscription_id: transactionId,
           payer_email: buyerEmail,
           payment_method: "cakto",
           updated_at: new Date().toISOString(),
@@ -125,6 +132,10 @@ serve(async (req) => {
         event === "purchase_refunded" || event === "PURCHASE_REFUNDED" ||
         event === "purchase_chargeback" || event === "PURCHASE_CHARGEBACK") {
       
+      paymentStatus = event.toLowerCase().includes("refund") ? "refunded" 
+        : event.toLowerCase().includes("chargeback") ? "chargeback" 
+        : "cancelled";
+
       const { error: updateError } = await supabase
         .from("subscriptions")
         .update({
@@ -141,6 +152,24 @@ serve(async (req) => {
       }
 
       console.log(`Subscription cancelled for user ${userId}`);
+    }
+
+    // Insert payment history record
+    const { error: historyError } = await supabase
+      .from("payment_history")
+      .insert({
+        user_id: userId,
+        event: event || "unknown",
+        plan,
+        status: paymentStatus,
+        amount,
+        transaction_id: transactionId,
+        payer_email: buyerEmail,
+        raw_payload: body,
+      });
+
+    if (historyError) {
+      console.error("Error inserting payment history:", historyError);
     }
 
     return new Response(

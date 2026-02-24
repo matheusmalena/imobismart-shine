@@ -355,6 +355,45 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_history: {
+        Row: {
+          amount: number | null
+          created_at: string
+          event: string
+          id: string
+          payer_email: string | null
+          plan: string | null
+          raw_payload: Json | null
+          status: string
+          transaction_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          event: string
+          id?: string
+          payer_email?: string | null
+          plan?: string | null
+          raw_payload?: Json | null
+          status?: string
+          transaction_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          event?: string
+          id?: string
+          payer_email?: string | null
+          plan?: string | null
+          raw_payload?: Json | null
+          status?: string
+          transaction_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       plan_audit_logs: {
         Row: {
           action: string
