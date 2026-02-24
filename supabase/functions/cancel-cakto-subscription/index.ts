@@ -45,13 +45,6 @@ serve(async (req) => {
       throw updateError;
     }
 
-    // Cancel all active addons
-    await supabase
-      .from("subscription_addons")
-      .update({ status: "cancelled", updated_at: new Date().toISOString() })
-      .eq("user_id", user.id)
-      .eq("status", "active");
-
     // Archive excess properties (keep only 2 most recent)
     const { data: activeProperties } = await supabase
       .from("properties")
@@ -75,7 +68,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Assinatura cancelada com sucesso. Cancele também no painel da Kirvano.",
+        message: "Assinatura cancelada com sucesso. Cancele também no painel da Cakto.",
         archived_count: archivedCount,
       }),
       {

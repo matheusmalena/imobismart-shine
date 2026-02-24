@@ -76,7 +76,7 @@ export function PaymentHistory() {
           </div>
 
           <p className="text-xs text-muted-foreground text-center">
-            O histórico detalhado de pagamentos está disponível no painel da Kirvano.
+            O histórico detalhado de pagamentos está disponível no painel da Cakto.
           </p>
         </div>
       </CardContent>

@@ -6,10 +6,10 @@ verify_jwt = false
 [functions.send-team-invite]
 verify_jwt = false
 
-[functions.kirvano-webhook]
+[functions.cakto-webhook]
 verify_jwt = false
 
-[functions.cancel-kirvano-subscription]
+[functions.cancel-cakto-subscription]
 verify_jwt = false
 
 [functions.downgrade-to-free]
