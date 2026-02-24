@@ -1,55 +1,68 @@
 
-# Automacao Enterprise: Vincular Cliente por Email
 
-## Problema Atual
-O webhook da Cakto identifica o plano pelo nome do produto (precisa conter "enterprise"). Isso e fragil — se o admin escrever o nome errado na Cakto, o plano nao e ativado corretamente. Alem disso, o campo "ID Externo" no EditSubscriptionDialog e desnecessario para a maioria dos casos.
+# Atualizar Sistema de Billing para Modelo Fixo sem Add-ons
 
-## Solucao
+## Estado Atual
 
-### 1. Melhorar o webhook para consultar a tabela `enterprise_checkout_links`
+Os planos no banco de dados ja estao com os precos e limites **quase corretos**:
 
-Quando o webhook receber um pagamento e NAO conseguir determinar o plano pelo nome do produto, ele vai consultar a tabela `enterprise_checkout_links` pelo `client_email` do comprador. Se encontrar um registro ativo, ativa o plano Enterprise automaticamente.
+| Plano | Preco Atual | Limite Atual | Preco Novo | Limite Novo |
+|-------|-------------|--------------|------------|-------------|
+| Free | R$0 | 2 | R$0 | **2** (ok) |
+| Starter | R$49 | **15** | R$49 | **10** |
+| Pro | R$79 | **30** | R$79 | **25** |
+| Plus | R$129 | **60** | R$129 | **50** |
+| Enterprise | Sob consulta | Ilimitado | Sob consulta | Ilimitado (ok) |
 
-Fluxo atualizado do webhook:
+A tabela `subscription_addons` existe no banco mas **nao e usada no codigo** (nenhuma referencia encontrada). Portanto, o sistema ja opera sem add-ons na pratica.
 
-```text
-Webhook recebe pagamento
-  |
-  v
-Tenta determinar plano pelo nome do produto
-  |
-  +--> Nome contem "enterprise" --> plano = enterprise
-  +--> Nome contem "plus" --> plano = plus
-  +--> Nome contem "pro" --> plano = pro
-  +--> Nome contem "starter" --> plano = starter
-  +--> Nenhum match --> consulta enterprise_checkout_links pelo email
-        |
-        +--> Encontrou registro ativo --> plano = enterprise
-        +--> Nao encontrou --> plano = free (fallback)
+## Alteracoes Necessarias
+
+### 1. Atualizar limites no banco de dados (Migration SQL)
+
+Atualizar os `property_limit` dos planos Starter (15 → 10), Pro (30 → 25) e Plus (60 → 50) diretamente na tabela `plans`.
+
+### 2. Atualizar pagina de Assinatura (`src/pages/Subscription.tsx`)
+
+Adicionar secao de uso de imoveis mostrando:
+- Plano atual e status (ja existe)
+- Imoveis incluidos no plano (limite do plano)
+- Quantidade utilizada (imoveis ativos)
+- Barra de progresso visual
+
+Isso requer importar `useProperties` e `usePlans` para buscar o limite e a contagem.
+
+### 3. Atualizar FAQ na pagina de Planos (`src/pages/Plans.tsx`)
+
+- Remover referencia a "periodo de teste de 7 dias" (FAQ item 2)
+- Remover referencia a "desconto anual de 20%" (FAQ item 5)
+- Ajustar texto para refletir modelo fixo sem add-ons
+
+### 4. Nenhuma alteracao no webhook ou edge functions
+
+O webhook `cakto-webhook` ja identifica o plano pelo nome do produto e atualiza a subscription. O `downgrade-to-free` ja arquiva imoveis excedentes. O `cancel-cakto-subscription` ja reverte para free. Tudo funciona com o modelo fixo.
+
+## Detalhes Tecnicos
+
+### Migration SQL
+```sql
+UPDATE plans SET property_limit = 10 WHERE id = 'starter';
+UPDATE plans SET property_limit = 25 WHERE id = 'pro';
+UPDATE plans SET property_limit = 50 WHERE id = 'plus';
 ```
 
-### 2. Simplificar o EditSubscriptionDialog
-
-Remover o campo "ID Externo (Cakto / Produto)" ja que nao e necessario. Manter apenas o campo "Email do Pagador" para rastreabilidade.
-
-### 3. Atualizar a pagina Enterprise Links
-
-Adicionar um indicador visual de "vinculado" quando o email do link corresponde a um usuario ativo com plano enterprise no sistema.
-
-## Arquivos Modificados
+### Arquivos Modificados
 
 | Arquivo | Alteracao |
 |---------|-----------|
-| `supabase/functions/cakto-webhook/index.ts` | Adicionar consulta a `enterprise_checkout_links` como fallback para determinar plano |
-| `src/components/admin/EditSubscriptionDialog.tsx` | Remover campo `externalId`, simplificar |
+| Migration SQL | Ajustar limites: Starter=10, Pro=25, Plus=50 |
+| `src/pages/Subscription.tsx` | Adicionar secao de uso de imoveis com barra de progresso, limite e quantidade utilizada |
+| `src/pages/Plans.tsx` | Atualizar FAQ para remover mencoes a trial e desconto anual |
 
-## Resultado Final
+### Nenhuma alteracao necessaria em:
+- `usePropertyLimit.ts` — ja le o limite da tabela `plans` dinamicamente
+- `usePlans.ts` — ja busca da tabela `plans`
+- `cakto-webhook` — ja funciona com modelo fixo
+- `downgrade-to-free` — ja usa `FREE_PLAN_LIMIT = 2`
+- `useSubscription.ts` / `useUserData.ts` — sem mudancas
 
-O passo a passo para o admin fica:
-
-1. Crie o produto na Cakto (qualquer nome)
-2. Cadastre o link na pagina "Links Enterprise" com o nome, email e link de checkout do cliente
-3. Envie o link ao cliente
-4. Cliente paga, webhook ativa Enterprise automaticamente pelo email
-
-Nao precisa copiar ID, nao precisa editar assinatura manualmente, nao depende do nome do produto conter "enterprise".
