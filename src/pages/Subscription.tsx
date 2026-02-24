@@ -85,7 +85,7 @@ export default function Subscription() {
     setIsCancelling(true);
     
     try {
-      const { data, error } = await supabase.functions.invoke('cancel-cakto-subscription');
+      const { data, error } = await supabase.functions.invoke('cancel-kirvano-subscription');
 
       if (error) {
         throw new Error(error.message || 'Erro ao cancelar assinatura');
@@ -276,7 +276,7 @@ export default function Subscription() {
                       <span className="text-muted-foreground">Método</span>
                       <Badge variant="outline" className="gap-1.5">
                         <CreditCard className="h-3.5 w-3.5" />
-                        Cakto
+                        Kirvano
                       </Badge>
                     </div>
 
@@ -291,7 +291,7 @@ export default function Subscription() {
                     {/* Info */}
                     <div className="pt-4 border-t">
                       <p className="text-sm text-muted-foreground text-center">
-                        Para gerenciar detalhes do pagamento, acesse o painel da Cakto.
+                        Para gerenciar detalhes do pagamento, acesse o painel da Kirvano.
                       </p>
                     </div>
                   </>

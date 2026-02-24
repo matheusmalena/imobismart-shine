@@ -193,7 +193,7 @@ export default function Plans() {
       return;
     }
 
-    // Starter / Pro / Plus - redirect to Cakto checkout URL from plans table
+    // Starter / Pro / Plus - redirect to Kirvano checkout URL from plans table
     setLoadingPlan(planId);
     
     try {
