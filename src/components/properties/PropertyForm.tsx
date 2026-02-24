@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Property, PropertyFormData, PropertyType, PropertyStatus, PROPERTY_TYPE_LABELS, PROPERTY_STATUS_LABELS } from '@/types/property';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, Search } from 'lucide-react';
+import { Loader2, Search, Plus, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { PhotoUpload } from './PhotoUpload';
 import { PropertyGallery } from './PropertyGallery';
 import { usePhotoUpload } from '@/hooks/usePhotoUpload';
@@ -686,16 +687,67 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                   </div>
                 </div>
                 
-                {/* Outros - Campo de texto para comodidades adicionais */}
+                {/* Outras Comodidades como Tags */}
                 <div className="mt-4 space-y-2">
-                  <Label htmlFor="other_amenities">Outras Comodidades</Label>
-                  <Textarea
-                    id="other_amenities"
-                    value={formData.other_amenities}
-                    onChange={(e) => updateField('other_amenities', e.target.value)}
-                    placeholder="Informe outras comodidades não listadas acima..."
-                    rows={3}
-                  />
+                  <Label>Outras Comodidades</Label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {formData.other_amenities
+                      .split(',')
+                      .map(t => t.trim())
+                      .filter(Boolean)
+                      .map((tag, index) => (
+                        <Badge key={index} variant="secondary" className="gap-1 pl-2.5 pr-1.5 py-1">
+                          {tag}
+                          <button
+                            type="button"
+                            className="ml-1 rounded-full hover:bg-muted-foreground/20 p-0.5"
+                            onClick={() => {
+                              const tags = formData.other_amenities.split(',').map(t => t.trim()).filter(Boolean);
+                              tags.splice(index, 1);
+                              updateField('other_amenities', tags.join(', '));
+                            }}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      id="other_amenities_input"
+                      placeholder="Digite e pressione Enter..."
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const input = e.currentTarget;
+                          const value = input.value.trim();
+                          if (!value) return;
+                          const existing = formData.other_amenities.split(',').map(t => t.trim()).filter(Boolean);
+                          if (!existing.includes(value)) {
+                            updateField('other_amenities', [...existing, value].join(', '));
+                          }
+                          input.value = '';
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        const input = document.getElementById('other_amenities_input') as HTMLInputElement;
+                        const value = input?.value.trim();
+                        if (!value) return;
+                        const existing = formData.other_amenities.split(',').map(t => t.trim()).filter(Boolean);
+                        if (!existing.includes(value)) {
+                          updateField('other_amenities', [...existing, value].join(', '));
+                        }
+                        if (input) input.value = '';
+                      }}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </TabsContent>

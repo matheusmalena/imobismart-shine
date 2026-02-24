@@ -1186,7 +1186,7 @@ export type Database = {
       document_category: "matricula" | "iptu" | "contrato" | "laudo" | "outro"
       org_member_role: "owner" | "admin" | "financial" | "operator"
       property_performance: "alta" | "media" | "baixa"
-      property_status: "alugado" | "vago" | "em_reforma" | "a_venda"
+      property_status: "alugado" | "vago" | "em_reforma" | "a_venda" | "vendido"
       property_type:
         | "apartamento"
         | "casa"
@@ -1329,7 +1329,7 @@ export const Constants = {
       document_category: ["matricula", "iptu", "contrato", "laudo", "outro"],
       org_member_role: ["owner", "admin", "financial", "operator"],
       property_performance: ["alta", "media", "baixa"],
-      property_status: ["alugado", "vago", "em_reforma", "a_venda"],
+      property_status: ["alugado", "vago", "em_reforma", "a_venda", "vendido"],
       property_type: [
         "apartamento",
         "casa",

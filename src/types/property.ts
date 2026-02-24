@@ -1,5 +1,5 @@
 export type PropertyType = 'apartamento' | 'casa' | 'comercial' | 'terreno' | 'galpao' | 'sala' | 'loja' | 'outro';
-export type PropertyStatus = 'alugado' | 'vago' | 'em_reforma' | 'a_venda';
+export type PropertyStatus = 'alugado' | 'vago' | 'em_reforma' | 'a_venda' | 'vendido';
 export type DocumentCategory = 'matricula' | 'iptu' | 'contrato' | 'laudo' | 'outro';
 
 export interface Property {
@@ -122,6 +122,7 @@ export const PROPERTY_STATUS_LABELS: Record<PropertyStatus, string> = {
   vago: 'Vago',
   em_reforma: 'Em Reforma',
   a_venda: 'À Venda',
+  vendido: 'Vendido',
 };
 
 export const DOCUMENT_CATEGORY_LABELS: Record<DocumentCategory, string> = {
