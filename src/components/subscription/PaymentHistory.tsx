@@ -1,12 +1,15 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useSubscription } from '@/hooks/useSubscription';
+import { usePaymentHistory } from '@/hooks/usePaymentHistory';
 import {
   Receipt,
   CheckCircle,
   XCircle,
   Clock,
   AlertTriangle,
+  Loader2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -26,8 +29,31 @@ const PLAN_NAMES: Record<string, string> = {
   enterprise: 'Enterprise',
 };
 
+const EVENT_LABELS: Record<string, string> = {
+  purchase_approved: 'Ativação',
+  PURCHASE_APPROVED: 'Ativação',
+  subscription_active: 'Ativação',
+  SUBSCRIPTION_ACTIVE: 'Ativação',
+  payment_approved: 'Pagamento',
+  PAYMENT_APPROVED: 'Pagamento',
+  subscription_cancelled: 'Cancelamento',
+  SUBSCRIPTION_CANCELLED: 'Cancelamento',
+  purchase_refunded: 'Reembolso',
+  PURCHASE_REFUNDED: 'Reembolso',
+  purchase_chargeback: 'Chargeback',
+  PURCHASE_CHARGEBACK: 'Chargeback',
+};
+
+const HISTORY_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
+  approved: { label: 'Aprovado', color: 'bg-green-500/10 text-green-600 border-green-200' },
+  cancelled: { label: 'Cancelado', color: 'bg-red-500/10 text-red-600 border-red-200' },
+  refunded: { label: 'Reembolsado', color: 'bg-yellow-500/10 text-yellow-600 border-yellow-200' },
+  chargeback: { label: 'Chargeback', color: 'bg-red-500/10 text-red-600 border-red-200' },
+};
+
 export function PaymentHistory() {
   const { subscription } = useSubscription();
+  const { data: history, isLoading: historyLoading } = usePaymentHistory();
 
   const currentPlan = subscription?.plan || 'free';
   const currentStatus = subscription?.status || 'trial';
@@ -41,11 +67,12 @@ export function PaymentHistory() {
           Informações da Assinatura
         </CardTitle>
         <CardDescription>
-          Detalhes do seu plano atual
+          Detalhes do seu plano atual e histórico de pagamentos
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="space-y-6">
+          {/* Current plan info */}
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
@@ -75,9 +102,60 @@ export function PaymentHistory() {
             </div>
           </div>
 
-          <p className="text-xs text-muted-foreground text-center">
-            O histórico detalhado de pagamentos está disponível no painel da Cakto.
-          </p>
+          {/* Payment history table */}
+          <div>
+            <h4 className="text-sm font-medium text-foreground mb-3">Histórico de Pagamentos</h4>
+            {historyLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : history && history.length > 0 ? (
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Evento</TableHead>
+                      <TableHead>Plano</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Valor</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {history.map((entry) => {
+                      const eventLabel = EVENT_LABELS[entry.event] || entry.event;
+                      const statusCfg = HISTORY_STATUS_CONFIG[entry.status] || { label: entry.status, color: 'bg-muted text-muted-foreground' };
+                      return (
+                        <TableRow key={entry.id}>
+                          <TableCell className="text-sm">
+                            {format(new Date(entry.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                          </TableCell>
+                          <TableCell className="text-sm font-medium">{eventLabel}</TableCell>
+                          <TableCell className="text-sm">
+                            {entry.plan ? (PLAN_NAMES[entry.plan] || entry.plan) : '—'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={`text-xs ${statusCfg.color}`}>
+                              {statusCfg.label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-right">
+                            {entry.amount > 0
+                              ? `R$ ${Number(entry.amount).toFixed(2).replace('.', ',')}`
+                              : '—'}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-6">
+                Nenhum registro de pagamento encontrado.
+              </p>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
