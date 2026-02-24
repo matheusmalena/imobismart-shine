@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useUserData } from '@/hooks/useUserData';
+import { usePropertyLimit } from '@/hooks/usePropertyLimit';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { PaymentHistory } from '@/components/subscription/PaymentHistory';
@@ -11,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -71,6 +73,7 @@ export default function Subscription() {
   const { user, loading: authLoading } = useAuth();
   const { subscription, isLoading: subscriptionLoading, refetch } = useSubscription();
   const { profile } = useUserData();
+  const { limit, activeCount, isUnlimited } = usePropertyLimit();
   const [isCancelling, setIsCancelling] = useState(false);
 
   const isLoading = authLoading || subscriptionLoading;
@@ -153,7 +156,60 @@ export default function Subscription() {
         </motion.div>
 
         {/* Main Content */}
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {/* Property Usage Card */}
+          <motion.div variants={itemVariants}>
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Crown className="h-5 w-5 text-primary" />
+                  Uso de Imóveis
+                </CardTitle>
+                <CardDescription>
+                  Consumo do seu plano atual
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Plano</span>
+                  <span className="text-lg font-bold text-foreground">
+                    {PLAN_NAMES[currentPlan] || currentPlan}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Imóveis ativos</span>
+                    <span className="font-semibold text-foreground">
+                      {activeCount} / {isUnlimited ? '∞' : limit}
+                    </span>
+                  </div>
+                  {!isUnlimited && (
+                    <Progress
+                      value={Math.min((activeCount / limit) * 100, 100)}
+                      className="h-3"
+                    />
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    {isUnlimited
+                      ? 'Seu plano possui imóveis ilimitados.'
+                      : activeCount >= limit
+                        ? 'Você atingiu o limite do seu plano. Faça upgrade para adicionar mais imóveis.'
+                        : `Você ainda pode adicionar ${limit - activeCount} ${limit - activeCount === 1 ? 'imóvel' : 'imóveis'}.`
+                    }
+                  </p>
+                </div>
+
+                {!isUnlimited && activeCount >= limit && (
+                  <Button onClick={() => navigate('/plans')} className="w-full gap-2" size="sm">
+                    <Sparkles className="h-4 w-4" />
+                    Fazer Upgrade
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+
           {/* Current Plan Card */}
           <motion.div variants={itemVariants}>
             <Card className="h-full">
