@@ -109,6 +109,12 @@ export default function Subscription() {
     }
   };
 
+  const currentPlan = subscription?.plan || 'free';
+  const currentStatus = subscription?.status || 'trial';
+  const statusConfig = STATUS_CONFIG[currentStatus] || STATUS_CONFIG.inactive;
+  const canCancel = currentPlan !== 'free' && currentStatus !== 'cancelled';
+  const isPaid = currentPlan === 'starter' || currentPlan === 'pro' || currentPlan === 'plus' || currentPlan === 'enterprise';
+
   return (
     <DashboardLayout>
       {isLoading ? (

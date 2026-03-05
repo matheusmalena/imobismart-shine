@@ -75,7 +75,7 @@ export default function Documents() {
   };
 
   const isPageLoading = authLoading || propertiesLoading;
-
+  const hasProperties = activeProperties.length > 0;
   return (
     <DashboardLayout>
       <PageTransition>

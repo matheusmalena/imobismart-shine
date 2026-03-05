@@ -93,6 +93,15 @@ export default function Settings() {
     await cancelSubscription.mutateAsync();
   };
 
+  // TEMPORÁRIO: Desabilitado para screenshots - usar dados mock
+  const mockUser = user || { email: 'usuario@exemplo.com' };
+  const mockProfile = profile || { full_name: 'João da Silva', created_at: '2024-06-15' };
+  const mockSubscription = subscription || { 
+    plan: 'pro' as const, 
+    status: 'active' as const, 
+    started_at: '2024-06-15',
+    expires_at: '2025-06-15'
+  };
 
   return (
     <DashboardLayout>
@@ -107,11 +116,6 @@ export default function Settings() {
         </div>
       ) : (
       <div className="space-y-6 max-w-4xl animate-fade-in">
-        {/* mock data setup */}
-        {(() => { 
-          // TEMPORÁRIO: Desabilitado para screenshots - usar dados mock
-          return null;
-        })()}
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-foreground">Configurações</h1>
