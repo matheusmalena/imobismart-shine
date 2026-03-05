@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import DashboardLayoutRoute from "@/components/layout/DashboardLayoutRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -38,22 +39,27 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/properties" element={<Properties />} />
-              <Route path="/tenants" element={<Tenants />} />
-              <Route path="/documents" element={<Documents />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/reports" element={<Reports />} />
               <Route path="/plans" element={<Plans />} />
-              <Route path="/subscription" element={<Subscription />} />
-              <Route path="/team" element={<Team />} />
-              <Route path="/whatsapp" element={<WhatsApp />} />
-              <Route path="/admin/clients" element={<AdminClients />} />
-              <Route path="/admin/clients/:userId" element={<AdminClientDetails />} />
-              <Route path="/admin/plans" element={<AdminPlans />} />
-              <Route path="/admin/enterprise-links" element={<AdminEnterpriseLinks />} />
               <Route path="/accept-invite" element={<AcceptInvite />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
+              
+              {/* Dashboard routes - shared layout */}
+              <Route element={<DashboardLayoutRoute />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/properties" element={<Properties />} />
+                <Route path="/tenants" element={<Tenants />} />
+                <Route path="/documents" element={<Documents />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/subscription" element={<Subscription />} />
+                <Route path="/team" element={<Team />} />
+                <Route path="/whatsapp" element={<WhatsApp />} />
+                <Route path="/admin/clients" element={<AdminClients />} />
+                <Route path="/admin/clients/:userId" element={<AdminClientDetails />} />
+                <Route path="/admin/plans" element={<AdminPlans />} />
+                <Route path="/admin/enterprise-links" element={<AdminEnterpriseLinks />} />
+              </Route>
+              
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
