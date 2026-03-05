@@ -9,6 +9,7 @@ import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { FAQSection } from "@/components/landing/FAQSection";
 import { TutorialModal, TutorialModalRef } from "@/components/onboarding/TutorialModal";
+import { SCREEN_MOCKUPS, DashboardMockup } from "@/components/landing/ScreenMockups";
 import {
   Building2,
   BarChart3,
