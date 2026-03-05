@@ -25,7 +25,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
-  ArrowLeft,
+  
   CreditCard,
   Calendar,
   Crown,
@@ -138,16 +138,10 @@ export default function Subscription() {
         className="space-y-6 pb-8"
       >
         {/* Header */}
-        <motion.div variants={itemVariants} className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Voltar
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Minha Assinatura</h1>
-              <p className="text-muted-foreground">Gerencie seu plano e pagamentos</p>
-            </div>
+        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Minha Assinatura</h1>
+            <p className="text-muted-foreground mt-1">Gerencie seu plano e pagamentos</p>
           </div>
           <Button onClick={() => navigate('/plans')} className="gap-2">
             <Sparkles className="h-4 w-4" />
