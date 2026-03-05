@@ -494,7 +494,6 @@ export default function ClientDetails() {
             </TabsContent>
           </Tabs>
         </div>
-      </PageTransition>
-    </DashboardLayout>
+    </PageTransition>
   );
 }

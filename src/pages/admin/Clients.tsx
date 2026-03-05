@@ -326,7 +326,6 @@ export default function AdminClients() {
             )}
           </CardContent>
         </Card>
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }
