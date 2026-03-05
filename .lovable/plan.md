@@ -1,33 +1,43 @@
 
 
-## Plan: Standardize Page Headers
+## Plan: Standardize Upgrade/Locked Cards Across Reports and Team
 
-The standard header pattern (used by Documents, Properties, Tenants, Team) is:
+### Problem
+The **Reports** (free plan) and **Team** (non-Enterprise) pages have completely custom upgrade prompts with different layouts, spacing, icon sizes, and button styles. They don't use the existing `UpgradeOverlay` or `LockedSection` components that the Dashboard already uses.
 
-```
-<h1 className="text-3xl font-bold text-foreground">Title</h1>
-<p className="text-muted-foreground mt-1">Subtitle</p>
-```
+### Current inconsistencies:
+1. **Reports free-plan view** (lines 421-468): Custom centered card with `max-w-2xl mx-auto py-12`, `h-16 w-16` icon, `text-2xl` title, feature list with individual plan badges, full-width button
+2. **Team non-Enterprise view** (TeamManagement lines 123-158): Card with header icon+title pattern, `h-8 w-8` lock icon, `text-lg` title, separate badge + button, uses `window.location.href` instead of `navigate`
+3. Both differ from the `UpgradeOverlay` component (backdrop-blur, centered lock icon, consistent sizing)
 
-### Changes needed:
+### Solution
+Create a single reusable `LockedPagePlaceholder` component and use it in both pages, ensuring consistent:
+- Icon size and background
+- Title size (`text-xl`)
+- Description text styling
+- Feature list layout (optional)
+- Button style and navigation
+- Plan badge colors (matching `UpgradeOverlay` PLAN_CONFIG)
 
-**1. Subscription (`src/pages/Subscription.tsx`, lines 141-156)**
-- Remove the "Voltar" button and its container
-- Change h1 from `text-2xl` to `text-3xl`
-- Add `mt-1` to subtitle
-- Keep the "Ver Planos" button aligned right
-- Restructure header to match: `flex-col sm:flex-row sm:items-center sm:justify-between gap-4`
+### Steps
 
-**2. WhatsApp (`src/pages/WhatsApp.tsx`, lines 35-40)**
-- Change h1 from `text-2xl` to `text-3xl`
-- Add `text-foreground` class to h1
-- Add `mt-1` to subtitle paragraph
+**Step 1: Create `src/components/common/LockedPagePlaceholder.tsx`**
+A reusable full-page upgrade prompt component with props:
+- `icon` (React element)
+- `title` (string)
+- `description` (string)
+- `features` (optional array of `{ icon, label, description, plan }`)
+- `requiredPlan` ('pro' | 'plus' | 'enterprise')
+- `buttonLabel` (string)
 
-**3. Reports (`src/pages/Reports.tsx`, lines 508-514)**
-- Change h1 from `text-2xl` to `text-3xl`
-- Add `text-foreground` class
-- Add a subtitle: `"Exporte dados e gere relatórios do seu portfólio"`
-- Restructure to standard `<div>` with h1 + p pattern (move badge inline with title)
+Uses the same color tokens as `UpgradeOverlay` (PLAN_CONFIG). Layout: centered card, consistent icon container (p-4 rounded-full bg-muted), `text-xl font-semibold` title, feature grid with matching badge styles, single CTA button using `navigate('/plans')`.
 
-**4. Team (`src/pages/Team.tsx`)** — Already standardized, no changes needed.
+**Step 2: Refactor Reports free-plan view (lines 421-468)**
+Replace the custom upgrade card with `<LockedPagePlaceholder>`, passing the report-specific features list and `requiredPlan="pro"`.
+
+**Step 3: Refactor TeamManagement non-Enterprise view (lines 123-158)**
+Replace the custom upgrade card with `<LockedPagePlaceholder>`, passing team-specific description and `requiredPlan="enterprise"`. Remove `window.location.href` in favor of proper navigation.
+
+**Step 4: Ensure page headers remain standardized**
+Both pages already have standardized `text-3xl` headers from the previous fix. The locked placeholder renders inside the content area below the header, keeping the header visible and consistent.
 
