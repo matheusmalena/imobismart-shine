@@ -295,10 +295,12 @@ export default function Index() {
               </div>
               {/* Floating badges */}
               <motion.div
+                ref={badge1.ref}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.8, duration: 0.4 }}
                 className="absolute -bottom-4 -left-4 bg-card rounded-xl shadow-xl border border-border/50 p-3 flex items-center gap-3"
+                style={badge1.style}
               >
                 <div className="p-2 rounded-lg bg-primary/10">
                   <BarChart3 className="h-5 w-5 text-primary" />
@@ -309,10 +311,12 @@ export default function Index() {
                 </div>
               </motion.div>
               <motion.div
+                ref={badge2.ref}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 1, duration: 0.4 }}
                 className="absolute -top-4 -right-4 bg-card rounded-xl shadow-xl border border-border/50 p-3 flex items-center gap-3"
+                style={badge2.style}
               >
                 <div className="p-2 rounded-lg bg-success/10">
                   <Building2 className="h-5 w-5 text-primary" />
