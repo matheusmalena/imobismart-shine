@@ -213,6 +213,7 @@ export default function Plans() {
   };
 
   return (
+    <>
       <div className="space-y-8 pb-8">
         {/* Navigation Buttons */}
         <div className="flex items-center gap-3">
@@ -540,5 +541,6 @@ export default function Plans() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </>
   );
 }
