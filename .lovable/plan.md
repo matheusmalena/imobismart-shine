@@ -1,73 +1,63 @@
 
 
-# Reestruturar Landing Page + Unificar Auth no Layout Split-Screen
+# Adicionar Status "Vendido" + Outras Comodidades como Tags
 
-## Resumo
+## 1. Adicionar "Vendido" ao status do imovel
 
-Duas grandes mudancas:
-1. **Landing Page (Index.tsx)**: Redesign completo com screenshots reais do produto, hero mais impactante com mockup do dashboard, secao de funcionalidades com imagens reais, e layout mais moderno e profissional.
-2. **Auth Page (Auth.tsx)**: Todos os estados do fluxo de autenticacao (login, cadastro, OTP email, MFA, confirmacao de email, esqueci senha) devem usar o layout split-screen (esquerda branding + direita formulario), mudando apenas o conteudo do card da direita e o titulo/subtitulo conforme o estado.
+O campo `status` usa um enum no banco de dados (`property_status`) com os valores atuais: `alugado`, `vago`, `em_reforma`, `a_venda`. Para adicionar "Vendido", e necessario:
 
----
+### Migration SQL
+```sql
+ALTER TYPE property_status ADD VALUE 'vendido';
+```
 
-## 1. Landing Page - Redesign Completo
+### Sugestoes de status adicionais
+Alem de "Vendido", sugiro tambem:
+- **Reservado** (`reservado`) - imovel com negociacao em andamento
 
-**Arquivo:** `src/pages/Index.tsx`
+Se quiser, posso adicionar esse tambem. Caso contrario, seguimos apenas com "Vendido".
 
-### Estrutura nova:
-- **Hero**: Layout split com texto a esquerda e mockup/screenshot do dashboard a direita (usar imagem `public/images/tutorial-dashboard.png` que ja existe no projeto)
-- **Barra de Prova Social**: Numeros animados (200+ proprietarios, 500+ imoveis, 99.9% uptime)
-- **Secao "Como Funciona"**: 3 steps com icones e descricoes curtas
-- **Secao de Funcionalidades**: Grid com screenshots reais das telas do produto (usar as imagens tutorial-*.png que ja existem em `public/images/`)
-  - Dashboard com metricas - `tutorial-dashboard.png`
-  - Gestao de Imoveis - `tutorial-properties.png`
-  - Documentos - `tutorial-documents.png`
-  - Configuracoes - `tutorial-settings.png`
-- **Manter secoes existentes**: TargetAudienceSection, PricingSection, TestimonialsSection, FAQSection
-- **Secao de Beneficios**: Manter com melhorias visuais
-- **CTA Final + Footer**: Manter
+### Arquivos modificados para o status
 
-### Secao nova "Veja na pratica" com tabs interativas:
-Cada tab mostra uma screenshot real com descricao ao lado, alternando entre Dashboard, Imoveis, Documentos e Relatorios.
+| Arquivo | Alteracao |
+|---------|-----------|
+| Migration SQL | `ALTER TYPE property_status ADD VALUE 'vendido'` |
+| `src/types/property.ts` | Adicionar `'vendido'` ao tipo `PropertyStatus` e ao `PROPERTY_STATUS_LABELS` |
+| `src/components/properties/PropertyCard.tsx` | Adicionar cor para o badge "vendido" no `getStatusColor` |
 
 ---
 
-## 2. Auth Page - Layout Unificado Split-Screen
+## 2. Outras Comodidades como tags editaveis
 
-**Arquivo:** `src/pages/Auth.tsx`
+Atualmente o campo "Outras Comodidades" e um textarea de texto livre. A proposta e transformar em um sistema de tags:
 
-Atualmente, os estados `showEmailOTP`, `showMFA`, `showEmailConfirmation` renderizam telas separadas (fullscreen centralizadas). A mudanca e fazer todos usarem o mesmo layout split-screen.
+- Um input onde o usuario digita uma comodidade e pressiona Enter (ou clica em um botao "+")
+- A comodidade aparece como uma tag/badge ao lado das comodidades padrao (Piscina, Academia, etc.)
+- Cada tag tem um botao "x" para remover
+- Os valores continuam salvos no campo `other_amenities` como texto separado por virgula (sem mudanca no banco)
 
-### Abordagem:
-- Manter o layout split (`lg:w-1/2` esquerda branding + direita formulario) como wrapper para TODOS os estados
-- Extrair o conteudo da direita como renderizacao condicional dentro do mesmo layout
-- Mudar o titulo/subtitulo do card conforme o estado:
-  - **Login**: "Acesse sua conta" / "Entre ou crie uma nova conta para continuar"
-  - **Cadastro**: (mesma tela, outra tab)
-  - **OTP Email (4 digitos)**: "Verificacao por Email" / "Digite o codigo de 4 digitos enviado para {email}"
-  - **MFA (6 digitos)**: "Verificacao em Duas Etapas" / "Digite o codigo do seu app autenticador"
-  - **Confirmar Email**: "Verifique seu email" / "Enviamos um link de confirmacao para {email}"
-  - **Esqueci Senha**: "Recuperar senha" / "Digite seu email para recuperacao"
+### Arquivos modificados
 
-### Mudancas tecnicas:
-- Remover os `return` antecipados (early returns) para `showEmailOTP`, `showMFA`, `showEmailConfirmation`
-- Incorporar o conteudo desses componentes dentro do card da direita do layout split
-- `EmailOTPVerification` e `MFAVerification` passam a ser renderizados inline (sem Card proprio) ou adaptados para receber uma prop que remove o Card wrapper
+| Arquivo | Alteracao |
+|---------|-----------|
+| `src/components/properties/PropertyForm.tsx` | Substituir o Textarea de "Outras Comodidades" por um input + lista de tags. Ao digitar e pressionar Enter, adiciona a tag. As tags ficam junto com as comodidades padrao visualmente. |
 
-**Arquivos modificados:**
-- `src/components/auth/EmailOTPVerification.tsx` — adicionar prop `inline` para renderizar sem Card wrapper
-- `src/components/auth/MFAVerification.tsx` — adicionar prop `inline` para renderizar sem Card wrapper
+### Comportamento
+- O usuario digita no input e pressiona Enter
+- A tag aparece como badge junto com as comodidades existentes
+- Cada tag tem "x" para remover
+- Internamente, o array de tags e convertido para string separada por virgula no campo `other_amenities`
+- Ao editar um imovel existente, o valor e parseado de volta para tags
 
----
+## Detalhes Tecnicos
 
-## 3. Resumo de Arquivos
+### Armazenamento das tags
+O campo `other_amenities` continua como `text` no banco. As tags sao armazenadas como string separada por virgula (ex: `"Sauna, Playground, Portaria 24h"`). Nenhuma migracao adicional necessaria para isso.
 
-| Arquivo | Acao |
-|---------|------|
-| `src/pages/Index.tsx` | Redesign completo da landing page com screenshots reais |
-| `src/pages/Auth.tsx` | Unificar todos os estados no layout split-screen |
-| `src/components/auth/EmailOTPVerification.tsx` | Adicionar modo inline (sem Card) |
-| `src/components/auth/MFAVerification.tsx` | Adicionar modo inline (sem Card) |
-
-Nenhuma mudanca de banco de dados ou edge functions necessaria.
+### Componente de tags no formulario
+Sera implementado inline no `PropertyForm.tsx`:
+- Estado local `amenityTags: string[]` derivado de `formData.other_amenities.split(',')`
+- Input com `onKeyDown` para capturar Enter
+- Renderizar tags como badges com botao de remocao
+- Sincronizar de volta para `formData.other_amenities` via `tags.join(', ')`
 
