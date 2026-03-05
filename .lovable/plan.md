@@ -1,63 +1,33 @@
 
 
-# Adicionar Status "Vendido" + Outras Comodidades como Tags
+## Plan: Standardize Page Headers
 
-## 1. Adicionar "Vendido" ao status do imovel
+The standard header pattern (used by Documents, Properties, Tenants, Team) is:
 
-O campo `status` usa um enum no banco de dados (`property_status`) com os valores atuais: `alugado`, `vago`, `em_reforma`, `a_venda`. Para adicionar "Vendido", e necessario:
-
-### Migration SQL
-```sql
-ALTER TYPE property_status ADD VALUE 'vendido';
+```
+<h1 className="text-3xl font-bold text-foreground">Title</h1>
+<p className="text-muted-foreground mt-1">Subtitle</p>
 ```
 
-### Sugestoes de status adicionais
-Alem de "Vendido", sugiro tambem:
-- **Reservado** (`reservado`) - imovel com negociacao em andamento
+### Changes needed:
 
-Se quiser, posso adicionar esse tambem. Caso contrario, seguimos apenas com "Vendido".
+**1. Subscription (`src/pages/Subscription.tsx`, lines 141-156)**
+- Remove the "Voltar" button and its container
+- Change h1 from `text-2xl` to `text-3xl`
+- Add `mt-1` to subtitle
+- Keep the "Ver Planos" button aligned right
+- Restructure header to match: `flex-col sm:flex-row sm:items-center sm:justify-between gap-4`
 
-### Arquivos modificados para o status
+**2. WhatsApp (`src/pages/WhatsApp.tsx`, lines 35-40)**
+- Change h1 from `text-2xl` to `text-3xl`
+- Add `text-foreground` class to h1
+- Add `mt-1` to subtitle paragraph
 
-| Arquivo | Alteracao |
-|---------|-----------|
-| Migration SQL | `ALTER TYPE property_status ADD VALUE 'vendido'` |
-| `src/types/property.ts` | Adicionar `'vendido'` ao tipo `PropertyStatus` e ao `PROPERTY_STATUS_LABELS` |
-| `src/components/properties/PropertyCard.tsx` | Adicionar cor para o badge "vendido" no `getStatusColor` |
+**3. Reports (`src/pages/Reports.tsx`, lines 508-514)**
+- Change h1 from `text-2xl` to `text-3xl`
+- Add `text-foreground` class
+- Add a subtitle: `"Exporte dados e gere relatórios do seu portfólio"`
+- Restructure to standard `<div>` with h1 + p pattern (move badge inline with title)
 
----
-
-## 2. Outras Comodidades como tags editaveis
-
-Atualmente o campo "Outras Comodidades" e um textarea de texto livre. A proposta e transformar em um sistema de tags:
-
-- Um input onde o usuario digita uma comodidade e pressiona Enter (ou clica em um botao "+")
-- A comodidade aparece como uma tag/badge ao lado das comodidades padrao (Piscina, Academia, etc.)
-- Cada tag tem um botao "x" para remover
-- Os valores continuam salvos no campo `other_amenities` como texto separado por virgula (sem mudanca no banco)
-
-### Arquivos modificados
-
-| Arquivo | Alteracao |
-|---------|-----------|
-| `src/components/properties/PropertyForm.tsx` | Substituir o Textarea de "Outras Comodidades" por um input + lista de tags. Ao digitar e pressionar Enter, adiciona a tag. As tags ficam junto com as comodidades padrao visualmente. |
-
-### Comportamento
-- O usuario digita no input e pressiona Enter
-- A tag aparece como badge junto com as comodidades existentes
-- Cada tag tem "x" para remover
-- Internamente, o array de tags e convertido para string separada por virgula no campo `other_amenities`
-- Ao editar um imovel existente, o valor e parseado de volta para tags
-
-## Detalhes Tecnicos
-
-### Armazenamento das tags
-O campo `other_amenities` continua como `text` no banco. As tags sao armazenadas como string separada por virgula (ex: `"Sauna, Playground, Portaria 24h"`). Nenhuma migracao adicional necessaria para isso.
-
-### Componente de tags no formulario
-Sera implementado inline no `PropertyForm.tsx`:
-- Estado local `amenityTags: string[]` derivado de `formData.other_amenities.split(',')`
-- Input com `onKeyDown` para capturar Enter
-- Renderizar tags como badges com botao de remocao
-- Sincronizar de volta para `formData.other_amenities` via `tags.join(', ')`
+**4. Team (`src/pages/Team.tsx`)** — Already standardized, no changes needed.
 
