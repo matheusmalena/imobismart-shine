@@ -92,4 +92,5 @@ export function TargetAudienceSection() {
       </motion.div>
     </div>
     </section>
+  );
 }
