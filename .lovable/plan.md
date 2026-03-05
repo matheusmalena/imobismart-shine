@@ -1,63 +1,39 @@
 
 
-# Adicionar Status "Vendido" + Outras Comodidades como Tags
+## Plan: Fix All System Issues
 
-## 1. Adicionar "Vendido" ao status do imovel
+### Issues Identified
 
-O campo `status` usa um enum no banco de dados (`property_status`) com os valores atuais: `alugado`, `vago`, `em_reforma`, `a_venda`. Para adicionar "Vendido", e necessario:
+**1. OTP Edge Function Crash (500 Error)**
+In `Auth.tsx` line 200-205, `handleMFASuccess` still calls `send-login-otp` which fails because the Resend domain is not verified. After MFA, it should navigate directly to the dashboard instead of triggering OTP.
 
-### Migration SQL
-```sql
-ALTER TYPE property_status ADD VALUE 'vendido';
-```
+**2. Landing Page Images Are AI-Generated, Not Real**
+The `/images/tutorial-*.jpg` files were replaced with AI-generated images in a previous step. They need to be real screenshots from the actual system. Since I cannot log in to capture them (domain verification issue), I will use the browser tools to navigate to the preview, log in, and capture actual screenshots.
 
-### Sugestoes de status adicionais
-Alem de "Vendido", sugiro tambem:
-- **Reservado** (`reservado`) - imovel com negociacao em andamento
+**3. useParallax Scroll Listeners Still Active**
+The `useParallax` hook in `src/hooks/useParallax.ts` fires `setState` on every scroll event, causing constant re-renders. The session replay confirms rapid transform updates. Although Index.tsx no longer imports it directly, other components may still use it, and the hook itself should be cleaned up or removed.
 
-Se quiser, posso adicionar esse tambem. Caso contrario, seguimos apenas com "Vendido".
-
-### Arquivos modificados para o status
-
-| Arquivo | Alteracao |
-|---------|-----------|
-| Migration SQL | `ALTER TYPE property_status ADD VALUE 'vendido'` |
-| `src/types/property.ts` | Adicionar `'vendido'` ao tipo `PropertyStatus` e ao `PROPERTY_STATUS_LABELS` |
-| `src/components/properties/PropertyCard.tsx` | Adicionar cor para o badge "vendido" no `getStatusColor` |
+**4. Console Warning: UpgradeBadge ref issue**
+`UpgradeOverlay.tsx` line 130 exports `UpgradeBadge` as a function component that receives a ref without `forwardRef`. Minor but should be fixed.
 
 ---
 
-## 2. Outras Comodidades como tags editaveis
+### Steps
 
-Atualmente o campo "Outras Comodidades" e um textarea de texto livre. A proposta e transformar em um sistema de tags:
+**Step 1: Fix handleMFASuccess to skip OTP**
+- In `Auth.tsx` lines 200-205, remove the `send-login-otp` call
+- Navigate directly to dashboard after MFA success (same pattern as `handleLogin` on line 182-184)
 
-- Um input onde o usuario digita uma comodidade e pressiona Enter (ou clica em um botao "+")
-- A comodidade aparece como uma tag/badge ao lado das comodidades padrao (Piscina, Academia, etc.)
-- Cada tag tem um botao "x" para remover
-- Os valores continuam salvos no campo `other_amenities` como texto separado por virgula (sem mudanca no banco)
+**Step 2: Capture real screenshots**
+- Use browser tools to navigate to the preview app
+- Log in with `yang@yup.group` / `Demo@2025`
+- Navigate to Dashboard, Properties, Documents, Settings
+- Take screenshots and save as `/images/tutorial-dashboard.jpg`, etc.
 
-### Arquivos modificados
+**Step 3: Fix UpgradeBadge ref warning**
+- Wrap `UpgradeBadge` component with `React.forwardRef` in `UpgradeOverlay.tsx`
 
-| Arquivo | Alteracao |
-|---------|-----------|
-| `src/components/properties/PropertyForm.tsx` | Substituir o Textarea de "Outras Comodidades" por um input + lista de tags. Ao digitar e pressionar Enter, adiciona a tag. As tags ficam junto com as comodidades padrao visualmente. |
-
-### Comportamento
-- O usuario digita no input e pressiona Enter
-- A tag aparece como badge junto com as comodidades existentes
-- Cada tag tem "x" para remover
-- Internamente, o array de tags e convertido para string separada por virgula no campo `other_amenities`
-- Ao editar um imovel existente, o valor e parseado de volta para tags
-
-## Detalhes Tecnicos
-
-### Armazenamento das tags
-O campo `other_amenities` continua como `text` no banco. As tags sao armazenadas como string separada por virgula (ex: `"Sauna, Playground, Portaria 24h"`). Nenhuma migracao adicional necessaria para isso.
-
-### Componente de tags no formulario
-Sera implementado inline no `PropertyForm.tsx`:
-- Estado local `amenityTags: string[]` derivado de `formData.other_amenities.split(',')`
-- Input com `onKeyDown` para capturar Enter
-- Renderizar tags como badges com botao de remocao
-- Sincronizar de volta para `formData.other_amenities` via `tags.join(', ')`
+**Step 4: Remove unused useParallax hook**
+- Search for any remaining imports of `useParallax`
+- If unused, delete `src/hooks/useParallax.ts`
 
