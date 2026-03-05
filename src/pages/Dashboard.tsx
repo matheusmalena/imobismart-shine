@@ -46,6 +46,7 @@ export default function Dashboard() {
       case 'enterprise': return 'Enterprise';
       case 'plus': return 'Plus';
       case 'pro': return 'Pro';
+      case 'starter': return 'Starter';
       default: return 'Gratuito';
     }
   };

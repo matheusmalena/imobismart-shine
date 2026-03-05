@@ -128,14 +128,12 @@ export default function Plans() {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
-        <div className="space-y-8">
-          <Skeleton className="h-32 max-w-xl mx-auto" />
-          <div className="flex justify-center items-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
+      <div className="space-y-8">
+        <Skeleton className="h-32 max-w-xl mx-auto" />
+        <div className="flex justify-center items-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
@@ -215,7 +213,6 @@ export default function Plans() {
   };
 
   return (
-    <DashboardLayout>
       <div className="space-y-8 pb-8">
         {/* Navigation Buttons */}
         <div className="flex items-center gap-3">
@@ -253,7 +250,7 @@ export default function Plans() {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-[1400px] mx-auto"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 max-w-[1500px] mx-auto"
         >
           {activePlans.map((plan) => {
             const isCurrentPlan = plan.id === currentPlan;
@@ -345,7 +342,7 @@ export default function Plans() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="max-w-4xl mx-auto"
+          className="max-w-[1500px] mx-auto"
         >
           <Card>
             <CardHeader className="text-center">
@@ -466,7 +463,7 @@ export default function Plans() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
-          className="max-w-3xl mx-auto"
+          className="max-w-[1500px] mx-auto"
         >
           <Card>
             <CardHeader className="text-center">
@@ -543,6 +540,5 @@ export default function Plans() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </DashboardLayout>
   );
 }
