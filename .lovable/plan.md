@@ -1,63 +1,86 @@
 
 
-# Adicionar Status "Vendido" + Outras Comodidades como Tags
+# Login com Google + Confirmacao de Email + OTP Obrigatorio no Login
 
-## 1. Adicionar "Vendido" ao status do imovel
+## Resumo
 
-O campo `status` usa um enum no banco de dados (`property_status`) com os valores atuais: `alugado`, `vago`, `em_reforma`, `a_venda`. Para adicionar "Vendido", e necessario:
-
-### Migration SQL
-```sql
-ALTER TYPE property_status ADD VALUE 'vendido';
-```
-
-### Sugestoes de status adicionais
-Alem de "Vendido", sugiro tambem:
-- **Reservado** (`reservado`) - imovel com negociacao em andamento
-
-Se quiser, posso adicionar esse tambem. Caso contrario, seguimos apenas com "Vendido".
-
-### Arquivos modificados para o status
-
-| Arquivo | Alteracao |
-|---------|-----------|
-| Migration SQL | `ALTER TYPE property_status ADD VALUE 'vendido'` |
-| `src/types/property.ts` | Adicionar `'vendido'` ao tipo `PropertyStatus` e ao `PROPERTY_STATUS_LABELS` |
-| `src/components/properties/PropertyCard.tsx` | Adicionar cor para o badge "vendido" no `getStatusColor` |
+Tres mudancas no fluxo de autenticacao:
+1. Botao "Entrar com Google" / "Cadastrar com Google"
+2. Apos cadastro por email, tela de "confirme seu email" (sem login automatico)
+3. Todo login (email/senha) exige codigo de 4 digitos enviado por email
 
 ---
 
-## 2. Outras Comodidades como tags editaveis
+## 1. Google OAuth
 
-Atualmente o campo "Outras Comodidades" e um textarea de texto livre. A proposta e transformar em um sistema de tags:
+Usar o Lovable Cloud managed Google OAuth (ja disponivel automaticamente).
 
-- Um input onde o usuario digita uma comodidade e pressiona Enter (ou clica em um botao "+")
-- A comodidade aparece como uma tag/badge ao lado das comodidades padrao (Piscina, Academia, etc.)
-- Cada tag tem um botao "x" para remover
-- Os valores continuam salvos no campo `other_amenities` como texto separado por virgula (sem mudanca no banco)
+**Arquivos:**
+- Chamar a ferramenta `Configure Social Login` para gerar o modulo lovable
+- `src/pages/Auth.tsx` — adicionar botao "Entrar com Google" em ambas as abas (login e cadastro), usando `lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin })`
+- Separador visual "ou" entre o botao Google e o formulario tradicional
 
-### Arquivos modificados
+---
 
-| Arquivo | Alteracao |
-|---------|-----------|
-| `src/components/properties/PropertyForm.tsx` | Substituir o Textarea de "Outras Comodidades" por um input + lista de tags. Ao digitar e pressionar Enter, adiciona a tag. As tags ficam junto com as comodidades padrao visualmente. |
+## 2. Tela de Confirmacao de Email apos Cadastro
 
-### Comportamento
-- O usuario digita no input e pressiona Enter
-- A tag aparece como badge junto com as comodidades existentes
-- Cada tag tem "x" para remover
-- Internamente, o array de tags e convertido para string separada por virgula no campo `other_amenities`
-- Ao editar um imovel existente, o valor e parseado de volta para tags
+Atualmente, apos signup, o usuario e redirecionado ao dashboard. Mudar para:
 
-## Detalhes Tecnicos
+- Apos `signUp()` com sucesso, mostrar uma tela com icone de email dizendo "Verifique seu email para ativar sua conta"
+- Nao redirecionar para o dashboard
+- Apos o usuario clicar no link de confirmacao, ele deve voltar para `/auth` na aba "Entrar"
 
-### Armazenamento das tags
-O campo `other_amenities` continua como `text` no banco. As tags sao armazenadas como string separada por virgula (ex: `"Sauna, Playground, Portaria 24h"`). Nenhuma migracao adicional necessaria para isso.
+**Arquivos:**
+- `src/pages/Auth.tsx` — novo estado `showEmailConfirmation` que exibe a tela de confirmacao em vez do formulario
+- `src/contexts/AuthContext.tsx` — garantir que signup nao faz login automatico (ja e o comportamento com email confirmation ativado)
 
-### Componente de tags no formulario
-Sera implementado inline no `PropertyForm.tsx`:
-- Estado local `amenityTags: string[]` derivado de `formData.other_amenities.split(',')`
-- Input com `onKeyDown` para capturar Enter
-- Renderizar tags como badges com botao de remocao
-- Sincronizar de volta para `formData.other_amenities` via `tags.join(', ')`
+---
+
+## 3. OTP de 4 Digitos por Email Obrigatorio em Todo Login
+
+Fluxo:
+1. Usuario faz login com email/senha
+2. Se credenciais corretas, backend gera um codigo de 4 digitos, salva na tabela `email_verifications` e envia por email via Resend
+3. Frontend exibe tela de input do codigo
+4. Usuario digita o codigo, frontend chama edge function para verificar
+5. Se correto, login e concluido
+
+**Database:** Reutilizar a tabela `email_verifications` existente (ja tem `email`, `otp_code`, `expires_at`, `verified`).
+
+**Edge Functions (novas):**
+- `supabase/functions/send-login-otp/index.ts` — recebe o email do usuario autenticado, gera codigo de 4 digitos, salva em `email_verifications`, envia via Resend
+- `supabase/functions/verify-login-otp/index.ts` — recebe email + codigo, valida contra `email_verifications`, retorna sucesso/falha
+
+**Config:** Adicionar ao `supabase/config.toml`:
+```toml
+[functions.send-login-otp]
+verify_jwt = false
+
+[functions.verify-login-otp]
+verify_jwt = false
+```
+
+**Frontend:**
+- `src/pages/Auth.tsx` — apos login com senha bem-sucedido:
+  1. Chamar `send-login-otp` para enviar o codigo
+  2. Mostrar tela de input de 4 digitos (similar ao MFAVerification mas com 4 digitos)
+  3. Ao verificar com sucesso, permitir acesso ao dashboard
+- `src/components/auth/EmailOTPVerification.tsx` — novo componente para input de 4 digitos com botao "Reenviar codigo"
+- `src/contexts/AuthContext.tsx` — ajustar o fluxo de login para suportar o passo de OTP antes de liberar o usuario
+
+**Nota:** O login via Google NAO exige OTP (Google ja tem sua propria verificacao). O OTP e apenas para login com email/senha.
+
+---
+
+## Arquivos a Criar/Modificar
+
+| Arquivo | Acao |
+|---------|------|
+| Configure Social Login tool | Gerar modulo lovable para Google OAuth |
+| `src/pages/Auth.tsx` | Botao Google, tela confirmacao email, fluxo OTP |
+| `src/components/auth/EmailOTPVerification.tsx` | Novo componente de input OTP 4 digitos |
+| `src/contexts/AuthContext.tsx` | Ajustar fluxo login para OTP |
+| `supabase/functions/send-login-otp/index.ts` | Gerar e enviar OTP por email |
+| `supabase/functions/verify-login-otp/index.ts` | Verificar OTP |
+| `supabase/config.toml` | Registrar novas functions |
 
