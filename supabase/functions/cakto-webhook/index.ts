@@ -22,18 +22,27 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const body = await req.json();
-    console.log("Cakto webhook received:", JSON.stringify(body));
+    
+    console.log("=== CAKTO WEBHOOK START ===");
+    console.log("Full payload:", JSON.stringify(body, null, 2));
+    console.log("Event:", body.event || body.type || "NO_EVENT");
+    console.log("Has body.data:", !!body.data);
+    console.log("Has body.secret:", !!body.secret);
 
     // Validate webhook secret - Cakto sends it in the JSON body as body.secret
     if (CAKTO_WEBHOOK_SECRET) {
       const bodySecret = body.secret;
+      console.log("Secret validation:", bodySecret ? "secret_present" : "secret_missing");
       if (bodySecret !== CAKTO_WEBHOOK_SECRET) {
-        console.error("Invalid webhook secret");
+        console.error("❌ SECRET MISMATCH - webhook rejected");
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 401,
         });
       }
+      console.log("✅ Secret validated");
+    } else {
+      console.warn("⚠️ CAKTO_WEBHOOK_SECRET not configured - skipping validation");
     }
 
     // Cakto nests data under body.data
@@ -43,8 +52,10 @@ serve(async (req) => {
     const productName = data.product?.name || data.offer?.name || "";
     const productId = data.product?.id || data.offer?.id || "";
 
+    console.log("Parsed fields:", JSON.stringify({ event, buyerEmail, productName, productId, dataKeys: Object.keys(data) }));
+
     if (!buyerEmail) {
-      console.error("No buyer email found in webhook payload");
+      console.error("❌ No buyer email found. data.customer:", JSON.stringify(data.customer), "data.buyer:", JSON.stringify(data.buyer));
       return new Response(JSON.stringify({ received: true, warning: "no_email" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -59,7 +70,7 @@ serve(async (req) => {
       .single();
 
     if (!profile) {
-      console.error("User not found for email:", buyerEmail);
+      console.error(`❌ User not found for email: ${buyerEmail}`);
       return new Response(JSON.stringify({ received: true, warning: "user_not_found" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -67,6 +78,7 @@ serve(async (req) => {
     }
 
     const userId = profile.user_id;
+    console.log(`✅ User found: ${userId} (email: ${buyerEmail})`);
 
     // Determine plan from product name/id
     let plan = "free";
@@ -81,6 +93,8 @@ serve(async (req) => {
       plan = "starter";
     }
 
+    console.log(`Plan resolution: productName="${productName}" → plan="${plan}"`);
+
     // Fallback: if no plan matched by name, check enterprise_checkout_links by buyer email
     if (plan === "free" && buyerEmail) {
       const { data: enterpriseLink } = await supabase
@@ -93,7 +107,9 @@ serve(async (req) => {
 
       if (enterpriseLink) {
         plan = "enterprise";
-        console.log(`Plan determined via enterprise_checkout_links for email: ${buyerEmail}`);
+        console.log(`✅ Plan overridden via enterprise_checkout_links → enterprise`);
+      } else {
+        console.log("⚠️ No enterprise link found, plan stays:", plan);
       }
     }
 
@@ -102,6 +118,8 @@ serve(async (req) => {
     const amount = data.amount || data.price || body.amount || 0;
     const transactionId = data.id || data.transaction?.id || productId;
 
+    console.log(`Payment info: amount=${amount}, transactionId=${transactionId}, event=${event}`);
+
     // Handle different event types
     if (event === "purchase_approved" || event === "PURCHASE_APPROVED" || 
         event === "subscription_active" || event === "SUBSCRIPTION_ACTIVE" ||
@@ -109,33 +127,36 @@ serve(async (req) => {
       
       paymentStatus = "approved";
 
-      const { error: updateError } = await supabase
+      const updatePayload = {
+        plan,
+        status: "active",
+        external_subscription_id: transactionId,
+        payer_email: buyerEmail,
+        payment_method: "cakto",
+        updated_at: new Date().toISOString(),
+      };
+      console.log(`Activating subscription for user ${userId}:`, JSON.stringify(updatePayload));
+
+      const { error: updateError, count } = await supabase
         .from("subscriptions")
-        .update({
-          plan,
-          status: "active",
-          external_subscription_id: transactionId,
-          payer_email: buyerEmail,
-          payment_method: "cakto",
-          updated_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq("user_id", userId);
 
       if (updateError) {
-        console.error("Error updating subscription:", updateError);
+        console.error("❌ Error updating subscription:", JSON.stringify(updateError));
         throw updateError;
       }
 
-      console.log(`Subscription activated for user ${userId}: plan=${plan}`);
-    }
-
-    if (event === "subscription_cancelled" || event === "SUBSCRIPTION_CANCELLED" ||
+      console.log(`✅ Subscription activated: user=${userId}, plan=${plan}, rows_affected=${count}`);
+    } else if (event === "subscription_cancelled" || event === "SUBSCRIPTION_CANCELLED" ||
         event === "purchase_refunded" || event === "PURCHASE_REFUNDED" ||
         event === "purchase_chargeback" || event === "PURCHASE_CHARGEBACK") {
       
       paymentStatus = event.toLowerCase().includes("refund") ? "refunded" 
         : event.toLowerCase().includes("chargeback") ? "chargeback" 
         : "cancelled";
+
+      console.log(`Cancelling subscription for user ${userId}: paymentStatus=${paymentStatus}`);
 
       const { error: updateError } = await supabase
         .from("subscriptions")
@@ -148,11 +169,13 @@ serve(async (req) => {
         .eq("user_id", userId);
 
       if (updateError) {
-        console.error("Error cancelling subscription:", updateError);
+        console.error("❌ Error cancelling subscription:", JSON.stringify(updateError));
         throw updateError;
       }
 
-      console.log(`Subscription cancelled for user ${userId}`);
+      console.log(`✅ Subscription cancelled for user ${userId}`);
+    } else {
+      console.warn(`⚠️ Unhandled event type: "${event}" — logging only, no subscription change`);
     }
 
     // Insert payment history record
@@ -170,8 +193,12 @@ serve(async (req) => {
       });
 
     if (historyError) {
-      console.error("Error inserting payment history:", historyError);
+      console.error("❌ Error inserting payment history:", JSON.stringify(historyError));
+    } else {
+      console.log("✅ Payment history recorded");
     }
+
+    console.log("=== CAKTO WEBHOOK END (success) ===");
 
     return new Response(
       JSON.stringify({ received: true }),
@@ -182,7 +209,7 @@ serve(async (req) => {
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Webhook error:", errorMessage);
+    console.error("=== CAKTO WEBHOOK END (error) ===", errorMessage);
     return new Response(
       JSON.stringify({ received: true, error: errorMessage }),
       {
