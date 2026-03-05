@@ -129,6 +129,26 @@ export default function Auth() {
 
   useEffect(() => {
     if (user && !mfaPending && !showMFA && !showEmailOTP) {
+      // Check if this is a new user auto-created by Google OAuth
+      const provider = user.app_metadata?.provider;
+      const createdAt = new Date(user.created_at).getTime();
+      const now = Date.now();
+      const isNewUser = now - createdAt < 15000; // created less than 15 seconds ago
+
+      if (provider === 'google' && isNewUser) {
+        // This user was just auto-created by Google sign-in — block and clean up
+        (async () => {
+          await supabase.auth.signOut();
+          toast({
+            title: 'Conta não encontrada',
+            description: 'Você precisa criar uma conta primeiro. Cadastre-se na aba "Cadastrar".',
+            variant: 'destructive',
+            duration: 8000,
+          });
+        })();
+        return;
+      }
+
       navigate('/dashboard');
     }
   }, [user, mfaPending, showMFA, showEmailOTP, navigate]);
