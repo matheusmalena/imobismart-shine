@@ -1,63 +1,50 @@
 
 
-# Adicionar Status "Vendido" + Outras Comodidades como Tags
+# Corrigir Exclusao de Usuarios no Admin + Limpeza do Sistema
 
-## 1. Adicionar "Vendido" ao status do imovel
+## Problema Atual
 
-O campo `status` usa um enum no banco de dados (`property_status`) com os valores atuais: `alugado`, `vago`, `em_reforma`, `a_venda`. Para adicionar "Vendido", e necessario:
+O `DeleteUserDialog` tenta excluir dados usando o client Supabase com RLS. O problema:
+- A policy de DELETE na tabela `profiles` so permite o proprio usuario deletar seu perfil (`auth.uid() = user_id`), entao o admin nao consegue
+- Nao deleta dados vinculados (imoveis, inquilinos, documentos, contratos, galeria, mensagens, etc.)
+- Nao remove o usuario do `auth.users`
 
-### Migration SQL
-```sql
-ALTER TYPE property_status ADD VALUE 'vendido';
+## Solucao
+
+### 1. Criar Edge Function `delete-user-admin`
+
+Nova edge function com `service_role` que faz a exclusao completa em cascata:
+1. Deleta storage files (property-photos, property-documents, avatars)
+2. Deleta dados vinculados em ordem: `whatsapp_messages`, `whatsapp_scheduled`, `whatsapp_settings`, `property_gallery`, `documents`, `lease_contracts`, `tenants`, `properties`, `ai_chat_messages`, `email_verifications`, `organization_members`, `organization_invitations`, `payment_history`, `subscription_addons`, `subscriptions`, `user_roles`, `profiles`
+3. Remove o usuario de `auth.users` via admin API
+4. Valida que o caller e admin antes de executar
+
+**Arquivo:** `supabase/functions/delete-user-admin/index.ts`
+
+### 2. Atualizar `DeleteUserDialog`
+
+Trocar a logica de delecao direta por chamada a edge function `delete-user-admin`.
+
+**Arquivo:** `src/components/admin/DeleteUserDialog.tsx`
+
+### 3. Registrar no config.toml
+
+```toml
+[functions.delete-user-admin]
+verify_jwt = false
 ```
 
-### Sugestoes de status adicionais
-Alem de "Vendido", sugiro tambem:
-- **Reservado** (`reservado`) - imovel com negociacao em andamento
+### 4. Limpeza de usuarios
 
-Se quiser, posso adicionar esse tambem. Caso contrario, seguimos apenas com "Vendido".
-
-### Arquivos modificados para o status
-
-| Arquivo | Alteracao |
-|---------|-----------|
-| Migration SQL | `ALTER TYPE property_status ADD VALUE 'vendido'` |
-| `src/types/property.ts` | Adicionar `'vendido'` ao tipo `PropertyStatus` e ao `PROPERTY_STATUS_LABELS` |
-| `src/components/properties/PropertyCard.tsx` | Adicionar cor para o badge "vendido" no `getStatusColor` |
+Usar a ferramenta de dados para deletar todos os usuarios exceto `matheus@yup.group` das tabelas relevantes, e chamar a edge function para remover de `auth.users`.
 
 ---
 
-## 2. Outras Comodidades como tags editaveis
+## Arquivos a Criar/Modificar
 
-Atualmente o campo "Outras Comodidades" e um textarea de texto livre. A proposta e transformar em um sistema de tags:
-
-- Um input onde o usuario digita uma comodidade e pressiona Enter (ou clica em um botao "+")
-- A comodidade aparece como uma tag/badge ao lado das comodidades padrao (Piscina, Academia, etc.)
-- Cada tag tem um botao "x" para remover
-- Os valores continuam salvos no campo `other_amenities` como texto separado por virgula (sem mudanca no banco)
-
-### Arquivos modificados
-
-| Arquivo | Alteracao |
-|---------|-----------|
-| `src/components/properties/PropertyForm.tsx` | Substituir o Textarea de "Outras Comodidades" por um input + lista de tags. Ao digitar e pressionar Enter, adiciona a tag. As tags ficam junto com as comodidades padrao visualmente. |
-
-### Comportamento
-- O usuario digita no input e pressiona Enter
-- A tag aparece como badge junto com as comodidades existentes
-- Cada tag tem "x" para remover
-- Internamente, o array de tags e convertido para string separada por virgula no campo `other_amenities`
-- Ao editar um imovel existente, o valor e parseado de volta para tags
-
-## Detalhes Tecnicos
-
-### Armazenamento das tags
-O campo `other_amenities` continua como `text` no banco. As tags sao armazenadas como string separada por virgula (ex: `"Sauna, Playground, Portaria 24h"`). Nenhuma migracao adicional necessaria para isso.
-
-### Componente de tags no formulario
-Sera implementado inline no `PropertyForm.tsx`:
-- Estado local `amenityTags: string[]` derivado de `formData.other_amenities.split(',')`
-- Input com `onKeyDown` para capturar Enter
-- Renderizar tags como badges com botao de remocao
-- Sincronizar de volta para `formData.other_amenities` via `tags.join(', ')`
+| Arquivo | Acao |
+|---------|------|
+| `supabase/functions/delete-user-admin/index.ts` | Criar edge function de exclusao completa |
+| `src/components/admin/DeleteUserDialog.tsx` | Usar edge function em vez de delecao direta |
+| `supabase/config.toml` | Registrar nova function |
 
