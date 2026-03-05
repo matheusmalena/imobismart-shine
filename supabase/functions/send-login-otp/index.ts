@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "ImobiSmart <onboarding@resend.dev>",
+        from: "ImobiSmart <noreply@imobismart.com>",
         to: [email],
         subject: "Código de verificação - ImobiSmart",
         html: `
