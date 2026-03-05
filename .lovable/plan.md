@@ -1,63 +1,42 @@
 
 
-# Adicionar Status "Vendido" + Outras Comodidades como Tags
+# Google OAuth: Restringir a contas existentes + Branding customizado
 
-## 1. Adicionar "Vendido" ao status do imovel
+## Problema 1: Google cria conta automaticamente
+Atualmente, o login com Google cria automaticamente um novo usuario se ele nao existir. O usuario quer que apenas contas ja existentes possam usar o Google Sign-In.
 
-O campo `status` usa um enum no banco de dados (`property_status`) com os valores atuais: `alugado`, `vago`, `em_reforma`, `a_venda`. Para adicionar "Vendido", e necessario:
+**Solucao:** Apos o retorno do OAuth do Google, verificar se o usuario ja existia antes. Se for um usuario novo (recem-criado pelo trigger `handle_new_user`), deletar a conta e mostrar um aviso para se cadastrar primeiro.
 
-### Migration SQL
-```sql
-ALTER TYPE property_status ADD VALUE 'vendido';
-```
+**Implementacao:**
+- Em `src/pages/Auth.tsx`, no `useEffect` que detecta o usuario autenticado, verificar o campo `created_at` do usuario. Se foi criado nos ultimos 10 segundos E veio de provider Google, significa que eh um cadastro novo via Google. Nesse caso:
+  1. Deletar o usuario recem-criado (signOut + chamar edge function ou simplesmente signOut e deixar os dados orfaos serem limpos)
+  2. Mostrar toast avisando "Voce precisa criar uma conta primeiro. Cadastre-se na aba Cadastrar."
+  
+- Alternativa mais robusta: criar uma edge function `check-user-exists` que recebe um email e retorna se existe um usuario com esse email. Chamar ANTES do OAuth. Porem, isso nao eh possivel porque o OAuth redireciona para o Google antes de termos o email.
 
-### Sugestoes de status adicionais
-Alem de "Vendido", sugiro tambem:
-- **Reservado** (`reservado`) - imovel com negociacao em andamento
+- **Melhor abordagem**: Usar um listener no `onAuthStateChange` para detectar o evento. Quando o usuario volta do Google OAuth, checar se o perfil foi criado ha menos de 10 segundos. Se sim, fazer signOut e mostrar aviso.
 
-Se quiser, posso adicionar esse tambem. Caso contrario, seguimos apenas com "Vendido".
+**Arquivo:** `src/pages/Auth.tsx` — adicionar logica no useEffect de redirecionamento
 
-### Arquivos modificados para o status
+## Problema 2: Tela do Lovable no OAuth
+A tela de consentimento mostra "Lovable" porque o projeto usa o Google OAuth gerenciado pelo Lovable Cloud. Para mostrar "ImobiSmart", eh necessario usar credenciais proprias do Google OAuth (BYOC - Bring Your Own Credentials).
 
-| Arquivo | Alteracao |
-|---------|-----------|
-| Migration SQL | `ALTER TYPE property_status ADD VALUE 'vendido'` |
-| `src/types/property.ts` | Adicionar `'vendido'` ao tipo `PropertyStatus` e ao `PROPERTY_STATUS_LABELS` |
-| `src/components/properties/PropertyCard.tsx` | Adicionar cor para o badge "vendido" no `getStatusColor` |
+**Isso requer:**
+1. Criar um projeto no Google Cloud Console
+2. Configurar a tela de consentimento OAuth com o nome "ImobiSmart"
+3. Criar credenciais OAuth (Client ID + Secret)
+4. Configurar no backend do Lovable Cloud (Authentication Settings > Google > usar credenciais proprias)
+
+Essa configuracao eh feita fora do codigo, no painel do Lovable Cloud e no Google Cloud Console. Vou fornecer instrucoes e o link para o painel.
 
 ---
 
-## 2. Outras Comodidades como tags editaveis
+## Arquivos a Modificar
 
-Atualmente o campo "Outras Comodidades" e um textarea de texto livre. A proposta e transformar em um sistema de tags:
+| Arquivo | Acao |
+|---------|------|
+| `src/pages/Auth.tsx` | Detectar usuario novo via Google e bloquear, mostrando aviso |
 
-- Um input onde o usuario digita uma comodidade e pressiona Enter (ou clica em um botao "+")
-- A comodidade aparece como uma tag/badge ao lado das comodidades padrao (Piscina, Academia, etc.)
-- Cada tag tem um botao "x" para remover
-- Os valores continuam salvos no campo `other_amenities` como texto separado por virgula (sem mudanca no banco)
-
-### Arquivos modificados
-
-| Arquivo | Alteracao |
-|---------|-----------|
-| `src/components/properties/PropertyForm.tsx` | Substituir o Textarea de "Outras Comodidades" por um input + lista de tags. Ao digitar e pressionar Enter, adiciona a tag. As tags ficam junto com as comodidades padrao visualmente. |
-
-### Comportamento
-- O usuario digita no input e pressiona Enter
-- A tag aparece como badge junto com as comodidades existentes
-- Cada tag tem "x" para remover
-- Internamente, o array de tags e convertido para string separada por virgula no campo `other_amenities`
-- Ao editar um imovel existente, o valor e parseado de volta para tags
-
-## Detalhes Tecnicos
-
-### Armazenamento das tags
-O campo `other_amenities` continua como `text` no banco. As tags sao armazenadas como string separada por virgula (ex: `"Sauna, Playground, Portaria 24h"`). Nenhuma migracao adicional necessaria para isso.
-
-### Componente de tags no formulario
-Sera implementado inline no `PropertyForm.tsx`:
-- Estado local `amenityTags: string[]` derivado de `formData.other_amenities.split(',')`
-- Input com `onKeyDown` para capturar Enter
-- Renderizar tags como badges com botao de remocao
-- Sincronizar de volta para `formData.other_amenities` via `tags.join(', ')`
+## Nota sobre Branding
+Para a tela mostrar "ImobiSmart" em vez de "Lovable", sera necessario configurar credenciais proprias do Google OAuth no painel do backend. Fornecerei instrucoes apos implementar a parte do codigo.
 
