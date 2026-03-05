@@ -220,6 +220,7 @@ export default function Documents() {
           </div>
         )}
       </div>
+      )}
 
       {/* Upload Dialog */}
       <DocumentUploadDialog
@@ -247,8 +248,6 @@ export default function Documents() {
         onOpenChange={(open) => !open && setDeleteDoc(null)}
         onConfirm={handleDeleteConfirm}
       />
-      </div>
-      )}
       </PageTransition>
     </DashboardLayout>
   );
