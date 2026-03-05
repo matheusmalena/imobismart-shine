@@ -2,8 +2,8 @@ import { motion } from "framer-motion";
 import { Building2, Home, TrendingUp, Shield } from "lucide-react";
 
 const stats = [
-  { icon: Building2, value: "500+", label: "Imobiliárias ativas" },
-  { icon: Home, value: "50.000+", label: "Imóveis gerenciados" },
+  { icon: Building2, value: "Imobiliárias", label: "e investidores ativos" },
+  { icon: Home, value: "Milhares", label: "de imóveis gerenciados" },
   { icon: TrendingUp, value: "98%", label: "Satisfação dos clientes" },
   { icon: Shield, value: "99.9%", label: "Uptime garantido" },
 ];

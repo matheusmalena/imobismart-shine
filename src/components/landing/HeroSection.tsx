@@ -81,7 +81,7 @@ export function HeroSection() {
                 <div className="grid grid-cols-3 gap-3">
                   {[
                     { label: "Imóveis", value: "24", icon: Building2, color: "text-primary" },
-                    { label: "Leads", value: "156", icon: Users, color: "text-info" },
+                    { label: "Inquilinos", value: "12", icon: Users, color: "text-info" },
                     { label: "Contratos", value: "18", icon: FileText, color: "text-success" },
                   ].map((stat) => (
                     <div key={stat.label} className="bg-muted/30 rounded-xl p-4 border border-border/30">
