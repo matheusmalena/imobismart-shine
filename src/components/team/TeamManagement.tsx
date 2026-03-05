@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { LockedPagePlaceholder } from '@/components/common/LockedPagePlaceholder';
 import { useOrganization, OrgMemberRole } from '@/hooks/useOrganization';
 import { useUserData } from '@/hooks/useUserData';
 import { Button } from '@/components/ui/button';
@@ -122,39 +123,12 @@ export function TeamManagement() {
   // Show upgrade message for non-Enterprise users
   if (!isEnterprise) {
     return (
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Users className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <CardTitle>Múltiplos Usuários</CardTitle>
-              <CardDescription>Gerencie sua equipe e permissões</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="p-4 rounded-full bg-muted mb-4">
-              <Lock className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2">Recurso Enterprise</h3>
-            <p className="text-muted-foreground max-w-md mb-4">
-              A funcionalidade de múltiplos usuários está disponível apenas no plano Enterprise. 
-              Adicione membros à sua equipe com diferentes permissões para colaborar na gestão dos imóveis.
-            </p>
-            <Badge variant="outline" className="gap-1 bg-amber-500/10 text-amber-600 border-amber-200">
-              <Lock className="h-3 w-3" />
-              Plano Enterprise
-            </Badge>
-            <Button size="sm" onClick={() => window.location.href = '/plans'} className="gap-1.5 mt-4">
-              <Crown className="h-3.5 w-3.5" />
-              Upgrade para Enterprise
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <LockedPagePlaceholder
+        icon={<Lock className="h-8 w-8 text-muted-foreground" />}
+        title="Múltiplos Usuários"
+        description="A funcionalidade de múltiplos usuários está disponível apenas no plano Enterprise. Adicione membros à sua equipe com diferentes permissões para colaborar na gestão dos imóveis."
+        requiredPlan="enterprise"
+      />
     );
   }
 
