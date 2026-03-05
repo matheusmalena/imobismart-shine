@@ -421,48 +421,32 @@ export default function Reports() {
   if (!isPro) {
     return (
       <DashboardLayout>
-        <div className="max-w-2xl mx-auto py-12">
-          <Card className="text-center">
-            <CardHeader className="pb-4">
-              <div className="mx-auto h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Crown className="h-8 w-8 text-primary" />
-              </div>
-              <CardTitle className="text-2xl">Relatórios Avançados</CardTitle>
-              <CardDescription className="text-base">
-                Exporte seus dados e gere relatórios profissionais do seu portfólio
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4 text-left">
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <Download className="h-5 w-5 text-primary mt-0.5" />
-                  <div>
-                    <p className="font-medium">Exportação CSV/JSON</p>
-                    <p className="text-sm text-muted-foreground">Exporte todos os dados do seu portfólio</p>
-                  </div>
-                  <Badge variant="outline" className="ml-auto gap-1">
-                    <Lock className="h-3 w-3" />
-                    Plano Pro
-                  </Badge>
-                </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <FileText className="h-5 w-5 text-primary mt-0.5" />
-                  <div>
-                    <p className="font-medium">Relatórios PDF</p>
-                    <p className="text-sm text-muted-foreground">Gere relatórios profissionais personalizados</p>
-                  </div>
-                  <Badge variant="outline" className="ml-auto gap-1 bg-purple-500/10 text-purple-600 border-purple-200">
-                    <Lock className="h-3 w-3" />
-                    Plano Plus
-                  </Badge>
-                </div>
-              </div>
-              <Button onClick={() => navigate('/plans')} size="lg" className="w-full">
-                <Crown className="mr-2 h-4 w-4" />
-                Fazer Upgrade para Pro
-              </Button>
-            </CardContent>
-          </Card>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Relatórios</h1>
+            <p className="text-muted-foreground mt-1">Exporte dados e gere relatórios do seu portfólio</p>
+          </div>
+          <LockedPagePlaceholder
+            icon={<Crown className="h-8 w-8 text-muted-foreground" />}
+            title="Relatórios Avançados"
+            description="Exporte seus dados e gere relatórios profissionais do seu portfólio"
+            requiredPlan="pro"
+            buttonLabel="Fazer Upgrade para Pro"
+            features={[
+              {
+                icon: <Download className="h-5 w-5" />,
+                label: 'Exportação CSV/JSON',
+                description: 'Exporte todos os dados do seu portfólio',
+                plan: 'pro',
+              },
+              {
+                icon: <FileText className="h-5 w-5" />,
+                label: 'Relatórios PDF',
+                description: 'Gere relatórios profissionais personalizados',
+                plan: 'plus',
+              },
+            ]}
+          />
         </div>
       </DashboardLayout>
     );
