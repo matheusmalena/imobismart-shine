@@ -342,8 +342,8 @@ export default function Auth() {
         <Card className="w-full max-w-md border-0 shadow-xl">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/30">
-                <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+              <div className="p-3 rounded-full bg-primary/10">
+                <CheckCircle className="h-8 w-8 text-primary" />
               </div>
             </div>
             <CardTitle className="text-2xl">Verifique seu email</CardTitle>
