@@ -1,63 +1,134 @@
 
 
-# Adicionar Status "Vendido" + Outras Comodidades como Tags
+# Redesign Completo do ImobiSmart — Landing Page + Dashboard
 
-## 1. Adicionar "Vendido" ao status do imovel
-
-O campo `status` usa um enum no banco de dados (`property_status`) com os valores atuais: `alugado`, `vago`, `em_reforma`, `a_venda`. Para adicionar "Vendido", e necessario:
-
-### Migration SQL
-```sql
-ALTER TYPE property_status ADD VALUE 'vendido';
-```
-
-### Sugestoes de status adicionais
-Alem de "Vendido", sugiro tambem:
-- **Reservado** (`reservado`) - imovel com negociacao em andamento
-
-Se quiser, posso adicionar esse tambem. Caso contrario, seguimos apenas com "Vendido".
-
-### Arquivos modificados para o status
-
-| Arquivo | Alteracao |
-|---------|-----------|
-| Migration SQL | `ALTER TYPE property_status ADD VALUE 'vendido'` |
-| `src/types/property.ts` | Adicionar `'vendido'` ao tipo `PropertyStatus` e ao `PROPERTY_STATUS_LABELS` |
-| `src/components/properties/PropertyCard.tsx` | Adicionar cor para o badge "vendido" no `getStatusColor` |
+Este e um projeto grande. Recomendo dividir a implementacao em **3 fases** para manter qualidade e evitar regressoes.
 
 ---
 
-## 2. Outras Comodidades como tags editaveis
+## FASE 1: Landing Page (Conversao)
 
-Atualmente o campo "Outras Comodidades" e um textarea de texto livre. A proposta e transformar em um sistema de tags:
+### Estrutura proposta (de cima para baixo):
 
-- Um input onde o usuario digita uma comodidade e pressiona Enter (ou clica em um botao "+")
-- A comodidade aparece como uma tag/badge ao lado das comodidades padrao (Piscina, Academia, etc.)
-- Cada tag tem um botao "x" para remover
-- Os valores continuam salvos no campo `other_amenities` como texto separado por virgula (sem mudanca no banco)
+```text
+┌──────────────────────────────────────────┐
+│  HEADER (sticky, glassmorphism)          │
+│  Logo | Solucoes | Recursos | Planos |   │
+│        Login | [Teste Gratis →]          │
+├──────────────────────────────────────────┤
+│  HERO (split layout)                     │
+│  Left: headline + subtitle + 2 CTAs     │
+│  Right: dashboard screenshot mockup      │
+│  "Comece Gratis" + "Agendar Demo"       │
+├──────────────────────────────────────────┤
+│  SOCIAL PROOF BAR                        │
+│  logos/numeros: "500+ imobiliarias"      │
+│  "10.000+ imoveis gerenciados"           │
+├──────────────────────────────────────────┤
+│  FEATURES (tabbed/sectioned)             │
+│  CRM | Gestao de Imoveis | Site |        │
+│  Integracoes | Marketing                 │
+│  Each tab: icon + text + screenshot      │
+├──────────────────────────────────────────┤
+│  PLATFORM DEMO (interactive preview)     │
+│  Tabs showing dashboard/CRM/pipeline     │
+├──────────────────────────────────────────┤
+│  BENEFITS (2-col: text + visual)         │
+│  "Economize tempo" / "Centralize leads"  │
+│  "Automatize anuncios" / "Venda mais"    │
+├──────────────────────────────────────────┤
+│  TESTIMONIALS (carousel or grid)         │
+├──────────────────────────────────────────┤
+│  PRICING (3-4 cards)                     │
+├──────────────────────────────────────────┤
+│  FAQ (accordion)                         │
+├──────────────────────────────────────────┤
+│  FINAL CTA (gradient hero)              │
+│  "Comece a gerenciar de forma mais       │
+│   inteligente" + 2 buttons              │
+├──────────────────────────────────────────┤
+│  FOOTER (multi-column)                   │
+│  Produto | Recursos | Empresa | Legal    │
+└──────────────────────────────────────────┘
+```
 
-### Arquivos modificados
+### Mudancas chave na Landing Page:
 
-| Arquivo | Alteracao |
-|---------|-----------|
-| `src/components/properties/PropertyForm.tsx` | Substituir o Textarea de "Outras Comodidades" por um input + lista de tags. Ao digitar e pressionar Enter, adiciona a tag. As tags ficam junto com as comodidades padrao visualmente. |
+**1. Hero Section** — Trocar de layout centralizado para split (texto esquerda, screenshot direita). Adicionar botao "Agendar Demo". Mostrar um mockup do dashboard real.
 
-### Comportamento
-- O usuario digita no input e pressiona Enter
-- A tag aparece como badge junto com as comodidades existentes
-- Cada tag tem "x" para remover
-- Internamente, o array de tags e convertido para string separada por virgula no campo `other_amenities`
-- Ao editar um imovel existente, o valor e parseado de volta para tags
+**2. Nova secao: Social Proof Bar** — Numeros grandes em linha (ex: "500+ imobiliarias", "50.000+ imoveis", "98% satisfacao"). Substituir os badges atuais.
 
-## Detalhes Tecnicos
+**3. Features refatoradas** — Agrupar em 5 categorias (CRM, Gestao de Imoveis, Site Imobiliario, Integracoes com Portais, Marketing). Usar tabs ou secoes alternadas (texto esquerda/direita) com screenshots mockup. Substituir os 4 cards genericos atuais.
 
-### Armazenamento das tags
-O campo `other_amenities` continua como `text` no banco. As tags sao armazenadas como string separada por virgula (ex: `"Sauna, Playground, Portaria 24h"`). Nenhuma migracao adicional necessaria para isso.
+**4. Nova secao: Platform Demo** — Cards com tabs mostrando diferentes telas do produto (dashboard, pipeline de leads, painel de imoveis).
 
-### Componente de tags no formulario
-Sera implementado inline no `PropertyForm.tsx`:
-- Estado local `amenityTags: string[]` derivado de `formData.other_amenities.split(',')`
-- Input com `onKeyDown` para capturar Enter
-- Renderizar tags como badges com botao de remocao
-- Sincronizar de volta para `formData.other_amenities` via `tags.join(', ')`
+**5. Benefits refatorada** — Layout alternado (zig-zag) com icones/ilustracoes ao lado do texto. 4 beneficios: economizar tempo, centralizar leads, automatizar anuncios, aumentar vendas.
+
+**6. Footer multi-coluna** — Colunas: Produto, Recursos, Empresa, Legal. Links para features, pricing, blog, termos, privacidade.
+
+**7. Header com navegacao** — Adicionar dropdown "Solucoes" e "Recursos" no header. Manter sticky glassmorphism.
+
+### Paleta de cores:
+- Manter o teal atual (ja funciona bem para proptech)
+- Alternativa: mudar primary para deep blue (`220 70% 45%`) se o usuario preferir
+
+### Arquivos a criar/modificar:
+
+| Arquivo | Acao |
+|---------|------|
+| `src/pages/Index.tsx` | Reescrever com nova estrutura de secoes |
+| `src/components/landing/HeroSection.tsx` | Criar - hero split layout |
+| `src/components/landing/SocialProofBar.tsx` | Criar - numeros/logos |
+| `src/components/landing/FeaturesSection.tsx` | Criar - 5 categorias com tabs |
+| `src/components/landing/PlatformDemo.tsx` | Criar - preview interativo |
+| `src/components/landing/BenefitsSection.tsx` | Criar - layout zig-zag |
+| `src/components/landing/FinalCTA.tsx` | Criar - CTA final |
+| `src/components/landing/Footer.tsx` | Criar - footer multi-coluna |
+| `src/components/landing/TargetAudienceSection.tsx` | Remover ou integrar em Features |
+| `src/components/landing/TestimonialsSection.tsx` | Atualizar para formato carrossel |
+| `src/components/landing/PricingSection.tsx` | Simplificar para 3-4 colunas |
+| `src/components/landing/FAQSection.tsx` | Atualizar perguntas para foco em agencias/corretores |
+
+---
+
+## FASE 2: Dashboard Layout (proposta)
+
+Melhorias no layout interno do produto:
+
+**Sidebar** — Reorganizar navegacao:
+- Overview (Dashboard)
+- Imoveis
+- Leads / CRM (futuro)
+- Inquilinos
+- Documentos
+- Marketing (futuro)
+- Integracoes (WhatsApp, portais)
+- Relatorios
+- Configuracoes
+
+**Dashboard Overview** — Manter os 4 KPIs atuais + adicionar:
+- Card "Leads recentes" (placeholder para CRM futuro)
+- Card "Atividade recente" (timeline de acoes)
+- Quick actions mais robustos
+
+Isso sera implementado em uma fase posterior.
+
+---
+
+## FASE 3: Cor e Design System (opcional)
+
+Se o usuario quiser mudar de teal para deep blue:
+- Atualizar `src/index.css` com nova paleta
+- Ajustar sidebar, gradients, shadows
+
+---
+
+## Recomendacao
+
+Comecar pela **Fase 1 (Landing Page)** pois e o ponto de conversao. Sugiro implementar em 2-3 mensagens:
+1. Hero + Social Proof + Features
+2. Platform Demo + Benefits + Testimonials
+3. Pricing + FAQ + CTA + Footer
+
+Quer que eu implemente a Fase 1 completa de uma vez, ou prefere dividir?
 
