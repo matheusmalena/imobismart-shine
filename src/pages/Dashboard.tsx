@@ -74,7 +74,7 @@ export default function Dashboard() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+              <h1 className="text-3xl font-bold text-foreground">
                 Olá, {firstName}!
               </h1>
               <Badge variant={isPro ? 'default' : 'secondary'} className="gap-1">
@@ -82,7 +82,7 @@ export default function Dashboard() {
                 {getPlanLabel()}
               </Badge>
             </div>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground mt-1">
               Visão geral dos seus investimentos
             </p>
           </div>
