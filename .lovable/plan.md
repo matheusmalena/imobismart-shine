@@ -1,63 +1,41 @@
 
 
-# Adicionar Status "Vendido" + Outras Comodidades como Tags
+## Plan: Fix Landing Page Images and Animation Performance
 
-## 1. Adicionar "Vendido" ao status do imovel
+### Problem 1: Images Are Not Real Screenshots
+The current `/images/tutorial-*.jpg` files are AI-generated images, not actual screenshots of the system. They need to be replaced with real browser screenshots captured from the `yang@yup.group` demo account.
 
-O campo `status` usa um enum no banco de dados (`property_status`) com os valores atuais: `alugado`, `vago`, `em_reforma`, `a_venda`. Para adicionar "Vendido", e necessario:
-
-### Migration SQL
-```sql
-ALTER TYPE property_status ADD VALUE 'vendido';
-```
-
-### Sugestoes de status adicionais
-Alem de "Vendido", sugiro tambem:
-- **Reservado** (`reservado`) - imovel com negociacao em andamento
-
-Se quiser, posso adicionar esse tambem. Caso contrario, seguimos apenas com "Vendido".
-
-### Arquivos modificados para o status
-
-| Arquivo | Alteracao |
-|---------|-----------|
-| Migration SQL | `ALTER TYPE property_status ADD VALUE 'vendido'` |
-| `src/types/property.ts` | Adicionar `'vendido'` ao tipo `PropertyStatus` e ao `PROPERTY_STATUS_LABELS` |
-| `src/components/properties/PropertyCard.tsx` | Adicionar cor para o badge "vendido" no `getStatusColor` |
+### Problem 2: Animation Lag/Bugs
+The landing page (`Index.tsx`) uses **heavy framer-motion animations** everywhere — `whileInView`, `initial`, `animate`, `AnimatePresence`, parallax scroll listeners, and staggered children. This conflicts with the project's own standard (per existing memory) which mandates using the CSS `animate-fade-in` class for transitions instead of framer-motion. The excessive animation wrappers cause visible delays and janky scroll behavior.
 
 ---
 
-## 2. Outras Comodidades como tags editaveis
+### Steps
 
-Atualmente o campo "Outras Comodidades" e um textarea de texto livre. A proposta e transformar em um sistema de tags:
+**1. Capture real screenshots from the app**
+- Log into the preview with `yang@yup.group` using browser tools
+- Navigate to Dashboard, Properties, Documents, and Settings pages
+- Take a screenshot of each page
+- Save these as the `/images/tutorial-dashboard.jpg`, `tutorial-properties.jpg`, `tutorial-documents.jpg`, `tutorial-settings.jpg` files
 
-- Um input onde o usuario digita uma comodidade e pressiona Enter (ou clica em um botao "+")
-- A comodidade aparece como uma tag/badge ao lado das comodidades padrao (Piscina, Academia, etc.)
-- Cada tag tem um botao "x" para remover
-- Os valores continuam salvos no campo `other_amenities` como texto separado por virgula (sem mudanca no banco)
+**2. Strip framer-motion from the landing page**
+- Remove all `motion.div`, `motion.header`, `motion.section` wrappers from `Index.tsx`
+- Replace them with plain `div`/`header`/`section` elements using `className="animate-fade-in"` where entry animation is needed
+- Remove `AnimatePresence` from the feature tabs section — use a simple conditional render with CSS transitions instead
+- Remove the `useParallax` hooks (6 parallax instances creating constant scroll listeners)
+- Remove `containerVariants`, `itemVariants`, and all `framer-motion` imports from `Index.tsx`
 
-### Arquivos modificados
+**3. Apply the same fix to sub-sections**
+- `TargetAudienceSection.tsx` — replace `motion` wrappers with `animate-fade-in`
+- `TestimonialsSection.tsx` and `FAQSection.tsx` — check and simplify if they also use heavy motion
 
-| Arquivo | Alteracao |
-|---------|-----------|
-| `src/components/properties/PropertyForm.tsx` | Substituir o Textarea de "Outras Comodidades" por um input + lista de tags. Ao digitar e pressionar Enter, adiciona a tag. As tags ficam junto com as comodidades padrao visualmente. |
+**4. Keep minimal, performant animations**
+- Use `animate-fade-in` CSS class for section entry effects
+- Keep the `AnimatedCounter` component (uses `IntersectionObserver`, lightweight)
+- Use CSS `transition` for tab switching and hover effects instead of JS-driven animations
 
-### Comportamento
-- O usuario digita no input e pressiona Enter
-- A tag aparece como badge junto com as comodidades existentes
-- Cada tag tem "x" para remover
-- Internamente, o array de tags e convertido para string separada por virgula no campo `other_amenities`
-- Ao editar um imovel existente, o valor e parseado de volta para tags
-
-## Detalhes Tecnicos
-
-### Armazenamento das tags
-O campo `other_amenities` continua como `text` no banco. As tags sao armazenadas como string separada por virgula (ex: `"Sauna, Playground, Portaria 24h"`). Nenhuma migracao adicional necessaria para isso.
-
-### Componente de tags no formulario
-Sera implementado inline no `PropertyForm.tsx`:
-- Estado local `amenityTags: string[]` derivado de `formData.other_amenities.split(',')`
-- Input com `onKeyDown` para capturar Enter
-- Renderizar tags como badges com botao de remocao
-- Sincronizar de volta para `formData.other_amenities` via `tags.join(', ')`
+### Result
+- Real product screenshots on the landing page
+- Smooth, instant page rendering without animation delays or jank
+- Consistent with the project's animation standard (`animate-fade-in`)
 
