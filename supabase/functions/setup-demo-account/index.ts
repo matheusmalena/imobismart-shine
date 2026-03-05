@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    const email = "demo@imobismart.com";
+    const email = "yang@yup.group";
     const password = "Demo@2025";
 
     // Check if user already exists
