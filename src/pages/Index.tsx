@@ -9,7 +9,6 @@ import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { FAQSection } from "@/components/landing/FAQSection";
 import { TutorialModal, TutorialModalRef } from "@/components/onboarding/TutorialModal";
-import { SCREEN_MOCKUPS, DashboardMockup } from "@/components/landing/ScreenMockups";
 import {
   Building2,
   BarChart3,
@@ -37,6 +36,7 @@ const featureTabs = [
     title: "Visão completa do seu portfólio",
     description:
       "Métricas de receita, custos, ROI e lucro líquido calculados automaticamente. Gráficos de evolução e ranking de performance dos seus imóveis.",
+    image: "/images/tutorial-dashboard.png",
   },
   {
     id: "properties",
@@ -45,6 +45,7 @@ const featureTabs = [
     title: "Gestão centralizada de imóveis",
     description:
       "Cadastre todos os seus imóveis com fotos, endereço, valores e status. Filtre por tipo, status e performance com facilidade.",
+    image: "/images/tutorial-properties.png",
   },
   {
     id: "documents",
@@ -53,6 +54,7 @@ const featureTabs = [
     title: "Documentos organizados por imóvel",
     description:
       "Contratos, matrículas, laudos e IPTUs salvos na nuvem. Busque e acesse qualquer documento de qualquer lugar.",
+    image: "/images/tutorial-documents.png",
   },
   {
     id: "settings",
@@ -61,6 +63,7 @@ const featureTabs = [
     title: "Segurança e personalização",
     description:
       "Autenticação em duas etapas, gestão de equipe, planos e preferências. Tudo para você ter controle total da sua conta.",
+    image: "/images/tutorial-settings.png",
   },
 ];
 
@@ -230,7 +233,12 @@ export default function Index() {
                   </div>
                   <span className="text-xs text-muted-foreground ml-2">ImobiSmart — Dashboard</span>
                 </div>
-                <DashboardMockup />
+                <img
+                  src="/images/tutorial-dashboard-hero.png"
+                  alt="Dashboard do ImobiSmart mostrando métricas de imóveis"
+                  className="w-full"
+                  loading="eager"
+                />
               </div>
               {/* Floating badges */}
               <div className="absolute -bottom-4 -left-4 bg-card rounded-xl shadow-xl border border-border/50 p-3 flex items-center gap-3 animate-fade-in" style={{ animationDelay: '0.4s' }}>
@@ -368,10 +376,12 @@ export default function Index() {
                 </div>
                 <span className="text-xs text-muted-foreground ml-2">ImobiSmart</span>
               </div>
-              {(() => {
-                const MockupComponent = SCREEN_MOCKUPS[activeFeature.id];
-                return MockupComponent ? <MockupComponent /> : null;
-              })()}
+              <img
+                src={activeFeature.image}
+                alt={activeFeature.title}
+                className="w-full transition-opacity duration-200"
+                key={activeFeature.id}
+              />
             </div>
 
             {/* Description */}
