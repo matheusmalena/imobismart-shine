@@ -135,19 +135,7 @@ export default function Index() {
     if (!loading && user) navigate("/dashboard");
   }, [user, loading, navigate]);
 
-  // Preload all feature images for instant tab switching
-  useEffect(() => {
-    const imagesToPreload = [
-      '/images/tutorial-dashboard.jpg',
-      '/images/tutorial-properties.jpg',
-      '/images/tutorial-documents.jpg',
-      '/images/tutorial-settings.jpg',
-    ];
-    imagesToPreload.forEach(src => {
-      const img = new Image();
-      img.src = src;
-    });
-  }, []);
+  // No image preloading needed - using CSS mockups
 
   const benefits = [
     "Dashboard com métricas em tempo real",
@@ -246,12 +234,7 @@ export default function Index() {
                   </div>
                   <span className="text-xs text-muted-foreground ml-2">ImobiSmart — Dashboard</span>
                 </div>
-                <img
-                  src="/images/tutorial-dashboard.jpg"
-                  alt="Dashboard do ImobiSmart mostrando métricas de imóveis"
-                  className="w-full"
-                  loading="eager"
-                />
+                <DashboardMockup />
               </div>
               {/* Floating badges */}
               <div className="absolute -bottom-4 -left-4 bg-card rounded-xl shadow-xl border border-border/50 p-3 flex items-center gap-3 animate-fade-in" style={{ animationDelay: '0.4s' }}>
@@ -389,12 +372,10 @@ export default function Index() {
                 </div>
                 <span className="text-xs text-muted-foreground ml-2">ImobiSmart</span>
               </div>
-              <img
-                src={activeFeature.image}
-                alt={activeFeature.title}
-                className="w-full transition-opacity duration-200"
-                key={activeFeature.id}
-              />
+              {(() => {
+                const MockupComponent = SCREEN_MOCKUPS[activeFeature.id];
+                return MockupComponent ? <MockupComponent /> : null;
+              })()}
             </div>
 
             {/* Description */}
