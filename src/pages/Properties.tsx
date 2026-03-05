@@ -6,7 +6,7 @@ import { usePropertyLimit } from '@/hooks/usePropertyLimit';
 import { usePlans } from '@/hooks/usePlans';
 import { useOrgPermissions } from '@/hooks/useOrgPermissions';
 import { Property, PropertyFormData, PROPERTY_TYPE_LABELS, PROPERTY_STATUS_LABELS } from '@/types/property';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+
 import { PropertyCard } from '@/components/properties/PropertyCard';
 import { PropertyForm } from '@/components/properties/PropertyForm';
 import { EmptyState } from '@/components/properties/EmptyState';
@@ -161,19 +161,16 @@ export default function Properties() {
   // Show property details if selected
   if (selectedProperty) {
     return (
-      <DashboardLayout>
-        <PropertyDetails 
-          property={selectedProperty} 
-          onEdit={handleEdit}
-          onClose={() => setSelectedProperty(null)}
-        />
-      </DashboardLayout>
+      <PropertyDetails 
+        property={selectedProperty} 
+        onEdit={handleEdit}
+        onClose={() => setSelectedProperty(null)}
+      />
     );
   }
 
   return (
-    <DashboardLayout>
-      <PageTransition>
+    <PageTransition>
         {isPageLoading ? (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -370,7 +367,6 @@ export default function Properties() {
         />
       </div>
         )}
-      </PageTransition>
-    </DashboardLayout>
+    </PageTransition>
   );
 }

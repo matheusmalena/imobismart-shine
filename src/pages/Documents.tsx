@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProperties } from '@/hooks/useProperties';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useOrgPermissions } from '@/hooks/useOrgPermissions';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -77,8 +77,7 @@ export default function Documents() {
   const isPageLoading = authLoading || propertiesLoading;
   const hasProperties = activeProperties.length > 0;
   return (
-    <DashboardLayout>
-      <PageTransition>
+    <PageTransition>
       {isPageLoading ? (
         <div className="space-y-6">
           <Skeleton className="h-10 w-48" />
@@ -248,7 +247,6 @@ export default function Documents() {
         onOpenChange={(open) => !open && setDeleteDoc(null)}
         onConfirm={handleDeleteConfirm}
       />
-      </PageTransition>
-    </DashboardLayout>
+    </PageTransition>
   );
 }

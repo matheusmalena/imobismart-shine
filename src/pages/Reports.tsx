@@ -5,7 +5,7 @@ import { useProperties } from '@/hooks/useProperties';
 import { useUserData } from '@/hooks/useUserData';
 import { useExportData, ExportConfig } from '@/hooks/useExportData';
 import { PROPERTY_TYPE_LABELS, PROPERTY_STATUS_LABELS } from '@/types/property';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+
 import { PageTransition } from '@/components/PageTransition';
 import { ExportConfigPanel } from '@/components/reports/ExportConfigPanel';
 import { ReportPreviewDialog } from '@/components/reports/ReportPreviewDialog';
@@ -407,35 +407,33 @@ export default function Reports() {
   // Non-Pro users see upgrade prompt
   if (!isPro) {
     return (
-      <DashboardLayout>
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Relatórios</h1>
-            <p className="text-muted-foreground mt-1">Exporte dados e gere relatórios do seu portfólio</p>
-          </div>
-          <LockedPagePlaceholder
-            icon={<Crown className="h-8 w-8 text-muted-foreground" />}
-            title="Relatórios Avançados"
-            description="Exporte seus dados e gere relatórios profissionais do seu portfólio"
-            requiredPlan="pro"
-            buttonLabel="Fazer Upgrade para Pro"
-            features={[
-              {
-                icon: <Download className="h-5 w-5" />,
-                label: 'Exportação CSV/JSON',
-                description: 'Exporte todos os dados do seu portfólio',
-                plan: 'pro',
-              },
-              {
-                icon: <FileText className="h-5 w-5" />,
-                label: 'Relatórios PDF',
-                description: 'Gere relatórios profissionais personalizados',
-                plan: 'plus',
-              },
-            ]}
-          />
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Relatórios</h1>
+          <p className="text-muted-foreground mt-1">Exporte dados e gere relatórios do seu portfólio</p>
         </div>
-      </DashboardLayout>
+        <LockedPagePlaceholder
+          icon={<Crown className="h-8 w-8 text-muted-foreground" />}
+          title="Relatórios Avançados"
+          description="Exporte seus dados e gere relatórios profissionais do seu portfólio"
+          requiredPlan="pro"
+          buttonLabel="Fazer Upgrade para Pro"
+          features={[
+            {
+              icon: <Download className="h-5 w-5" />,
+              label: 'Exportação CSV/JSON',
+              description: 'Exporte todos os dados do seu portfólio',
+              plan: 'pro',
+            },
+            {
+              icon: <FileText className="h-5 w-5" />,
+              label: 'Relatórios PDF',
+              description: 'Gere relatórios profissionais personalizados',
+              plan: 'plus',
+            },
+          ]}
+        />
+      </div>
     );
   }
 
@@ -473,8 +471,7 @@ export default function Reports() {
   ];
 
   return (
-    <DashboardLayout>
-      <PageTransition>
+    <PageTransition>
       {isPageLoading ? (
         <div className="space-y-6">
           <Skeleton className="h-10 w-48" />
@@ -830,7 +827,6 @@ export default function Reports() {
         )}
       </div>
       )}
-      </PageTransition>
-    </DashboardLayout>
+    </PageTransition>
   );
 }

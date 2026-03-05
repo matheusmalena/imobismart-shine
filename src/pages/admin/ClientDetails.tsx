@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useToast } from '@/hooks/use-toast';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+
 import { PageTransition } from '@/components/PageTransition';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -193,46 +193,40 @@ export default function ClientDetails() {
 
   if (roleLoading || profileLoading) {
     return (
-      <DashboardLayout>
-        <PageTransition>
-          <div className="space-y-6">
-            <Skeleton className="h-8 w-64" />
-            <div className="grid gap-6 md:grid-cols-3">
-              <Skeleton className="h-32" />
-              <Skeleton className="h-32" />
-              <Skeleton className="h-32" />
-            </div>
+      <PageTransition>
+        <div className="space-y-6">
+          <Skeleton className="h-8 w-64" />
+          <div className="grid gap-6 md:grid-cols-3">
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
           </div>
-        </PageTransition>
-      </DashboardLayout>
+        </div>
+      </PageTransition>
     );
   }
 
   if (!isAdmin) {
     return (
-      <DashboardLayout>
-        <PageTransition>
-          <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Acesso não autorizado</p>
-          </div>
-        </PageTransition>
-      </DashboardLayout>
+      <PageTransition>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Acesso não autorizado</p>
+        </div>
+      </PageTransition>
     );
   }
 
   if (!profile) {
     return (
-      <DashboardLayout>
-        <PageTransition>
-          <div className="flex flex-col items-center justify-center h-64 gap-4">
-            <p className="text-muted-foreground">Cliente não encontrado</p>
-            <Button onClick={() => navigate('/admin/clients')} variant="outline">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Voltar
-            </Button>
-          </div>
-        </PageTransition>
-      </DashboardLayout>
+      <PageTransition>
+        <div className="flex flex-col items-center justify-center h-64 gap-4">
+          <p className="text-muted-foreground">Cliente não encontrado</p>
+          <Button onClick={() => navigate('/admin/clients')} variant="outline">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Voltar
+          </Button>
+        </div>
+      </PageTransition>
     );
   }
 
@@ -240,8 +234,7 @@ export default function ClientDetails() {
   const totalValue = properties.reduce((sum, p) => sum + (Number(p.property_value) || 0), 0);
 
   return (
-    <DashboardLayout>
-      <PageTransition>
+    <PageTransition>
         <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center gap-4">
@@ -501,7 +494,6 @@ export default function ClientDetails() {
             </TabsContent>
           </Tabs>
         </div>
-      </PageTransition>
-    </DashboardLayout>
+    </PageTransition>
   );
 }

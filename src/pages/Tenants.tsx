@@ -5,7 +5,7 @@ import { useTenants } from '@/hooks/useTenants';
 import { useLeaseContracts } from '@/hooks/useLeaseContracts';
 import { Tenant, TenantFormData } from '@/types/tenant';
 import { useOrgPermissions } from '@/hooks/useOrgPermissions';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+
 import { PageTransition } from '@/components/PageTransition';
 import { TenantCard } from '@/components/tenants/TenantCard';
 import { TenantFormDialog } from '@/components/tenants/TenantFormDialog';
@@ -87,8 +87,7 @@ export default function Tenants() {
   const isPageLoading = authLoading || isLoading;
 
   return (
-    <DashboardLayout>
-      <PageTransition>
+    <PageTransition>
         {isPageLoading ? (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -217,7 +216,6 @@ export default function Tenants() {
           />
         </div>
         )}
-      </PageTransition>
-    </DashboardLayout>
+    </PageTransition>
   );
 }

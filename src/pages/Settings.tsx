@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -105,8 +105,7 @@ export default function Settings() {
   };
 
   return (
-    <DashboardLayout>
-      <PageTransition>
+    <PageTransition>
       {isLoading ? (
         <div className="space-y-6 max-w-4xl">
           <Skeleton className="h-10 w-48" />
@@ -387,7 +386,6 @@ export default function Settings() {
 
       </div>
       )}
-      </PageTransition>
-    </DashboardLayout>
+    </PageTransition>
   );
 }

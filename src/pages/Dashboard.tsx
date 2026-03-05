@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProperties } from '@/hooks/useProperties';
 import { useUserData } from '@/hooks/useUserData';
 import { useExportData } from '@/hooks/useExportData';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+
 import { DashboardMetrics } from '@/components/dashboard/DashboardMetrics';
 import { RevenueChart } from '@/components/dashboard/RevenueChart';
 import { OccupancyChart } from '@/components/dashboard/OccupancyChart';
@@ -65,8 +65,7 @@ export default function Dashboard() {
   );
 
   return (
-    <DashboardLayout>
-      <PageTransition>
+    <PageTransition>
       {(authLoading || isLoading) ? <LoadingSkeleton /> : (
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
@@ -169,7 +168,6 @@ export default function Dashboard() {
         )}
       </div>
       )}
-      </PageTransition>
-    </DashboardLayout>
+    </PageTransition>
   );
 }

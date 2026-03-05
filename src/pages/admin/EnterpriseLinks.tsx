@@ -4,7 +4,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -217,18 +217,16 @@ export default function EnterpriseLinks() {
 
   if (roleLoading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
     );
   }
 
   if (!isAdmin) return null;
 
   return (
-    <DashboardLayout>
+    <div className="space-y-6 animate-fade-in">
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -395,6 +393,6 @@ export default function EnterpriseLinks() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </DashboardLayout>
+    </div>
   );
 }
