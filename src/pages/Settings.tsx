@@ -30,6 +30,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { formatPhone } from '@/utils/formatters';
+import { PageTransition } from '@/components/PageTransition';
 
 const PLAN_LABELS: Record<string, string> = {
   starter: 'Gratuito',
