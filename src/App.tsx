@@ -23,6 +23,7 @@ import Team from "./pages/Team";
 import AcceptInvite from "./pages/AcceptInvite";
 import NotFound from "./pages/NotFound";
 import WhatsApp from "./pages/WhatsApp";
+import PaymentSuccess from "./pages/PaymentSuccess";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => (
               <Route path="/admin/plans" element={<AdminPlans />} />
               <Route path="/admin/enterprise-links" element={<AdminEnterpriseLinks />} />
               <Route path="/accept-invite" element={<AcceptInvite />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
