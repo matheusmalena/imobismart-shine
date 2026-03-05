@@ -134,7 +134,18 @@ export default function Index() {
     if (!loading && user) navigate("/dashboard");
   }, [user, loading, navigate]);
 
-  // No image preloading needed - using CSS mockups
+  useEffect(() => {
+    const imagesToPreload = [
+      '/images/tutorial-dashboard.png',
+      '/images/tutorial-properties.png',
+      '/images/tutorial-documents.png',
+      '/images/tutorial-settings.png',
+    ];
+    imagesToPreload.forEach(src => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, []);
 
   const benefits = [
     "Dashboard com métricas em tempo real",
