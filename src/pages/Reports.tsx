@@ -6,6 +6,7 @@ import { useUserData } from '@/hooks/useUserData';
 import { useExportData, ExportConfig } from '@/hooks/useExportData';
 import { PROPERTY_TYPE_LABELS, PROPERTY_STATUS_LABELS } from '@/types/property';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { PageTransition } from '@/components/PageTransition';
 import { ExportConfigPanel } from '@/components/reports/ExportConfigPanel';
 import { ReportPreviewDialog } from '@/components/reports/ReportPreviewDialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -129,22 +130,7 @@ export default function Reports() {
     return null;
   }
 
-  // Loading state
-  if (authLoading || propertiesLoading || userLoading) {
-    return (
-      <DashboardLayout>
-        <div className="space-y-6">
-          <Skeleton className="h-10 w-48" />
-          <Skeleton className="h-32" />
-          <div className="grid gap-6 md:grid-cols-3">
-            <Skeleton className="h-64" />
-            <Skeleton className="h-64" />
-            <Skeleton className="h-64" />
-          </div>
-        </div>
-      </DashboardLayout>
-    );
-  }
+  const isPageLoading = authLoading || propertiesLoading || userLoading;
 
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
@@ -488,6 +474,18 @@ export default function Reports() {
 
   return (
     <DashboardLayout>
+      <PageTransition>
+      {isPageLoading ? (
+        <div className="space-y-6">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-32" />
+          <div className="grid gap-6 md:grid-cols-3">
+            <Skeleton className="h-64" />
+            <Skeleton className="h-64" />
+            <Skeleton className="h-64" />
+          </div>
+        </div>
+      ) : (
       <div className="space-y-6">
         {/* Header */}
         <div>
@@ -831,6 +829,8 @@ export default function Reports() {
           />
         )}
       </div>
+      )}
+      </PageTransition>
     </DashboardLayout>
   );
 }

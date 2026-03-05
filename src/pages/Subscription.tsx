@@ -109,20 +109,6 @@ export default function Subscription() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <DashboardLayout>
-        <div className="space-y-6">
-          <Skeleton className="h-8 w-48" />
-          <div className="grid gap-6 md:grid-cols-2">
-            <Skeleton className="h-64" />
-            <Skeleton className="h-64" />
-          </div>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
   const currentPlan = subscription?.plan || 'free';
   const currentStatus = subscription?.status || 'trial';
   const statusConfig = STATUS_CONFIG[currentStatus] || STATUS_CONFIG.inactive;
@@ -131,6 +117,15 @@ export default function Subscription() {
 
   return (
     <DashboardLayout>
+      {isLoading ? (
+        <div className="space-y-6">
+          <Skeleton className="h-8 w-48" />
+          <div className="grid gap-6 md:grid-cols-2">
+            <Skeleton className="h-64" />
+            <Skeleton className="h-64" />
+          </div>
+        </div>
+      ) : (
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -347,7 +342,7 @@ export default function Subscription() {
                   </>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <div className="p-4 rounded-full bg-muted mb-4">
+                    <div className="p-4 rounded-lg bg-muted mb-4">
                       <CreditCard className="h-8 w-8 text-muted-foreground" />
                     </div>
                     <h3 className="font-medium text-foreground mb-2">Nenhum pagamento ativo</h3>
@@ -387,6 +382,7 @@ export default function Subscription() {
           </Card>
         </motion.div>
       </motion.div>
+      )}
     </DashboardLayout>
   );
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
+import { PageTransition } from '@/components/PageTransition';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MessageSquare, Settings } from 'lucide-react';
 import { WhatsAppSettingsPanel } from '@/components/whatsapp/WhatsAppSettingsPanel';
@@ -11,19 +12,15 @@ export default function WhatsApp() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('send');
 
-  if (!user) {
-    return (
-      <DashboardLayout>
+  return (
+    <DashboardLayout>
+      <PageTransition>
+      {!user ? (
         <div className="space-y-6">
           <Skeleton className="h-10 w-64" />
           <Skeleton className="h-96 w-full" />
         </div>
-      </DashboardLayout>
-    );
-  }
-
-  return (
-    <DashboardLayout>
+      ) : (
       <div className="space-y-6">
         {/* Header */}
         <div>
@@ -55,6 +52,8 @@ export default function WhatsApp() {
           </TabsContent>
         </Tabs>
       </div>
+      )}
+      </PageTransition>
     </DashboardLayout>
   );
 }

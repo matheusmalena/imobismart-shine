@@ -14,6 +14,7 @@ import { DocumentUploadDialog } from '@/components/documents/DocumentUploadDialo
 import { DocumentViewDialog } from '@/components/documents/DocumentViewDialog';
 import { DeleteDocumentDialog } from '@/components/documents/DeleteDocumentDialog';
 import { FileText, Search, Upload, Building2 } from 'lucide-react';
+import { PageTransition } from '@/components/PageTransition';
 import type { PropertyDocument, DocumentCategory } from '@/types/property';
 
 export default function Documents() {
@@ -73,21 +74,17 @@ export default function Documents() {
     }
   };
 
-  if (authLoading || propertiesLoading) {
-    return (
-      <DashboardLayout>
+  const isPageLoading = authLoading || propertiesLoading;
+  const hasProperties = activeProperties.length > 0;
+  return (
+    <DashboardLayout>
+      <PageTransition>
+      {isPageLoading ? (
         <div className="space-y-6">
           <Skeleton className="h-10 w-48" />
           <Skeleton className="h-64 w-full rounded-xl" />
         </div>
-      </DashboardLayout>
-    );
-  }
-
-  const hasProperties = activeProperties.length > 0;
-
-  return (
-    <DashboardLayout>
+      ) : (
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -203,7 +200,7 @@ export default function Documents() {
           </div>
         ) : (
           <div className="bg-card rounded-xl p-12 shadow-card border border-border/50 flex flex-col items-center justify-center">
-            <div className="p-6 rounded-full bg-primary/10 mb-6">
+            <div className="p-6 rounded-lg bg-primary/10 mb-6">
               <FileText className="h-12 w-12 text-primary" />
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-2">
@@ -223,6 +220,7 @@ export default function Documents() {
           </div>
         )}
       </div>
+      )}
 
       {/* Upload Dialog */}
       <DocumentUploadDialog
@@ -250,6 +248,7 @@ export default function Documents() {
         onOpenChange={(open) => !open && setDeleteDoc(null)}
         onConfirm={handleDeleteConfirm}
       />
+      </PageTransition>
     </DashboardLayout>
   );
 }

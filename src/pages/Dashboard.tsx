@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { PageTransition } from '@/components/PageTransition';
 import { 
   Plus,
   Crown,
@@ -36,24 +37,6 @@ export default function Dashboard() {
     }
   }, [user, authLoading, navigate]);
 
-  if (authLoading || isLoading) {
-    return (
-      <DashboardLayout>
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-28 rounded-xl" />
-            ))}
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Skeleton className="h-[350px] rounded-xl" />
-            <Skeleton className="h-[350px] rounded-xl" />
-          </div>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
   const handleExportData = () => {
     exportToCSV(activeProperties);
   };
@@ -67,8 +50,24 @@ export default function Dashboard() {
     }
   };
 
+  const LoadingSkeleton = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <Skeleton key={i} className="h-28 rounded-xl" />
+        ))}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Skeleton className="h-[350px] rounded-xl" />
+        <Skeleton className="h-[350px] rounded-xl" />
+      </div>
+    </div>
+  );
+
   return (
     <DashboardLayout>
+      <PageTransition>
+      {(authLoading || isLoading) ? <LoadingSkeleton /> : (
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -150,7 +149,7 @@ export default function Dashboard() {
             <CardContent className="p-5">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-start gap-3">
-                  <div className="p-2.5 rounded-xl bg-primary/10">
+                  <div className="p-2 rounded-lg bg-primary/10">
                     <Crown className="h-5 w-5 text-primary" />
                   </div>
                   <div>
@@ -169,6 +168,8 @@ export default function Dashboard() {
           </Card>
         )}
       </div>
+      )}
+      </PageTransition>
     </DashboardLayout>
   );
 }
