@@ -15,3 +15,9 @@ verify_jwt = false
 [functions.downgrade-to-free]
 verify_jwt = false
 
+[functions.send-login-otp]
+verify_jwt = false
+
+[functions.verify-login-otp]
+verify_jwt = false
+
