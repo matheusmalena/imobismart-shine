@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -18,69 +18,140 @@ import {
   ArrowRight,
   Check,
   Zap,
-  TrendingUp,
   Play,
   Sparkles,
   Rocket,
+  Users,
+  MessageSquare,
+  ClipboardList,
+  Monitor,
+  Smartphone,
+  Cloud,
 } from "lucide-react";
 
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.15,
-    },
+    transition: { staggerChildren: 0.12 },
   },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 30, scale: 0.95 },
+  hidden: { opacity: 0, y: 24 },
   visible: {
     opacity: 1,
     y: 0,
-    scale: 1,
-    transition: {
-      duration: 0.5,
-      ease: [0.25, 0.46, 0.45, 0.94] as const,
-    },
+    transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] },
   },
 };
+
+const featureTabs = [
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    icon: <BarChart3 className="h-5 w-5" />,
+    title: "Visão completa do seu portfólio",
+    description:
+      "Métricas de receita, custos, ROI e lucro líquido calculados automaticamente. Gráficos de evolução e ranking de performance dos seus imóveis.",
+    image: "/images/tutorial-dashboard.png",
+  },
+  {
+    id: "properties",
+    label: "Imóveis",
+    icon: <Building2 className="h-5 w-5" />,
+    title: "Gestão centralizada de imóveis",
+    description:
+      "Cadastre todos os seus imóveis com fotos, endereço, valores e status. Filtre por tipo, status e performance com facilidade.",
+    image: "/images/tutorial-properties.png",
+  },
+  {
+    id: "documents",
+    label: "Documentos",
+    icon: <FileText className="h-5 w-5" />,
+    title: "Documentos organizados por imóvel",
+    description:
+      "Contratos, matrículas, laudos e IPTUs salvos na nuvem. Busque e acesse qualquer documento de qualquer lugar.",
+    image: "/images/tutorial-documents.png",
+  },
+  {
+    id: "settings",
+    label: "Configurações",
+    icon: <Shield className="h-5 w-5" />,
+    title: "Segurança e personalização",
+    description:
+      "Autenticação em duas etapas, gestão de equipe, planos e preferências. Tudo para você ter controle total da sua conta.",
+    image: "/images/tutorial-settings.png",
+  },
+];
+
+const steps = [
+  {
+    icon: <ClipboardList className="h-7 w-7" />,
+    step: "01",
+    title: "Cadastre seus imóveis",
+    description: "Adicione fotos, valores, endereço e status de cada imóvel em poucos cliques.",
+  },
+  {
+    icon: <BarChart3 className="h-7 w-7" />,
+    step: "02",
+    title: "Acompanhe métricas",
+    description: "Visualize ROI, receitas, custos e lucro de cada imóvel no dashboard automático.",
+  },
+  {
+    icon: <Rocket className="h-7 w-7" />,
+    step: "03",
+    title: "Tome decisões inteligentes",
+    description: "Use relatórios e rankings para identificar oportunidades e otimizar seu portfólio.",
+  },
+];
+
+function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: string }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const [hasAnimated, setHasAnimated] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+          let start = 0;
+          const duration = 1500;
+          const startTime = performance.now();
+          const animate = (now: number) => {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setCount(Math.floor(eased * target));
+            if (progress < 1) requestAnimationFrame(animate);
+          };
+          requestAnimationFrame(animate);
+        }
+      },
+      { threshold: 0.5 }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [target, hasAnimated]);
+
+  return (
+    <span ref={ref}>
+      {count}
+      {suffix}
+    </span>
+  );
+}
 
 export default function Index() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const tutorialRef = useRef<TutorialModalRef>(null);
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   useEffect(() => {
-    if (!loading && user) {
-      navigate("/dashboard");
-    }
+    if (!loading && user) navigate("/dashboard");
   }, [user, loading, navigate]);
-
-  const features = [
-    {
-      icon: <Building2 className="h-6 w-6" />,
-      title: "Gestão Centralizada",
-      description:
-        "Todos os seus imóveis em um único painel. Visualize, edite e monitore em tempo real com facilidade.",
-    },
-    {
-      icon: <BarChart3 className="h-6 w-6" />,
-      title: "Métricas Automáticas",
-      description: "ROI, receitas, custos e lucro líquido calculados instantaneamente. Sem planilhas complicadas.",
-    },
-    {
-      icon: <FileText className="h-6 w-6" />,
-      title: "Documentos Seguros",
-      description: "Contratos, matrículas e laudos organizados por imóvel. Acesse de qualquer lugar.",
-    },
-    {
-      icon: <Shield className="h-6 w-6" />,
-      title: "Segurança Total",
-      description: "Seus dados protegidos com criptografia. Backups automáticos e acesso controlado.",
-    },
-  ];
 
   const benefits = [
     "Dashboard com métricas em tempo real",
@@ -91,15 +162,13 @@ export default function Index() {
     "Acesso de qualquer dispositivo",
   ];
 
-
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.5 }}
         className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border"
       >
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -109,9 +178,7 @@ export default function Index() {
           <div className="flex items-center gap-2 sm:gap-4">
             <ThemeToggle />
             <Link to="/auth">
-              <Button variant="ghost" size="sm">
-                Entrar
-              </Button>
+              <Button variant="ghost" size="sm">Entrar</Button>
             </Link>
             <Link to="/auth">
               <Button size="sm">Começar Grátis</Button>
@@ -120,139 +187,292 @@ export default function Index() {
         </div>
       </motion.header>
 
-      {/* Hero */}
-      <section className="pt-32 pb-24 px-4 relative overflow-hidden">
-        {/* Background decorative elements */}
+      {/* Hero - Split Layout */}
+      <section className="pt-28 pb-16 lg:pt-32 lg:pb-24 px-4 relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
           <div className="absolute bottom-10 right-10 w-96 h-96 bg-primary/3 rounded-full blur-3xl" />
         </div>
 
-        <div className="container mx-auto text-center max-w-5xl">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-8 border border-primary/20"
-          >
-            <Sparkles className="h-4 w-4" />
-            A plataforma #1 de gestão imobiliária inteligente
-          </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-4xl md:text-6xl lg:text-7xl font-bold text-foreground leading-[1.1] mb-8"
-          >
-            Gerencie seus imóveis de forma{" "}
-            <span className="gradient-text">inteligente</span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-12 leading-relaxed"
-          >
-            Plataforma completa para imobiliárias, investidores e proprietários.
-            Controle financeiro, documentos organizados e métricas em tempo real.
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
-          >
-            <Link to="/auth">
-              <Button size="lg" className="gap-2 w-full sm:w-auto text-base px-8 py-6 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
-                <Rocket className="h-5 w-5" />
-                Começar Gratuitamente
-              </Button>
-            </Link>
-            <Button
-              size="lg"
-              variant="outline"
-              className="gap-2 text-base px-8 py-6 hover:bg-muted/50"
-              onClick={() => tutorialRef.current?.open()}
+        <div className="container mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Left - Text */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <Play className="h-5 w-5" />
-              Ver Demonstração
-            </Button>
-          </motion.div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-6 border border-primary/20">
+                <Sparkles className="h-4 w-4" />
+                Plataforma #1 de gestão imobiliária
+              </div>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-[1.1] mb-6">
+                Gerencie seus imóveis de forma{" "}
+                <span className="gradient-text">inteligente</span>
+              </h1>
+              <p className="text-lg text-muted-foreground max-w-xl mb-8 leading-relaxed">
+                Controle financeiro, documentos organizados e métricas em tempo real para investidores, imobiliárias e proprietários.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 mb-8">
+                <Link to="/auth">
+                  <Button size="lg" className="gap-2 w-full sm:w-auto text-base px-8 py-6 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
+                    <Rocket className="h-5 w-5" />
+                    Começar Gratuitamente
+                  </Button>
+                </Link>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="gap-2 text-base px-8 py-6 hover:bg-muted/50"
+                  onClick={() => tutorialRef.current?.open()}
+                >
+                  <Play className="h-5 w-5" />
+                  Ver Demonstração
+                </Button>
+              </div>
+              <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-primary" />
+                  <span>Sem cartão de crédito</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-primary" />
+                  <span>Setup em 2 minutos</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-primary" />
+                  <span>100% seguro</span>
+                </div>
+              </div>
+            </motion.div>
 
-          {/* Tutorial Modal */}
-          <TutorialModal ref={tutorialRef} autoShow={false} />
-
-          {/* Trust badges */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground"
-          >
-            <div className="flex items-center gap-2 bg-card/50 px-4 py-2 rounded-full border border-border/50">
-              <Building2 className="h-4 w-4 text-primary" />
-              <span>200+ proprietários</span>
-            </div>
-            <div className="flex items-center gap-2 bg-card/50 px-4 py-2 rounded-full border border-border/50">
-              <Shield className="h-4 w-4 text-primary" />
-              <span>100% seguro</span>
-            </div>
-            <div className="flex items-center gap-2 bg-card/50 px-4 py-2 rounded-full border border-border/50">
-              <Zap className="h-4 w-4 text-primary" />
-              <span>Pronto para usar</span>
-            </div>
-          </motion.div>
+            {/* Right - Dashboard Screenshot */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="relative"
+            >
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border/50">
+                <div className="bg-card border-b border-border px-4 py-2.5 flex items-center gap-2">
+                  <div className="flex gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-destructive/60" />
+                    <div className="w-3 h-3 rounded-full bg-warning/60" />
+                    <div className="w-3 h-3 rounded-full bg-success/60" />
+                  </div>
+                  <span className="text-xs text-muted-foreground ml-2">ImobiSmart — Dashboard</span>
+                </div>
+                <img
+                  src="/images/tutorial-dashboard.png"
+                  alt="Dashboard do ImobiSmart mostrando métricas de imóveis"
+                  className="w-full"
+                  loading="eager"
+                />
+              </div>
+              {/* Floating badges */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.8, duration: 0.4 }}
+                className="absolute -bottom-4 -left-4 bg-card rounded-xl shadow-xl border border-border/50 p-3 flex items-center gap-3"
+              >
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <BarChart3 className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">ROI Médio</p>
+                  <p className="text-sm font-bold text-foreground">12.5%</p>
+                </div>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 1, duration: 0.4 }}
+                className="absolute -top-4 -right-4 bg-card rounded-xl shadow-xl border border-border/50 p-3 flex items-center gap-3"
+              >
+                <div className="p-2 rounded-lg bg-success/10">
+                  <Building2 className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Ocupação</p>
+                  <p className="text-sm font-bold text-foreground">94%</p>
+                </div>
+              </motion.div>
+            </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* Target Audience Section */}
-      <section className="py-20 px-4 bg-muted/30">
-        <TargetAudienceSection />
+      <TutorialModal ref={tutorialRef} autoShow={false} />
+
+      {/* Social Proof Bar */}
+      <section className="py-12 px-4 border-y border-border bg-muted/30">
+        <div className="container mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            {[
+              { value: 200, suffix: "+", label: "Proprietários ativos" },
+              { value: 500, suffix: "+", label: "Imóveis gerenciados" },
+              { value: 99, suffix: ".9%", label: "Uptime garantido" },
+              { value: 4, suffix: ".9★", label: "Avaliação média" },
+            ].map((stat, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+              >
+                <p className="text-3xl md:text-4xl font-bold text-primary">
+                  <AnimatedCounter target={stat.value} suffix={stat.suffix} />
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </section>
 
-      {/* Features */}
-      <section className="py-24 px-4">
+      {/* How it Works */}
+      <section className="py-20 px-4">
         <div className="container mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
             className="text-center mb-16"
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
               <Zap className="h-4 w-4" />
-              Recursos Poderosos
+              Simples e rápido
             </div>
             <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
-              Tudo que você precisa em um só lugar
+              Como funciona
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Ferramentas poderosas para você parar de perder dinheiro com falta de controle.
+              Em três passos simples você tem controle total do seu portfólio.
             </p>
           </motion.div>
           <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+            viewport={{ once: true }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-8"
           >
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                variants={itemVariants}
-                className="group bg-card rounded-2xl p-8 shadow-card border border-border/50 transition-all duration-300 hover:shadow-xl hover:-translate-y-2 hover:border-primary/30"
-              >
-                <div className="p-4 rounded-2xl bg-primary/10 w-fit mb-6 group-hover:bg-primary/15 transition-colors">
-                  <div className="text-primary">{feature.icon}</div>
+            {steps.map((step, i) => (
+              <motion.div key={i} variants={itemVariants} className="relative text-center">
+                <div className="inline-flex items-center justify-center p-5 rounded-2xl bg-primary/10 text-primary mb-5">
+                  {step.icon}
                 </div>
-                <h3 className="text-xl font-semibold text-card-foreground mb-3">{feature.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
+                <div className="text-xs font-bold text-primary/60 uppercase tracking-widest mb-2">
+                  Passo {step.step}
+                </div>
+                <h3 className="text-xl font-semibold text-foreground mb-2">{step.title}</h3>
+                <p className="text-muted-foreground">{step.description}</p>
+                {i < steps.length - 1 && (
+                  <div className="hidden md:block absolute top-12 right-0 translate-x-1/2">
+                    <ArrowRight className="h-5 w-5 text-border" />
+                  </div>
+                )}
               </motion.div>
             ))}
           </motion.div>
         </div>
+      </section>
+
+      {/* Interactive Feature Tabs - "Veja na prática" */}
+      <section className="py-20 px-4 bg-muted/30">
+        <div className="container mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
+              <Monitor className="h-4 w-4" />
+              Veja na prática
+            </div>
+            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
+              Conheça cada funcionalidade
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Explore as principais telas do ImobiSmart e descubra como ele funciona.
+            </p>
+          </motion.div>
+
+          {/* Tabs */}
+          <div className="flex flex-wrap justify-center gap-2 mb-10">
+            {featureTabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all ${
+                  activeTab === tab.id
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                    : "bg-card text-muted-foreground border border-border hover:border-primary/30 hover:text-foreground"
+                }`}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Tab Content */}
+          <AnimatePresence mode="wait">
+            {featureTabs
+              .filter((t) => t.id === activeTab)
+              .map((tab) => (
+                <motion.div
+                  key={tab.id}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -16 }}
+                  transition={{ duration: 0.3 }}
+                  className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-center"
+                >
+                  {/* Screenshot */}
+                  <div className="lg:col-span-3 rounded-2xl overflow-hidden shadow-2xl border border-border/50">
+                    <div className="bg-card border-b border-border px-4 py-2.5 flex items-center gap-2">
+                      <div className="flex gap-1.5">
+                        <div className="w-3 h-3 rounded-full bg-destructive/60" />
+                        <div className="w-3 h-3 rounded-full bg-warning/60" />
+                        <div className="w-3 h-3 rounded-full bg-success/60" />
+                      </div>
+                      <span className="text-xs text-muted-foreground ml-2">ImobiSmart</span>
+                    </div>
+                    <img
+                      src={tab.image}
+                      alt={tab.title}
+                      className="w-full"
+                      loading="lazy"
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <div className="lg:col-span-2 space-y-4">
+                    <h3 className="text-2xl md:text-3xl font-bold text-foreground">
+                      {tab.title}
+                    </h3>
+                    <p className="text-muted-foreground text-lg leading-relaxed">
+                      {tab.description}
+                    </p>
+                    <Link to="/auth">
+                      <Button className="gap-2 mt-2">
+                        Experimentar agora <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </div>
+                </motion.div>
+              ))}
+          </AnimatePresence>
+        </div>
+      </section>
+
+      {/* Target Audience */}
+      <section className="py-20 px-4">
+        <TargetAudienceSection />
       </section>
 
       {/* Pricing */}
@@ -261,7 +481,7 @@ export default function Index() {
       {/* Testimonials */}
       <TestimonialsSection />
 
-      {/* FAQ Section */}
+      {/* FAQ */}
       <FAQSection />
 
       {/* Benefits */}
@@ -271,7 +491,7 @@ export default function Index() {
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
+              viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
               <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
@@ -285,7 +505,7 @@ export default function Index() {
                 variants={containerVariants}
                 initial="hidden"
                 whileInView="visible"
-                viewport={{ once: true, margin: "-100px" }}
+                viewport={{ once: true }}
                 className="grid grid-cols-1 sm:grid-cols-2 gap-4"
               >
                 {benefits.map((benefit, index) => (
@@ -309,31 +529,31 @@ export default function Index() {
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
+              viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-8 flex items-center justify-center"
+              className="grid grid-cols-2 gap-4"
             >
-              <div className="bg-card rounded-xl shadow-xl p-6 w-full max-w-md border border-border/50">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-semibold text-card-foreground">Performance</h3>
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                </div>
-                <div className="space-y-4">
-                  {[
-                    { label: "ROI Médio", value: "12.5%", color: "text-primary" },
-                    { label: "Lucro Mensal", value: "R$ 15.420", color: "text-foreground" },
-                    { label: "Ocupação", value: "94%", color: "text-primary" },
-                  ].map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between py-2 border-b border-border/50 last:border-0"
-                    >
-                      <span className="text-sm text-muted-foreground">{item.label}</span>
-                      <span className={`font-semibold ${item.color}`}>{item.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              {[
+                { icon: <Cloud className="h-6 w-6" />, title: "Na nuvem", desc: "Acesse de qualquer lugar" },
+                { icon: <Smartphone className="h-6 w-6" />, title: "Responsivo", desc: "Funciona em qualquer tela" },
+                { icon: <Shield className="h-6 w-6" />, title: "Seguro", desc: "Dados criptografados" },
+                { icon: <Zap className="h-6 w-6" />, title: "Rápido", desc: "Métricas instantâneas" },
+              ].map((item, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="bg-card rounded-2xl p-6 border border-border/50 shadow-card text-center"
+                >
+                  <div className="inline-flex p-3 rounded-xl bg-primary/10 text-primary mb-3">
+                    {item.icon}
+                  </div>
+                  <h4 className="font-semibold text-foreground mb-1">{item.title}</h4>
+                  <p className="text-sm text-muted-foreground">{item.desc}</p>
+                </motion.div>
+              ))}
             </motion.div>
           </div>
         </div>
@@ -343,7 +563,7 @@ export default function Index() {
       <motion.section
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
-        viewport={{ once: true, margin: "-100px" }}
+        viewport={{ once: true }}
         transition={{ duration: 0.6 }}
         className="py-24 px-4 gradient-hero relative overflow-hidden"
       >
@@ -356,7 +576,6 @@ export default function Index() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
             className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight"
           >
             Pronto para multiplicar seus resultados?
@@ -365,17 +584,16 @@ export default function Index() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ delay: 0.1 }}
             className="text-white/80 text-lg max-w-xl mx-auto mb-10 leading-relaxed"
           >
-            Junte-se a milhares de investidores que já usam o ImobiSmart para ter controle total sobre seu patrimônio
-            imobiliário.
+            Junte-se a centenas de investidores que já usam o ImobiSmart para ter controle total sobre seu patrimônio imobiliário.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.3 }}
+            transition={{ delay: 0.2 }}
           >
             <Link to="/auth">
               <Button size="lg" variant="secondary" className="gap-2 text-base px-8 py-6 shadow-xl hover:scale-105 transition-transform">
