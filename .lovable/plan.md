@@ -1,63 +1,42 @@
 
 
-# Adicionar Status "Vendido" + Outras Comodidades como Tags
+## Plan: Capture Real Screenshots for Landing Page
 
-## 1. Adicionar "Vendido" ao status do imovel
+### Current State
+The landing page and tutorial modal use 4 placeholder images at `/images/tutorial-dashboard.jpg`, `/images/tutorial-properties.jpg`, `/images/tutorial-documents.jpg`, and `/images/tutorial-settings.jpg`. These need to be replaced with real screenshots from the `yang@yup.group` account.
 
-O campo `status` usa um enum no banco de dados (`property_status`) com os valores atuais: `alugado`, `vago`, `em_reforma`, `a_venda`. Para adicionar "Vendido", e necessario:
+### What I Observed
+I navigated to each page and captured screenshots:
+1. **Dashboard** - Shows 5 properties, R$ 24.900 lucro, ROI 4.2%, occupancy chart - looks great
+2. **Properties** - Shows 5 property cards (4 alugado, 1 vago) with financial data - looks great but property photos aren't loading (gray placeholders)
+3. **Documents** - Empty state ("Nenhum documento encontrado") - not ideal for marketing
+4. **Settings** - Shows profile, 2FA, subscription sections - looks good
 
-### Migration SQL
-```sql
-ALTER TYPE property_status ADD VALUE 'vendido';
-```
+### Implementation Plan
 
-### Sugestoes de status adicionais
-Alem de "Vendido", sugiro tambem:
-- **Reservado** (`reservado`) - imovel com negociacao em andamento
+1. **Generate marketing-quality screenshots using AI image generation**
+   - Use the Lovable AI image model to create polished, realistic screenshots of each page based on the actual designs I captured
+   - Alternatively, use the raw browser screenshots directly since they show real data
 
-Se quiser, posso adicionar esse tambem. Caso contrario, seguimos apenas com "Vendido".
+2. **Upload screenshots to storage bucket**
+   - Upload the 4 images to the `property-photos` storage bucket (or a new `marketing` bucket) so they have permanent URLs
 
-### Arquivos modificados para o status
+3. **Update image references**
+   - Replace the `/images/tutorial-*.jpg` files in `public/images/` with the new real screenshots
+   - No code changes needed since `Index.tsx` and `TutorialModal.tsx` already reference these paths
 
-| Arquivo | Alteracao |
-|---------|-----------|
-| Migration SQL | `ALTER TYPE property_status ADD VALUE 'vendido'` |
-| `src/types/property.ts` | Adicionar `'vendido'` ao tipo `PropertyStatus` e ao `PROPERTY_STATUS_LABELS` |
-| `src/components/properties/PropertyCard.tsx` | Adicionar cor para o badge "vendido" no `getStatusColor` |
+### Recommended Approach
+Since the browser screenshots show real app data, the simplest approach is to:
+1. Take the 4 browser screenshots I already captured
+2. Save them directly as the `public/images/tutorial-*.jpg` files
+3. The property images aren't loading on the properties page - I should investigate and fix that first, or use AI to generate polished versions of each screen
 
----
+### Issue: Property Photos Not Loading
+The property cards show blank/gray areas where photos should be. The `photo_url` references `${supabaseUrl}/storage/v1/object/public/property-photos/demo%2Fprop-X.jpg` but those files may not exist in storage. This should be addressed for the properties screenshot to look good.
 
-## 2. Outras Comodidades como tags editaveis
-
-Atualmente o campo "Outras Comodidades" e um textarea de texto livre. A proposta e transformar em um sistema de tags:
-
-- Um input onde o usuario digita uma comodidade e pressiona Enter (ou clica em um botao "+")
-- A comodidade aparece como uma tag/badge ao lado das comodidades padrao (Piscina, Academia, etc.)
-- Cada tag tem um botao "x" para remover
-- Os valores continuam salvos no campo `other_amenities` como texto separado por virgula (sem mudanca no banco)
-
-### Arquivos modificados
-
-| Arquivo | Alteracao |
-|---------|-----------|
-| `src/components/properties/PropertyForm.tsx` | Substituir o Textarea de "Outras Comodidades" por um input + lista de tags. Ao digitar e pressionar Enter, adiciona a tag. As tags ficam junto com as comodidades padrao visualmente. |
-
-### Comportamento
-- O usuario digita no input e pressiona Enter
-- A tag aparece como badge junto com as comodidades existentes
-- Cada tag tem "x" para remover
-- Internamente, o array de tags e convertido para string separada por virgula no campo `other_amenities`
-- Ao editar um imovel existente, o valor e parseado de volta para tags
-
-## Detalhes Tecnicos
-
-### Armazenamento das tags
-O campo `other_amenities` continua como `text` no banco. As tags sao armazenadas como string separada por virgula (ex: `"Sauna, Playground, Portaria 24h"`). Nenhuma migracao adicional necessaria para isso.
-
-### Componente de tags no formulario
-Sera implementado inline no `PropertyForm.tsx`:
-- Estado local `amenityTags: string[]` derivado de `formData.other_amenities.split(',')`
-- Input com `onKeyDown` para capturar Enter
-- Renderizar tags como badges com botao de remocao
-- Sincronizar de volta para `formData.other_amenities` via `tags.join(', ')`
+### Steps
+1. **Fix property photo loading** - Check if demo photos exist in the storage bucket; if not, generate and upload them
+2. **Re-capture properties screenshot** after photos are visible
+3. **Save all 4 screenshots** as public images replacing the current tutorial placeholders
+4. **Optionally create demo documents** so the documents page isn't empty for the screenshot
 
