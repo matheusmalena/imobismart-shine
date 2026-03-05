@@ -1,63 +1,87 @@
 
 
-# Adicionar Status "Vendido" + Outras Comodidades como Tags
+# Auditoria e Correção do ImobiSmart
 
-## 1. Adicionar "Vendido" ao status do imovel
+## Analise: Promessas vs Realidade
 
-O campo `status` usa um enum no banco de dados (`property_status`) com os valores atuais: `alugado`, `vago`, `em_reforma`, `a_venda`. Para adicionar "Vendido", e necessario:
+Apos revisar todo o codigo, encontrei estas discrepancias:
 
-### Migration SQL
-```sql
-ALTER TYPE property_status ADD VALUE 'vendido';
-```
+### Funcionalidades PROMETIDAS na landing page que NAO existem:
+1. **CRM Imobiliario** - Pipeline de leads, gestao de contatos, automacoes de follow-up -- nao existe
+2. **Site Imobiliario** - Geracao automatica de site com SEO -- nao existe
+3. **Integracoes com Portais** - ZAP, VivaReal, OLX -- nao existe
+4. **Marketing** - Landing pages, campanhas, funil de conversao -- nao existe
 
-### Sugestoes de status adicionais
-Alem de "Vendido", sugiro tambem:
-- **Reservado** (`reservado`) - imovel com negociacao em andamento
+### Funcionalidades que EXISTEM e funcionam:
+- Gestao de Imoveis (CRUD, filtros, galeria, arquivamento)
+- Gestao de Inquilinos + Contratos
+- Documentos (upload, categorias, visualizacao)
+- WhatsApp (envio de lembretes via Evolution API)
+- Relatorios/Exportacao (CSV, XLSX, JSON, PDF) - Pro+
+- Equipe/Organizacoes - Enterprise
+- Dashboard com metricas reais
+- AI Copilot (Copiloto IA)
+- Sistema de planos e assinatura via Cakto
 
-Se quiser, posso adicionar esse tambem. Caso contrario, seguimos apenas com "Vendido".
-
-### Arquivos modificados para o status
-
-| Arquivo | Alteracao |
-|---------|-----------|
-| Migration SQL | `ALTER TYPE property_status ADD VALUE 'vendido'` |
-| `src/types/property.ts` | Adicionar `'vendido'` ao tipo `PropertyStatus` e ao `PROPERTY_STATUS_LABELS` |
-| `src/components/properties/PropertyCard.tsx` | Adicionar cor para o badge "vendido" no `getStatusColor` |
+### Problemas encontrados no codigo:
+1. **Dashboard**: Atividade Recente e hardcoded/fake (sempre mostra os mesmos textos estaticos)
+2. **Settings**: `PLAN_LABELS` desatualizados (chama "starter" de "Gratuito" e "enterprise" de "Plus")
+3. **Landing page**: Promete CRM, Site Builder, Integracoes e Marketing que nao existem
+4. **Pricing**: Estrutura simples -- precisa seguir o padrao do Jetimob (features categorizadas)
 
 ---
 
-## 2. Outras Comodidades como tags editaveis
+## Plano de Implementacao
 
-Atualmente o campo "Outras Comodidades" e um textarea de texto livre. A proposta e transformar em um sistema de tags:
+### 1. Corrigir a Landing Page (FeaturesSection)
+Substituir as 5 categorias fake por funcionalidades REAIS do sistema:
+- **Gestao de Imoveis** - cadastro, fotos, status, financeiro, ranking
+- **Inquilinos e Contratos** - cadastro, contratos de locacao, alertas de vencimento
+- **Documentos** - upload, categorias, organizacao por imovel
+- **WhatsApp Business** - lembretes automaticos, templates personalizados
+- **Relatorios e Exportacao** - CSV, XLSX, JSON, PDF, filtros avancados
 
-- Um input onde o usuario digita uma comodidade e pressiona Enter (ou clica em um botao "+")
-- A comodidade aparece como uma tag/badge ao lado das comodidades padrao (Piscina, Academia, etc.)
-- Cada tag tem um botao "x" para remover
-- Os valores continuam salvos no campo `other_amenities` como texto separado por virgula (sem mudanca no banco)
+Remover mencoes a CRM pipeline, site builder, integracoes com portais e marketing automation.
 
-### Arquivos modificados
+### 2. Reestruturar a Pricing Section (Landing + Plans page)
+Seguir o padrao do Jetimob (imagem de referencia):
+- Features organizadas em **categorias com headers** (nao lista simples)
+- Categorias: Geral, Gestao, Ferramentas, Integracoes, Suporte
+- Cada plano mostra check/X para cada feature dentro da categoria
+- Cards mais altos com scroll interno ou accordion para features longas
+- Nota de rodape sobre recursos adicionais
 
-| Arquivo | Alteracao |
-|---------|-----------|
-| `src/components/properties/PropertyForm.tsx` | Substituir o Textarea de "Outras Comodidades" por um input + lista de tags. Ao digitar e pressionar Enter, adiciona a tag. As tags ficam junto com as comodidades padrao visualmente. |
+### 3. Dashboard - Atividade Recente com dados reais
+Substituir os 4 itens hardcoded por dados reais:
+- Buscar os ultimos imoveis criados/atualizados (properties.updated_at)
+- Buscar os ultimos inquilinos cadastrados (tenants.created_at)
+- Buscar os ultimos documentos adicionados (documents.created_at)
+- Mostrar timestamp real formatado ("ha 2 horas", "ha 1 dia")
 
-### Comportamento
-- O usuario digita no input e pressiona Enter
-- A tag aparece como badge junto com as comodidades existentes
-- Cada tag tem "x" para remover
-- Internamente, o array de tags e convertido para string separada por virgula no campo `other_amenities`
-- Ao editar um imovel existente, o valor e parseado de volta para tags
+### 4. Corrigir inconsistencias no Settings
+- Atualizar PLAN_LABELS para refletir os 5 planos reais (free, starter, pro, plus, enterprise)
+- Corrigir PLAN_DESCRIPTIONS para cada nivel
 
-## Detalhes Tecnicos
+### 5. Atualizar BenefitsSection
+Alinhar os 4 beneficios com funcionalidades reais:
+- "Controle financeiro completo" (ROI, lucro, custos por imovel)
+- "Documentos sempre organizados" (upload, categorias)
+- "Contratos sob controle" (alertas, vencimentos)
+- "Comunicacao automatizada" (WhatsApp lembretes)
 
-### Armazenamento das tags
-O campo `other_amenities` continua como `text` no banco. As tags sao armazenadas como string separada por virgula (ex: `"Sauna, Playground, Portaria 24h"`). Nenhuma migracao adicional necessaria para isso.
+---
 
-### Componente de tags no formulario
-Sera implementado inline no `PropertyForm.tsx`:
-- Estado local `amenityTags: string[]` derivado de `formData.other_amenities.split(',')`
-- Input com `onKeyDown` para capturar Enter
-- Renderizar tags como badges com botao de remocao
-- Sincronizar de volta para `formData.other_amenities` via `tags.join(', ')`
+## Arquivos a modificar
+
+| Arquivo | Acao |
+|---------|------|
+| `src/components/landing/FeaturesSection.tsx` | Reescrever com funcionalidades reais |
+| `src/components/landing/PricingSection.tsx` | Reestruturar com features categorizadas (padrao Jetimob) |
+| `src/components/landing/BenefitsSection.tsx` | Alinhar com features reais |
+| `src/components/landing/HeroSection.tsx` | Ajustar subtitulo para refletir funcionalidades reais |
+| `src/pages/Plans.tsx` | Reestruturar comparativo com categorias |
+| `src/pages/Dashboard.tsx` | Atividade recente com dados reais do banco |
+| `src/pages/Settings.tsx` | Corrigir PLAN_LABELS e PLAN_DESCRIPTIONS |
+
+Nao serao criadas tabelas novas. Todas as queries usam tabelas existentes (properties, tenants, documents).
 
