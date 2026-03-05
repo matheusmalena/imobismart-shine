@@ -828,6 +828,8 @@ export default function Reports() {
           />
         )}
       </div>
+      )}
+      </PageTransition>
     </DashboardLayout>
   );
 }
