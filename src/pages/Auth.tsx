@@ -178,18 +178,10 @@ export default function Auth() {
       setAuthView('mfa');
       return;
     }
-    setOtpEmail(loginEmail);
-    try {
-      const { error: otpError } = await supabase.functions.invoke('send-login-otp', { body: { email: loginEmail } });
-      if (otpError) {
-        toast({ title: 'Erro ao enviar código', description: 'Tente novamente.', variant: 'destructive' });
-        return;
-      }
-    } catch {
-      toast({ title: 'Erro ao enviar código', description: 'Tente novamente.', variant: 'destructive' });
-      return;
-    }
-    setAuthView('emailOTP');
+    // OTP disabled temporarily (Resend domain not verified)
+    setMfaPending(false);
+    toast({ title: 'Bem-vindo!', description: 'Login realizado com sucesso.' });
+    navigate('/dashboard');
   };
 
   const handleOTPSuccess = () => {
