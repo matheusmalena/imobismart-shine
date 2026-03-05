@@ -65,8 +65,7 @@ export default function Dashboard() {
   );
 
   return (
-    <DashboardLayout>
-      <PageTransition>
+    <PageTransition>
       {(authLoading || isLoading) ? <LoadingSkeleton /> : (
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
