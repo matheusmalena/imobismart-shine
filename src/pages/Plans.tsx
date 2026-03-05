@@ -126,14 +126,16 @@ export default function Plans() {
     return null;
   }
 
-  if (isLoading) {
     return (
-      <div className="space-y-8">
-        <Skeleton className="h-32 max-w-xl mx-auto" />
-        <div className="flex justify-center items-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <DashboardLayout>
+        <div className="space-y-8">
+          <Skeleton className="h-32 max-w-xl mx-auto" />
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
+    );
     );
   }
 
@@ -213,7 +215,7 @@ export default function Plans() {
   };
 
   return (
-    <>
+    <DashboardLayout>
       <div className="space-y-8 pb-8">
         {/* Navigation Buttons */}
         <div className="flex items-center gap-3">
@@ -541,6 +543,6 @@ export default function Plans() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </DashboardLayout>
   );
 }
