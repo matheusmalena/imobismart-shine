@@ -94,9 +94,10 @@ export default function Settings() {
   };
 
 
-  if (isLoading) {
-    return (
-      <DashboardLayout>
+  return (
+    <DashboardLayout>
+      <PageTransition>
+      {isLoading ? (
         <div className="space-y-6 max-w-4xl">
           <Skeleton className="h-10 w-48" />
           <div className="grid gap-6">
@@ -104,23 +105,13 @@ export default function Settings() {
             <Skeleton className="h-48 w-full rounded-xl" />
           </div>
         </div>
-      </DashboardLayout>
-    );
-  }
-
-  // TEMPORÁRIO: Desabilitado para screenshots - usar dados mock
-  const mockUser = user || { email: 'usuario@exemplo.com' };
-  const mockProfile = profile || { full_name: 'João da Silva', created_at: '2024-06-15' };
-  const mockSubscription = subscription || { 
-    plan: 'pro' as const, 
-    status: 'active' as const, 
-    started_at: '2024-06-15',
-    expires_at: '2025-06-15'
-  };
-
-  return (
-    <DashboardLayout>
+      ) : (
       <div className="space-y-6 max-w-4xl animate-fade-in">
+        {/* mock data setup */}
+        {(() => { 
+          // TEMPORÁRIO: Desabilitado para screenshots - usar dados mock
+          return null;
+        })()}
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-foreground">Configurações</h1>
@@ -137,7 +128,7 @@ export default function Settings() {
                 <User className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <CardTitle>Informações Pessoais</CardTitle>
+                <CardTitle className="text-base">Informações Pessoais</CardTitle>
                 <CardDescription>Seus dados de perfil na plataforma</CardDescription>
               </div>
             </div>
@@ -264,7 +255,7 @@ export default function Settings() {
                 <Lock className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <CardTitle>Segurança</CardTitle>
+                <CardTitle className="text-base">Segurança</CardTitle>
                 <CardDescription>Configure opções de segurança da sua conta</CardDescription>
               </div>
             </div>
@@ -282,7 +273,7 @@ export default function Settings() {
                 <CreditCard className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <CardTitle>Assinatura</CardTitle>
+                <CardTitle className="text-base">Assinatura</CardTitle>
                 <CardDescription>Detalhes do seu plano atual</CardDescription>
               </div>
             </div>
@@ -390,6 +381,8 @@ export default function Settings() {
         </Card>
 
       </div>
+      )}
+      </PageTransition>
     </DashboardLayout>
   );
 }

@@ -84,27 +84,24 @@ export default function Tenants() {
     }
   };
 
-  if (authLoading || isLoading) {
-    return (
-      <DashboardLayout>
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-10 w-48" />
-            <Skeleton className="h-10 w-32" />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <Skeleton key={i} className="h-48 rounded-xl" />
-            ))}
-          </div>
-        </div>
-      </DashboardLayout>
-    );
-  }
+  const isPageLoading = authLoading || isLoading;
 
   return (
     <DashboardLayout>
       <PageTransition>
+        {isPageLoading ? (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-10 w-48" />
+              <Skeleton className="h-10 w-32" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <Skeleton key={i} className="h-48 rounded-xl" />
+              ))}
+            </div>
+          </div>
+        ) : (
         <div className="space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -219,6 +216,7 @@ export default function Tenants() {
             isLoading={deleteTenant.isPending}
           />
         </div>
+        )}
       </PageTransition>
     </DashboardLayout>
   );

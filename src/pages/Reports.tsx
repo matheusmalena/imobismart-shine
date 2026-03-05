@@ -129,22 +129,7 @@ export default function Reports() {
     return null;
   }
 
-  // Loading state
-  if (authLoading || propertiesLoading || userLoading) {
-    return (
-      <DashboardLayout>
-        <div className="space-y-6">
-          <Skeleton className="h-10 w-48" />
-          <Skeleton className="h-32" />
-          <div className="grid gap-6 md:grid-cols-3">
-            <Skeleton className="h-64" />
-            <Skeleton className="h-64" />
-            <Skeleton className="h-64" />
-          </div>
-        </div>
-      </DashboardLayout>
-    );
-  }
+  const isPageLoading = authLoading || propertiesLoading || userLoading;
 
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
@@ -488,6 +473,18 @@ export default function Reports() {
 
   return (
     <DashboardLayout>
+      <PageTransition>
+      {isPageLoading ? (
+        <div className="space-y-6">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-32" />
+          <div className="grid gap-6 md:grid-cols-3">
+            <Skeleton className="h-64" />
+            <Skeleton className="h-64" />
+            <Skeleton className="h-64" />
+          </div>
+        </div>
+      ) : (
       <div className="space-y-6">
         {/* Header */}
         <div>
