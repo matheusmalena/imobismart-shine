@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
+import { LockedPagePlaceholder } from '@/components/common/LockedPagePlaceholder';
 
 // Status filter options
 const STATUS_OPTIONS = [
