@@ -1,71 +1,52 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Users,
   Building2,
-  Globe,
-  Link2,
-  Megaphone,
-  MessageSquare,
-  BarChart3,
-  Search,
-  Smartphone,
-  RefreshCw,
-  Target,
+  Users,
   FileText,
+  MessageCircle,
+  BarChart3,
   Zap,
   Check,
+  Home,
+  Camera,
+  DollarSign,
+  Shield,
+  Bell,
+  Upload,
+  FolderOpen,
+  Send,
+  Clock,
+  Download,
+  Filter,
 } from "lucide-react";
 
 const categories = [
-  {
-    id: "crm",
-    label: "CRM Imobiliário",
-    icon: Users,
-    title: "Pipeline de leads inteligente",
-    description:
-      "Gerencie seus leads do primeiro contato ao fechamento. Automações que trabalham por você, integrações com WhatsApp e histórico completo de interações.",
-    features: [
-      "Pipeline de leads com estágios personalizáveis",
-      "Gestão de contatos centralizada",
-      "Automações de follow-up",
-      "Integração com WhatsApp Business",
-    ],
-    mockup: (
-      <div className="space-y-3">
-        {["Novo Lead", "Em Negociação", "Visita Agendada", "Proposta Enviada"].map((stage, i) => (
-          <div key={stage} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border/30">
-            <div className={`w-3 h-3 rounded-full ${["bg-info", "bg-warning", "bg-primary", "bg-success"][i]}`} />
-            <span className="text-sm font-medium text-foreground flex-1">{stage}</span>
-            <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">{[12, 8, 5, 3][i]}</span>
-          </div>
-        ))}
-      </div>
-    ),
-  },
   {
     id: "properties",
     label: "Gestão de Imóveis",
     icon: Building2,
     title: "Controle total do seu portfólio",
     description:
-      "Cadastre imóveis com fotos, detalhes e documentos. Acompanhe status, receitas e custos de cada propriedade em tempo real.",
+      "Cadastre imóveis com fotos, detalhes financeiros e acompanhe status em tempo real. Ranking automático de performance e controle de custos por propriedade.",
     features: [
-      "Cadastro completo com fotos e documentos",
-      "Status: disponível, alugado, vendido",
-      "Controle financeiro por imóvel",
+      "Cadastro completo com galeria de fotos",
+      "Status: alugado, vago, em reforma, à venda, vendido",
+      "Controle financeiro: receita, custos, ROI por imóvel",
       "Ranking de performance automático",
     ],
     mockup: (
       <div className="grid grid-cols-2 gap-3">
         {[
-          { name: "Apt. Vila Mariana", status: "Alugado", color: "bg-success" },
-          { name: "Casa Moema", status: "Disponível", color: "bg-info" },
-          { name: "Sala Comercial", status: "Em Reforma", color: "bg-warning" },
-          { name: "Cobertura Itaim", status: "À Venda", color: "bg-primary" },
+          { name: "Apt. Vila Mariana", status: "Alugado", color: "bg-success", icon: Home },
+          { name: "Casa Moema", status: "Vago", color: "bg-info", icon: Home },
+          { name: "Sala Comercial", status: "Em Reforma", color: "bg-warning", icon: Building2 },
+          { name: "Cobertura Itaim", status: "À Venda", color: "bg-primary", icon: Home },
         ].map((prop) => (
           <div key={prop.name} className="p-3 bg-muted/30 rounded-lg border border-border/30">
-            <div className="w-full h-16 bg-muted/50 rounded-md mb-2" />
+            <div className="w-full h-16 bg-muted/50 rounded-md mb-2 flex items-center justify-center">
+              <Camera className="h-5 w-5 text-muted-foreground/40" />
+            </div>
             <p className="text-xs font-medium text-foreground truncate">{prop.name}</p>
             <div className="flex items-center gap-1 mt-1">
               <div className={`w-2 h-2 rounded-full ${prop.color}`} />
@@ -77,111 +58,148 @@ const categories = [
     ),
   },
   {
-    id: "website",
-    label: "Site Imobiliário",
-    icon: Globe,
-    title: "Seu site profissional em minutos",
+    id: "tenants",
+    label: "Inquilinos e Contratos",
+    icon: Users,
+    title: "Gestão completa de locações",
     description:
-      "Crie um site imobiliário otimizado para SEO automaticamente. Seus imóveis publicados com páginas responsivas e otimizadas para conversão.",
+      "Cadastre inquilinos, crie contratos de locação e receba alertas automáticos de vencimento. Tudo organizado e acessível em um só lugar.",
     features: [
-      "Site gerado automaticamente",
-      "SEO otimizado para buscas",
-      "Design responsivo (mobile-first)",
-      "Páginas de imóvel com formulário de contato",
-    ],
-    mockup: (
-      <div className="bg-muted/30 rounded-lg border border-border/30 p-4 space-y-3">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Globe className="h-3 w-3" />
-          <span>www.suaimobiliaria.com.br</span>
-        </div>
-        <div className="w-full h-20 bg-muted/50 rounded-md flex items-center justify-center">
-          <span className="text-xs text-muted-foreground">Hero Banner</span>
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-muted/50 rounded-md p-2">
-              <div className="w-full h-10 bg-muted rounded mb-1" />
-              <div className="w-3/4 h-2 bg-muted rounded" />
-            </div>
-          ))}
-        </div>
-        <div className="flex items-center gap-2">
-          <Search className="h-3 w-3 text-muted-foreground" />
-          <div className="flex-1 h-7 bg-muted/50 rounded-md border border-border/30" />
-        </div>
-      </div>
-    ),
-  },
-  {
-    id: "integrations",
-    label: "Integrações",
-    icon: Link2,
-    title: "Conecte-se aos principais portais",
-    description:
-      "Publique seus imóveis automaticamente nos maiores portais do Brasil. Sincronização em tempo real sem trabalho manual.",
-    features: [
-      "Integração com ZAP Imóveis",
-      "Publicação automática no VivaReal",
-      "Sincronização com OLX",
-      "Atualização automática de status",
+      "Cadastro de inquilinos com CPF, RG e contato",
+      "Contratos de locação com datas e valores",
+      "Alertas automáticos de vencimento de contrato",
+      "Upload de contrato em PDF",
     ],
     mockup: (
       <div className="space-y-3">
         {[
-          { name: "ZAP Imóveis", status: "Conectado", synced: "42 imóveis" },
-          { name: "VivaReal", status: "Conectado", synced: "38 imóveis" },
-          { name: "OLX", status: "Conectado", synced: "25 imóveis" },
-          { name: "WhatsApp", status: "Ativo", synced: "Business API" },
-        ].map((portal) => (
-          <div key={portal.name} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border/30">
+          { name: "Maria Silva", property: "Apt. Vila Mariana", status: "Ativo", days: "Vence em 45 dias" },
+          { name: "João Santos", property: "Casa Moema", status: "Ativo", days: "Vence em 120 dias" },
+          { name: "Ana Costa", property: "Sala Comercial", status: "Vencendo", days: "Vence em 5 dias" },
+        ].map((tenant) => (
+          <div key={tenant.name} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border/30">
             <div className="p-2 rounded-lg bg-primary/10">
-              <RefreshCw className="h-4 w-4 text-primary" />
+              <Users className="h-4 w-4 text-primary" />
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-foreground">{portal.name}</p>
-              <p className="text-xs text-muted-foreground">{portal.synced}</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground">{tenant.name}</p>
+              <p className="text-xs text-muted-foreground">{tenant.property}</p>
             </div>
-            <span className="text-xs text-success font-medium">{portal.status}</span>
+            <div className="text-right">
+              <span className={`text-xs font-medium ${tenant.status === 'Vencendo' ? 'text-warning' : 'text-success'}`}>{tenant.status}</span>
+              <p className="text-[10px] text-muted-foreground">{tenant.days}</p>
+            </div>
           </div>
         ))}
       </div>
     ),
   },
   {
-    id: "marketing",
-    label: "Marketing",
-    icon: Megaphone,
-    title: "Capture e converta mais leads",
+    id: "documents",
+    label: "Documentos",
+    icon: FileText,
+    title: "Documentos sempre organizados",
     description:
-      "Ferramentas de marketing integradas para captar leads qualificados. Landing pages, campanhas automáticas e métricas de conversão.",
+      "Faça upload e organize documentos por imóvel e categoria. Matrículas, IPTU, contratos e laudos acessíveis de qualquer lugar.",
     features: [
-      "Landing pages de captação",
-      "Campanhas de e-mail automáticas",
-      "Métricas de conversão em tempo real",
-      "Formulários inteligentes de contato",
+      "Upload de documentos por imóvel",
+      "Categorias: matrícula, IPTU, contrato, laudo",
+      "Visualização e download rápido",
+      "Organização automática por propriedade",
+    ],
+    mockup: (
+      <div className="space-y-3">
+        {[
+          { name: "Matrícula - Apt. Vila Mariana", category: "Matrícula", icon: Shield, size: "2.4 MB" },
+          { name: "IPTU 2024 - Casa Moema", category: "IPTU", icon: DollarSign, size: "1.1 MB" },
+          { name: "Contrato Locação - Sala", category: "Contrato", icon: FileText, size: "3.2 MB" },
+          { name: "Laudo Vistoria - Cobertura", category: "Laudo", icon: FolderOpen, size: "5.8 MB" },
+        ].map((doc) => (
+          <div key={doc.name} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border/30">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <doc.icon className="h-4 w-4 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground truncate">{doc.name}</p>
+              <p className="text-xs text-muted-foreground">{doc.category} • {doc.size}</p>
+            </div>
+            <Upload className="h-4 w-4 text-muted-foreground" />
+          </div>
+        ))}
+      </div>
+    ),
+  },
+  {
+    id: "whatsapp",
+    label: "WhatsApp Business",
+    icon: MessageCircle,
+    title: "Comunicação automatizada",
+    description:
+      "Envie lembretes de aluguel via WhatsApp automaticamente. Configure templates personalizados e dias de antecedência para cada contrato.",
+    features: [
+      "Lembretes automáticos de aluguel via WhatsApp",
+      "Templates de mensagem personalizáveis",
+      "Configuração de dias antes do vencimento",
+      "Integração com Evolution API",
     ],
     mockup: (
       <div className="space-y-3">
         <div className="p-3 bg-muted/30 rounded-lg border border-border/30">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-foreground">Funil de Conversão</span>
-            <Target className="h-4 w-4 text-primary" />
+          <div className="flex items-center gap-2 mb-3">
+            <MessageCircle className="h-4 w-4 text-success" />
+            <span className="text-sm font-medium text-foreground">Template de Lembrete</span>
           </div>
-          <div className="space-y-2">
-            {[
-              { stage: "Visitantes", value: "2.450", width: "100%" },
-              { stage: "Leads", value: "380", width: "65%" },
-              { stage: "Qualificados", value: "142", width: "40%" },
-              { stage: "Fechamentos", value: "28", width: "18%" },
-            ].map((item) => (
-              <div key={item.stage} className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground w-20">{item.stage}</span>
-                <div className="flex-1 h-5 bg-muted/50 rounded-full overflow-hidden">
-                  <div className="h-full bg-primary/30 rounded-full" style={{ width: item.width }} />
-                </div>
-                <span className="text-xs font-medium text-foreground w-12 text-right">{item.value}</span>
+          <div className="bg-success/5 border border-success/20 rounded-lg p-3 text-xs text-foreground leading-relaxed">
+            <p>Olá <span className="font-semibold text-primary">{'{inquilino}'}</span>! 🏠</p>
+            <p className="mt-1">Lembrete do aluguel do imóvel <span className="font-semibold text-primary">{'{imóvel}'}</span>.</p>
+            <p className="mt-1">📅 Vencimento: <span className="font-semibold">{'{data}'}</span></p>
+            <p>💰 Valor: <span className="font-semibold">{'{valor}'}</span></p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg border border-border/30">
+          <Clock className="h-4 w-4 text-primary" />
+          <span className="text-xs text-muted-foreground">Enviar 3 dias e 1 dia antes do vencimento</span>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: "reports",
+    label: "Relatórios",
+    icon: BarChart3,
+    title: "Relatórios profissionais",
+    description:
+      "Exporte dados do seu portfólio em múltiplos formatos. Filtros avançados por status, tipo e período para análises detalhadas.",
+    features: [
+      "Exportação em CSV, Excel (XLSX) e JSON",
+      "Relatórios em PDF com layout profissional",
+      "Filtros por status, tipo de imóvel e busca",
+      "Métricas calculadas: ROI, lucro líquido",
+    ],
+    mockup: (
+      <div className="space-y-3">
+        <div className="p-3 bg-muted/30 rounded-lg border border-border/30">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium text-foreground">Formatos Disponíveis</span>
+            <Filter className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {["CSV", "Excel", "JSON", "PDF"].map((format) => (
+              <div key={format} className="flex items-center gap-2 p-2 bg-background rounded-md border border-border/30">
+                <Download className="h-3.5 w-3.5 text-primary" />
+                <span className="text-xs font-medium text-foreground">{format}</span>
               </div>
+            ))}
+          </div>
+        </div>
+        <div className="p-3 bg-muted/30 rounded-lg border border-border/30">
+          <div className="flex items-center gap-2 mb-2">
+            <BarChart3 className="h-4 w-4 text-primary" />
+            <span className="text-xs font-medium text-foreground">Métricas Incluídas</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {["ROI", "Lucro", "Custos", "Ocupação", "Receita"].map((m) => (
+              <span key={m} className="px-2 py-1 bg-primary/10 text-primary text-[10px] rounded-full font-medium">{m}</span>
             ))}
           </div>
         </div>
@@ -191,7 +209,7 @@ const categories = [
 ];
 
 export function FeaturesSection() {
-  const [activeTab, setActiveTab] = useState("crm");
+  const [activeTab, setActiveTab] = useState("properties");
   const active = categories.find((c) => c.id === activeTab)!;
 
   return (
@@ -209,10 +227,10 @@ export function FeaturesSection() {
             Recursos Completos
           </div>
           <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
-            Tudo que sua imobiliária precisa
+            Tudo que você precisa para gerenciar seus imóveis
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Do primeiro contato ao fechamento. Uma plataforma completa para gestão imobiliária moderna.
+            Gestão de imóveis, inquilinos, documentos, WhatsApp e relatórios em uma única plataforma.
           </p>
         </motion.div>
 

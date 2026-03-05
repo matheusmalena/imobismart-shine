@@ -32,22 +32,19 @@ import { toast } from 'sonner';
 import { formatPhone } from '@/utils/formatters';
 
 const PLAN_LABELS: Record<string, string> = {
-  starter: 'Gratuito',
+  free: 'Gratuito',
+  starter: 'Starter',
   pro: 'Pro',
-  enterprise: 'Plus',
+  plus: 'Plus',
+  enterprise: 'Enterprise',
 };
 
 const PLAN_DESCRIPTIONS: Record<string, string> = {
-  starter: 'Perfeito para começar. Até 2 imóveis.',
+  free: 'Perfeito para começar. Até 2 imóveis.',
+  starter: 'Para pequenos investidores. Até 10 imóveis.',
   pro: 'Para investidores sérios. Até 25 imóveis.',
-  enterprise: 'Para grandes portfólios. Imóveis ilimitados.',
-};
-
-// Map UI plan back to database plan (for display purposes)
-const getPlanDisplayName = (plan: string): string => {
-  if (plan === 'enterprise') return 'Plus';
-  if (plan === 'pro') return 'Pro';
-  return 'Gratuito';
+  plus: 'Para grandes portfólios. Até 50 imóveis.',
+  enterprise: 'Personalizado. Imóveis ilimitados.',
 };
 
 const STATUS_LABELS: Record<string, string> = {

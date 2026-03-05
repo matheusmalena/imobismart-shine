@@ -345,7 +345,7 @@ export default function Plans() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="max-w-4xl mx-auto"
+          className="max-w-[1200px] mx-auto"
         >
           <Card>
             <CardHeader className="text-center">
@@ -359,104 +359,105 @@ export default function Plans() {
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
-                 <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-3 px-2">Recurso</th>
-                      <th className="text-center py-3 px-2">Gratuito</th>
-                      <th className="text-center py-3 px-2">Starter</th>
-                      <th className="text-center py-3 px-2">Pro</th>
-                      <th className="text-center py-3 px-2">Plus</th>
-                      <th className="text-center py-3 px-2">Enterprise</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {(() => {
-                      const getPlanLimit = (planId: string) => {
-                        const plan = activePlans.find(p => p.id === planId);
-                        if (!plan) return '—';
-                        return plan.property_limit === -1 ? 'Ilimitado' : plan.property_limit;
-                      };
-                      return (
-                        <>
-                          <tr className="transition-colors hover:bg-muted/50">
-                            <td className="py-3 px-2">Limite de imóveis</td>
-                            <td className="text-center py-3 px-2">{getPlanLimit('free')}</td>
-                            <td className="text-center py-3 px-2">{getPlanLimit('starter')}</td>
-                            <td className="text-center py-3 px-2">{getPlanLimit('pro')}</td>
-                            <td className="text-center py-3 px-2">{getPlanLimit('plus')}</td>
-                            <td className="text-center py-3 px-2">{getPlanLimit('enterprise')}</td>
-                          </tr>
-                          <tr className="transition-colors hover:bg-muted/50">
-                            <td className="py-3 px-2">Dashboard básico</td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                          </tr>
-                          <tr className="transition-colors hover:bg-muted/50">
-                            <td className="py-3 px-2">Gestão de inquilinos</td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                          </tr>
-                          <tr className="transition-colors hover:bg-muted/50">
-                            <td className="py-3 px-2">Exportação CSV/Excel/JSON</td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                          </tr>
-                          <tr className="transition-colors hover:bg-muted/50">
-                            <td className="py-3 px-2">Análise avançada</td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                          </tr>
-                          <tr className="transition-colors hover:bg-muted/50">
-                            <td className="py-3 px-2">Relatórios PDF</td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                          </tr>
-                          <tr className="transition-colors hover:bg-muted/50">
-                            <td className="py-3 px-2">Recomendações IA</td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                          </tr>
-                          <tr className="transition-colors hover:bg-muted/50">
-                            <td className="py-3 px-2">Gestão de equipe</td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                          </tr>
-                          <tr className="transition-colors hover:bg-muted/50">
-                            <td className="py-3 px-2">Suporte prioritário</td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
-                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
-                          </tr>
-                        </>
-                      );
-                    })()}
-                  </tbody>
-                </table>
+                {(() => {
+                  const getPlanLimit = (planId: string) => {
+                    const plan = activePlans.find(p => p.id === planId);
+                    if (!plan) return '—';
+                    return plan.property_limit === -1 ? 'Ilimitado' : plan.property_limit;
+                  };
+
+                  const categories = [
+                    {
+                      name: 'Geral',
+                      features: [
+                        { name: 'Limite de imóveis', values: [getPlanLimit('free'), getPlanLimit('starter'), getPlanLimit('pro'), getPlanLimit('plus'), getPlanLimit('enterprise')] },
+                        { name: 'Dashboard com métricas', values: [true, true, true, true, true] },
+                        { name: 'Aplicativo responsivo', values: [true, true, true, true, true] },
+                      ],
+                    },
+                    {
+                      name: 'Gestão',
+                      features: [
+                        { name: 'Cadastro de imóveis com fotos', values: [true, true, true, true, true] },
+                        { name: 'Gestão de inquilinos', values: [true, true, true, true, true] },
+                        { name: 'Contratos de locação', values: [true, true, true, true, true] },
+                        { name: 'Galeria de fotos por imóvel', values: [true, true, true, true, true] },
+                        { name: 'Alertas de vencimento', values: [false, true, true, true, true] },
+                        { name: 'Controle financeiro por imóvel', values: [false, true, true, true, true] },
+                      ],
+                    },
+                    {
+                      name: 'Ferramentas',
+                      features: [
+                        { name: 'Upload de documentos', values: [true, true, true, true, true] },
+                        { name: 'Exportação CSV / Excel / JSON', values: [false, false, true, true, true] },
+                        { name: 'Relatórios em PDF', values: [false, false, false, true, true] },
+                        { name: 'Ranking de performance', values: [false, false, true, true, true] },
+                        { name: 'Copiloto IA (recomendações)', values: [false, false, false, true, true] },
+                      ],
+                    },
+                    {
+                      name: 'Integrações',
+                      features: [
+                        { name: 'WhatsApp Business (lembretes)', values: [false, false, true, true, true] },
+                      ],
+                    },
+                    {
+                      name: 'Suporte',
+                      features: [
+                        { name: 'Suporte por e-mail', values: [true, true, true, true, true] },
+                        { name: 'Suporte prioritário', values: [false, false, false, false, true] },
+                        { name: 'Gestão de equipe', values: [false, false, false, false, true] },
+                      ],
+                    },
+                  ];
+
+                  const planHeaders = ['Gratuito', 'Starter', 'Pro', 'Plus', 'Enterprise'];
+
+                  return (
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left py-3 px-2 w-[220px]">Recurso</th>
+                          {planHeaders.map((name) => (
+                            <th key={name} className="text-center py-3 px-2 min-w-[90px]">{name}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {categories.map((cat) => (
+                          <>
+                            <tr key={`cat-${cat.name}`} className="bg-muted/50">
+                              <td colSpan={6} className="py-2.5 px-2 font-bold text-foreground text-xs uppercase tracking-wider">
+                                {cat.name}
+                              </td>
+                            </tr>
+                            {cat.features.map((feature) => (
+                              <tr key={feature.name} className="transition-colors hover:bg-muted/50 border-b border-border/30">
+                                <td className="py-3 px-2 text-muted-foreground">{feature.name}</td>
+                                {feature.values.map((val, idx) => (
+                                  <td key={idx} className="text-center py-3 px-2">
+                                    {typeof val === 'string' || typeof val === 'number' ? (
+                                      <span className="text-sm font-semibold text-foreground">{val}</span>
+                                    ) : val ? (
+                                      <Check className="h-4 w-4 text-primary mx-auto" />
+                                    ) : (
+                                      <X className="h-4 w-4 text-muted-foreground/40 mx-auto" />
+                                    )}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </>
+                        ))}
+                      </tbody>
+                    </table>
+                  );
+                })()}
               </div>
+              <p className="text-xs text-muted-foreground text-center mt-4">
+                * O plano Enterprise possui limites personalizados. Entre em contato para mais detalhes.
+              </p>
             </CardContent>
           </Card>
         </motion.div>
