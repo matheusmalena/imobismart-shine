@@ -150,6 +150,15 @@ export default function Index() {
   const tutorialRef = useRef<TutorialModalRef>(null);
   const [activeTab, setActiveTab] = useState("dashboard");
 
+  // Parallax for decorative blobs
+  const blob1 = useParallax({ speed: 0.15, direction: 'up' });
+  const blob2 = useParallax({ speed: 0.1, direction: 'down' });
+  // Parallax for floating badges
+  const badge1 = useParallax({ speed: 0.08, direction: 'up' });
+  const badge2 = useParallax({ speed: 0.06, direction: 'down' });
+  // Parallax for CTA blobs
+  const ctaBlob1 = useParallax({ speed: 0.12, direction: 'up' });
+  const ctaBlob2 = useParallax({ speed: 0.08, direction: 'down' });
   useEffect(() => {
     if (!loading && user) navigate("/dashboard");
   }, [user, loading, navigate]);
