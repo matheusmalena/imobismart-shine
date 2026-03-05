@@ -505,12 +505,15 @@ export default function Reports() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">Relatórios</h1>
-          <Badge variant="secondary" className="gap-1">
-            <ClipboardList className="h-3 w-3" />
-            {isPlus ? 'Plus' : 'Pro'}
-          </Badge>
+        <div>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-foreground">Relatórios</h1>
+            <Badge variant="secondary" className="gap-1">
+              <ClipboardList className="h-3 w-3" />
+              {isPlus ? 'Plus' : 'Pro'}
+            </Badge>
+          </div>
+          <p className="text-muted-foreground mt-1">Exporte dados e gere relatórios do seu portfólio</p>
         </div>
 
         {/* Global Filters Card */}
