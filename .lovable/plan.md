@@ -1,32 +1,50 @@
 
 
-## Plan: Plans Layout, Payment History Filter, and Dashboard Badge Fix
+## Plan: Fix Cakto Webhook -- Payload Format Mismatch
 
-### 1. Plans page -- all cards in one row
+### Root Cause
 
-The grid is `lg:grid-cols-4` but there are 5 plans (Free, Starter, Pro, Plus, Enterprise). Change to `lg:grid-cols-5` and increase `max-w` to `[1500px]` to match the landing page pattern.
+The webhook function is reading the wrong fields from the Cakto payload. Based on the official Cakto API documentation, the actual payload format is:
 
-Also, the FAQ card uses `max-w-3xl` and the Comparison card uses `max-w-4xl` -- standardize both to the same full width (`max-w-[1500px]`) so they match the plans grid width.
+```text
+{
+  "data": {
+    "id": "uuid-order-id",
+    "customer": { "email": "...", "name": "..." },
+    "product": { "name": "ImobiSmart Pro", "id": "uuid" },
+    "offer": { "name": "ImobiSmart Pro", "id": "abc" },
+    "amount": 49.90,
+    "status": "paid",
+    ...
+  },
+  "event": "purchase_approved",
+  "secret": "ffc72047-12a3-470c-a086-e10b429ee530"
+}
+```
 
-The Plans page still wraps in `<DashboardLayout>` (lines 131, 218, 546) instead of using the shared layout route. Remove those wrappers.
+But the current code reads:
+- `body.buyer?.email` -- WRONG, should be `body.data?.customer?.email`
+- `body.product?.name` -- WRONG, should be `body.data?.product?.name`
+- `body.transaction?.id` -- WRONG, should be `body.data?.id`
+- Header `x-webhook-secret` -- WRONG, Cakto sends secret in the body as `body.secret`
 
-**File**: `src/pages/Plans.tsx`
-- Line 256: Change `lg:grid-cols-4` to `lg:grid-cols-5`, change `max-w-[1400px]` to `max-w-[1500px]`
-- Line 349: Change `max-w-4xl` to `max-w-[1500px]` on Feature Comparison wrapper
-- Line 469: Change `max-w-3xl` to `max-w-[1500px]` on FAQ wrapper
-- Lines 131, 218, 546: Remove `<DashboardLayout>` wrappers (use shared layout route)
+### Three Critical Bugs
 
-### 2. Payment History -- show only "Ativação" events
+1. **Secret validation fails**: Code checks headers for the secret, but Cakto sends it in the JSON body (`body.secret`). This means every webhook call is rejected with 401 Unauthorized.
 
-Filter the history array to only include activation events before rendering.
+2. **Email not found**: Even if auth passed, `body.buyer?.email` is undefined because Cakto nests it under `body.data.customer.email`.
 
-**File**: `src/components/subscription/PaymentHistory.tsx`
-- After fetching `history`, filter to only show entries where the event maps to "Ativação" (i.e., `purchase_approved`, `PURCHASE_APPROVED`, `subscription_active`, `SUBSCRIPTION_ACTIVE`).
+3. **Product name not found**: `body.product?.name` is undefined, so `plan` always resolves to `"free"` instead of the correct tier.
 
-### 3. Dashboard badge not synced
+### Fix (single file change)
 
-The `getPlanLabel()` function is missing the `'starter'` case -- it falls through to `'Gratuito'`. So users on Starter see "Gratuito" badge.
+Update `supabase/functions/cakto-webhook/index.ts`:
 
-**File**: `src/pages/Dashboard.tsx`
-- Line 47: Add `case 'starter': return 'Starter';` to `getPlanLabel()`
+- Read the secret from `body.secret` instead of request headers
+- Extract email from `body.data?.customer?.email`
+- Extract product/offer name from `body.data?.product?.name` or `body.data?.offer?.name`
+- Extract amount from `body.data?.amount`
+- Extract transaction ID from `body.data?.id`
+- Add broader product name matching for "ImobiSmart" product names (e.g. "ImobiSmart Pro", "ImobiSmart Plus", "ImobiSmart -S..." for Starter)
+- Keep all existing event handling logic and fallbacks intact
 

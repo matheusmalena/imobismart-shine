@@ -109,7 +109,10 @@ export function PaymentHistory() {
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               </div>
-            ) : history && history.length > 0 ? (
+            ) : (() => {
+              const ACTIVATION_EVENTS = ['purchase_approved', 'PURCHASE_APPROVED', 'subscription_active', 'SUBSCRIPTION_ACTIVE'];
+              const filtered = history?.filter(e => ACTIVATION_EVENTS.includes(e.event)) || [];
+              return filtered.length > 0 ? (
               <div className="border rounded-lg overflow-hidden">
                 <Table>
                   <TableHeader>
@@ -121,8 +124,8 @@ export function PaymentHistory() {
                       <TableHead className="text-right">Valor</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
-                    {history.map((entry) => {
+                   <TableBody>
+                    {filtered.map((entry) => {
                       const eventLabel = EVENT_LABELS[entry.event] || entry.event;
                       const statusCfg = HISTORY_STATUS_CONFIG[entry.status] || { label: entry.status, color: 'bg-muted text-muted-foreground' };
                       return (
@@ -154,7 +157,8 @@ export function PaymentHistory() {
               <p className="text-sm text-muted-foreground text-center py-6">
                 Nenhum registro de pagamento encontrado.
               </p>
-            )}
+            );
+            })()}
           </div>
         </div>
       </CardContent>
