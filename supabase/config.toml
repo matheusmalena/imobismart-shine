@@ -21,3 +21,6 @@ verify_jwt = false
 [functions.verify-login-otp]
 verify_jwt = false
 
+[functions.delete-user-admin]
+verify_jwt = false
+

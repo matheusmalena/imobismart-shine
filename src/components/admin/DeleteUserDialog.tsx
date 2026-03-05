@@ -27,26 +27,24 @@ export function DeleteUserDialog({ userId, userName }: DeleteUserDialogProps) {
 
   const mutation = useMutation({
     mutationFn: async () => {
-      // Delete related data in order (due to foreign keys)
-      // Delete subscriptions
-      await supabase.from('subscriptions').delete().eq('user_id', userId);
-      
-      // Delete user roles
-      await supabase.from('user_roles').delete().eq('user_id', userId);
-      
-      // Delete profile
-      const { error } = await supabase.from('profiles').delete().eq('user_id', userId);
-      
-      if (error) throw error;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Não autenticado');
+
+      const response = await supabase.functions.invoke('delete-user-admin', {
+        body: { user_id: userId },
+      });
+
+      if (response.error) throw new Error(response.error.message || 'Erro ao excluir usuário');
+      if (response.data?.error) throw new Error(response.data.error);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-clients'] });
-      toast.success('Dados do usuário excluídos com sucesso!');
+      toast.success('Usuário excluído com sucesso!');
       setOpen(false);
     },
     onError: (error) => {
       console.error('Error deleting user:', error);
-      toast.error('Erro ao excluir dados do usuário. Verifique se existem dados vinculados.');
+      toast.error(`Erro ao excluir usuário: ${error.message}`);
     },
   });
 
@@ -70,7 +68,7 @@ export function DeleteUserDialog({ userId, userName }: DeleteUserDialogProps) {
               Tem certeza que deseja excluir "{userName || 'este usuário'}"?
             </p>
             <p className="font-semibold text-destructive">
-              Esta ação é irreversível e removerá todos os dados associados ao perfil.
+              Esta ação é irreversível e removerá todos os dados, imóveis, documentos e a conta do usuário permanentemente.
             </p>
           </AlertDialogDescription>
         </AlertDialogHeader>
