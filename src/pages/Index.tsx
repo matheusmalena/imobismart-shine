@@ -599,8 +599,8 @@ export default function Index() {
         className="py-24 px-4 gradient-hero relative overflow-hidden"
       >
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
+          <div ref={ctaBlob1.ref} style={ctaBlob1.style} className="absolute top-0 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
+          <div ref={ctaBlob2.ref} style={ctaBlob2.style} className="absolute bottom-0 right-1/4 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
         </div>
         <div className="container mx-auto text-center max-w-3xl">
           <motion.h2
