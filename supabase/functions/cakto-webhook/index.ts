@@ -20,10 +20,14 @@ serve(async (req) => {
       throw new Error("Missing environment variables");
     }
 
-    // Validate webhook secret if configured
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const body = await req.json();
+    console.log("Cakto webhook received:", JSON.stringify(body));
+
+    // Validate webhook secret - Cakto sends it in the JSON body as body.secret
     if (CAKTO_WEBHOOK_SECRET) {
-      const webhookSecret = req.headers.get("x-webhook-secret") || req.headers.get("authorization");
-      if (webhookSecret !== CAKTO_WEBHOOK_SECRET && webhookSecret !== `Bearer ${CAKTO_WEBHOOK_SECRET}`) {
+      const bodySecret = body.secret;
+      if (bodySecret !== CAKTO_WEBHOOK_SECRET) {
         console.error("Invalid webhook secret");
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -32,15 +36,12 @@ serve(async (req) => {
       }
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    const body = await req.json();
-    console.log("Cakto webhook received:", JSON.stringify(body));
-
-    // Cakto sends events like purchase_approved, subscription_cancelled, etc.
+    // Cakto nests data under body.data
+    const data = body.data || {};
     const event = body.event || body.type;
-    const buyerEmail = body.buyer?.email || body.customer?.email || body.email;
-    const productName = body.product?.name || body.offer?.name || "";
-    const productId = body.product?.id || body.offer?.id || "";
+    const buyerEmail = data.customer?.email || data.buyer?.email || body.email;
+    const productName = data.product?.name || data.offer?.name || "";
+    const productId = data.product?.id || data.offer?.id || "";
 
     if (!buyerEmail) {
       console.error("No buyer email found in webhook payload");
@@ -76,7 +77,7 @@ serve(async (req) => {
       plan = "plus";
     } else if (nameLower.includes("pro")) {
       plan = "pro";
-    } else if (nameLower.includes("starter")) {
+    } else if (nameLower.includes("starter") || nameLower.includes("-s")) {
       plan = "starter";
     }
 
@@ -98,8 +99,8 @@ serve(async (req) => {
 
     // Payment info
     let paymentStatus = "approved";
-    const amount = body.purchase?.price || body.transaction?.amount || body.amount || 0;
-    const transactionId = body.transaction?.id || body.subscription?.id || productId;
+    const amount = data.amount || data.price || body.amount || 0;
+    const transactionId = data.id || data.transaction?.id || productId;
 
     // Handle different event types
     if (event === "purchase_approved" || event === "PURCHASE_APPROVED" || 
