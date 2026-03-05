@@ -73,8 +73,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    // No MFA required, allow user state update
-    setMfaPending(false);
+    // No MFA required, but keep pending for OTP verification
+    // mfaPending stays true - will be cleared after OTP verification
     return { error: null, requiresMFA: false };
   };
 
