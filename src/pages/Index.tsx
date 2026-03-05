@@ -214,8 +214,8 @@ export default function Index() {
       {/* Hero - Split Layout */}
       <section className="pt-28 pb-16 lg:pt-32 lg:pb-24 px-4 relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-10 right-10 w-96 h-96 bg-primary/3 rounded-full blur-3xl" />
+          <div ref={blob1.ref} style={blob1.style} className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
+          <div ref={blob2.ref} style={blob2.style} className="absolute bottom-10 right-10 w-96 h-96 bg-primary/3 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto">
