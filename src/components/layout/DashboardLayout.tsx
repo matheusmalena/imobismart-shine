@@ -36,20 +36,13 @@ interface DashboardLayoutProps {
   children: ReactNode;
 }
 
-const mainNavigation = [
+// Removido "Configurações" - já acessível via dropdown do perfil
+const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Imóveis', href: '/properties', icon: Home },
   { name: 'Inquilinos', href: '/tenants', icon: Users },
   { name: 'Documentos', href: '/documents', icon: FileText },
-];
-
-const toolsNavigation = [
   { name: 'WhatsApp', href: '/whatsapp', icon: MessageCircle },
-  { name: 'Relatórios', href: '/reports', icon: ClipboardList },
-  { name: 'Equipe', href: '/team', icon: Users },
-];
-
-const accountNavigation = [
   { name: 'Assinatura', href: '/subscription', icon: CreditCard },
 ];
 
@@ -58,37 +51,6 @@ const adminNavigation = [
   { name: 'Planos', href: '/admin/plans', icon: CreditCard },
   { name: 'Links Enterprise', href: '/admin/enterprise-links', icon: Link2 },
 ];
-
-function NavGroup({ label, items, location, onClose }: { label: string; items: typeof mainNavigation; location: ReturnType<typeof useLocation>; onClose: () => void }) {
-  return (
-    <>
-      <div className="pt-4 pb-2 first:pt-0">
-        <p className="px-4 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50 mb-2">
-          {label}
-        </p>
-      </div>
-      {items.map((item) => {
-        const isActive = location.pathname === item.href;
-        return (
-          <Link
-            key={item.name}
-            to={item.href}
-            className={cn(
-              "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
-              isActive
-                ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
-                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-            )}
-            onClick={onClose}
-          >
-            <item.icon className="h-5 w-5" />
-            {item.name}
-          </Link>
-        );
-      })}
-    </>
-  );
-}
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
@@ -119,8 +81,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     navigate('/auth');
   };
 
-  const closeSidebar = () => setSidebarOpen(false);
-
   return (
     <div className="min-h-screen bg-background">
       <TutorialModal autoShow={false} />
@@ -129,7 +89,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm lg:hidden"
-          onClick={closeSidebar}
+          onClick={() => setSidebarOpen(false)}
         />
       )}
 
@@ -148,7 +108,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
             <button
               className="lg:hidden text-sidebar-foreground"
-              onClick={closeSidebar}
+              onClick={() => setSidebarOpen(false)}
             >
               <X className="h-5 w-5" />
             </button>
@@ -156,11 +116,84 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-            <NavGroup label="Principal" items={mainNavigation} location={location} onClose={closeSidebar} />
-            <NavGroup label="Ferramentas" items={toolsNavigation} location={location} onClose={closeSidebar} />
-            <NavGroup label="Conta" items={accountNavigation} location={location} onClose={closeSidebar} />
+            {navigation.map((item) => {
+              const isActive = location.pathname === item.href;
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                    isActive
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  )}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <item.icon className="h-5 w-5" />
+                  {item.name}
+                </Link>
+              );
+            })}
+
+            {/* Relatórios - Pro+ */}
+            <Link
+              to="/reports"
+              className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                location.pathname === '/reports'
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              )}
+              onClick={() => setSidebarOpen(false)}
+            >
+              <ClipboardList className="h-5 w-5" />
+              Relatórios
+            </Link>
+
+            {/* Equipe - Enterprise */}
+            <Link
+              to="/team"
+              className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                location.pathname === '/team'
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              )}
+              onClick={() => setSidebarOpen(false)}
+            >
+              <Users className="h-5 w-5" />
+              Equipe
+            </Link>
+
+            {/* Admin section */}
             {isAdmin && (
-              <NavGroup label="Admin" items={adminNavigation} location={location} onClose={closeSidebar} />
+              <>
+                <div className="pt-4 pb-2">
+                  <p className="px-4 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
+                    Admin
+                  </p>
+                </div>
+                {adminNavigation.map((item) => {
+                  const isActive = location.pathname === item.href;
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={cn(
+                        "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                        isActive
+                          ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
+                          : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      )}
+                      onClick={() => setSidebarOpen(false)}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      {item.name}
+                    </Link>
+                  );
+                })}
+              </>
             )}
           </nav>
 
@@ -204,7 +237,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Main content */}
       <div className="lg:pl-64">
-        {/* Top bar */}
+        {/* Top bar - Simplified without AI input */}
         <header className="sticky top-0 z-30 h-16 bg-background/80 backdrop-blur-xl border-b border-border flex items-center justify-between px-4 lg:px-8">
           <button
             className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-secondary transition-colors"
@@ -224,7 +257,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </main>
       </div>
 
-      {/* AI Copilot */}
+      {/* AI Copilot - Available on all pages */}
       <PortfolioCopilot ref={copilotRef} />
     </div>
   );

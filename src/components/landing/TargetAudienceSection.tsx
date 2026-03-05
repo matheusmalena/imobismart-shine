@@ -49,7 +49,6 @@ const itemVariants = {
 
 export function TargetAudienceSection() {
   return (
-    <section className="py-24 px-4">
     <div className="container mx-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -91,6 +90,5 @@ export function TargetAudienceSection() {
         ))}
       </motion.div>
     </div>
-    </section>
   );
 }
