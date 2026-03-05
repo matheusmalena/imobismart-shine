@@ -136,7 +136,6 @@ export default function Plans() {
         </div>
       </DashboardLayout>
     );
-    );
   }
 
   const getPlanIndex = (planId: string): number => {
