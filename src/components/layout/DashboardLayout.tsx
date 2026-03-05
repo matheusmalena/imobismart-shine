@@ -25,6 +25,7 @@ import {
   Users,
   MessageCircle,
   Link2,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -36,13 +37,20 @@ interface DashboardLayoutProps {
   children: ReactNode;
 }
 
-// Removido "Configurações" - já acessível via dropdown do perfil
-const navigation = [
+const mainNavigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Imóveis', href: '/properties', icon: Home },
   { name: 'Inquilinos', href: '/tenants', icon: Users },
   { name: 'Documentos', href: '/documents', icon: FileText },
+];
+
+const toolsNavigation = [
   { name: 'WhatsApp', href: '/whatsapp', icon: MessageCircle },
+  { name: 'Relatórios', href: '/reports', icon: ClipboardList },
+  { name: 'Equipe', href: '/team', icon: Users },
+];
+
+const accountNavigation = [
   { name: 'Assinatura', href: '/subscription', icon: CreditCard },
 ];
 
