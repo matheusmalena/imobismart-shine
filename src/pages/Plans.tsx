@@ -126,6 +126,7 @@ export default function Plans() {
     return null;
   }
 
+  if (authLoading || subscriptionLoading || plansLoading) {
     return (
       <DashboardLayout>
         <div className="space-y-8">
