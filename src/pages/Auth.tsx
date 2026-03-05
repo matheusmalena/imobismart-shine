@@ -198,11 +198,10 @@ export default function Auth() {
   };
 
   const handleMFASuccess = async () => {
-    setOtpEmail(loginEmail);
-    try {
-      await supabase.functions.invoke('send-login-otp', { body: { email: loginEmail } });
-    } catch {}
-    setAuthView('emailOTP');
+    // OTP disabled (Resend domain not verified) — go straight to dashboard
+    setMfaPending(false);
+    toast({ title: 'Bem-vindo!', description: 'Login realizado com sucesso.' });
+    navigate('/dashboard');
   };
 
   const handleMFACancel = async () => {
