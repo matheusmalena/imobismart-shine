@@ -9,6 +9,7 @@ import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { FAQSection } from "@/components/landing/FAQSection";
 import { TutorialModal, TutorialModalRef } from "@/components/onboarding/TutorialModal";
+import { SCREEN_MOCKUPS, DashboardMockup } from "@/components/landing/ScreenMockups";
 import {
   Building2,
   BarChart3,
@@ -36,7 +37,6 @@ const featureTabs = [
     title: "Visão completa do seu portfólio",
     description:
       "Métricas de receita, custos, ROI e lucro líquido calculados automaticamente. Gráficos de evolução e ranking de performance dos seus imóveis.",
-    image: "/images/tutorial-dashboard.jpg",
   },
   {
     id: "properties",
@@ -45,7 +45,6 @@ const featureTabs = [
     title: "Gestão centralizada de imóveis",
     description:
       "Cadastre todos os seus imóveis com fotos, endereço, valores e status. Filtre por tipo, status e performance com facilidade.",
-    image: "/images/tutorial-properties.jpg",
   },
   {
     id: "documents",
@@ -54,7 +53,6 @@ const featureTabs = [
     title: "Documentos organizados por imóvel",
     description:
       "Contratos, matrículas, laudos e IPTUs salvos na nuvem. Busque e acesse qualquer documento de qualquer lugar.",
-    image: "/images/tutorial-documents.jpg",
   },
   {
     id: "settings",
@@ -63,7 +61,6 @@ const featureTabs = [
     title: "Segurança e personalização",
     description:
       "Autenticação em duas etapas, gestão de equipe, planos e preferências. Tudo para você ter controle total da sua conta.",
-    image: "/images/tutorial-settings.jpg",
   },
 ];
 
@@ -134,19 +131,7 @@ export default function Index() {
     if (!loading && user) navigate("/dashboard");
   }, [user, loading, navigate]);
 
-  // Preload all feature images for instant tab switching
-  useEffect(() => {
-    const imagesToPreload = [
-      '/images/tutorial-dashboard.jpg',
-      '/images/tutorial-properties.jpg',
-      '/images/tutorial-documents.jpg',
-      '/images/tutorial-settings.jpg',
-    ];
-    imagesToPreload.forEach(src => {
-      const img = new Image();
-      img.src = src;
-    });
-  }, []);
+  // No image preloading needed - using CSS mockups
 
   const benefits = [
     "Dashboard com métricas em tempo real",
@@ -245,12 +230,7 @@ export default function Index() {
                   </div>
                   <span className="text-xs text-muted-foreground ml-2">ImobiSmart — Dashboard</span>
                 </div>
-                <img
-                  src="/images/tutorial-dashboard.jpg"
-                  alt="Dashboard do ImobiSmart mostrando métricas de imóveis"
-                  className="w-full"
-                  loading="eager"
-                />
+                <DashboardMockup />
               </div>
               {/* Floating badges */}
               <div className="absolute -bottom-4 -left-4 bg-card rounded-xl shadow-xl border border-border/50 p-3 flex items-center gap-3 animate-fade-in" style={{ animationDelay: '0.4s' }}>
@@ -388,12 +368,10 @@ export default function Index() {
                 </div>
                 <span className="text-xs text-muted-foreground ml-2">ImobiSmart</span>
               </div>
-              <img
-                src={activeFeature.image}
-                alt={activeFeature.title}
-                className="w-full transition-opacity duration-200"
-                key={activeFeature.id}
-              />
+              {(() => {
+                const MockupComponent = SCREEN_MOCKUPS[activeFeature.id];
+                return MockupComponent ? <MockupComponent /> : null;
+              })()}
             </div>
 
             {/* Description */}
