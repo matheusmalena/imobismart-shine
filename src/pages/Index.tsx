@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import { useParallax } from "@/hooks/useParallax";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LogoText } from "@/components/common/LogoText";
@@ -149,6 +150,15 @@ export default function Index() {
   const tutorialRef = useRef<TutorialModalRef>(null);
   const [activeTab, setActiveTab] = useState("dashboard");
 
+  // Parallax for decorative blobs
+  const blob1 = useParallax({ speed: 0.15, direction: 'up' });
+  const blob2 = useParallax({ speed: 0.1, direction: 'down' });
+  // Parallax for floating badges
+  const badge1 = useParallax({ speed: 0.08, direction: 'up' });
+  const badge2 = useParallax({ speed: 0.06, direction: 'down' });
+  // Parallax for CTA blobs
+  const ctaBlob1 = useParallax({ speed: 0.12, direction: 'up' });
+  const ctaBlob2 = useParallax({ speed: 0.08, direction: 'down' });
   useEffect(() => {
     if (!loading && user) navigate("/dashboard");
   }, [user, loading, navigate]);
@@ -204,8 +214,8 @@ export default function Index() {
       {/* Hero - Split Layout */}
       <section className="pt-28 pb-16 lg:pt-32 lg:pb-24 px-4 relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-10 right-10 w-96 h-96 bg-primary/3 rounded-full blur-3xl" />
+          <div ref={blob1.ref} style={blob1.style} className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
+          <div ref={blob2.ref} style={blob2.style} className="absolute bottom-10 right-10 w-96 h-96 bg-primary/3 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto">
@@ -285,10 +295,12 @@ export default function Index() {
               </div>
               {/* Floating badges */}
               <motion.div
+                ref={badge1.ref}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.8, duration: 0.4 }}
                 className="absolute -bottom-4 -left-4 bg-card rounded-xl shadow-xl border border-border/50 p-3 flex items-center gap-3"
+                style={badge1.style}
               >
                 <div className="p-2 rounded-lg bg-primary/10">
                   <BarChart3 className="h-5 w-5 text-primary" />
@@ -299,10 +311,12 @@ export default function Index() {
                 </div>
               </motion.div>
               <motion.div
+                ref={badge2.ref}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 1, duration: 0.4 }}
                 className="absolute -top-4 -right-4 bg-card rounded-xl shadow-xl border border-border/50 p-3 flex items-center gap-3"
+                style={badge2.style}
               >
                 <div className="p-2 rounded-lg bg-success/10">
                   <Building2 className="h-5 w-5 text-primary" />
@@ -585,8 +599,8 @@ export default function Index() {
         className="py-24 px-4 gradient-hero relative overflow-hidden"
       >
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
+          <div ref={ctaBlob1.ref} style={ctaBlob1.style} className="absolute top-0 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
+          <div ref={ctaBlob2.ref} style={ctaBlob2.style} className="absolute bottom-0 right-1/4 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
         </div>
         <div className="container mx-auto text-center max-w-3xl">
           <motion.h2
