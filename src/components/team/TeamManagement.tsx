@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { LockedPagePlaceholder } from '@/components/common/LockedPagePlaceholder';
 import { useOrganization, OrgMemberRole } from '@/hooks/useOrganization';
 import { useUserData } from '@/hooks/useUserData';
 import { Button } from '@/components/ui/button';
