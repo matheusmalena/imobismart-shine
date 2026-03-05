@@ -40,7 +40,6 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/plans" element={<Plans />} />
-              <Route path="/accept-invite" element={<AcceptInvite />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               
               {/* Dashboard routes - shared layout */}
@@ -54,6 +53,7 @@ const App = () => (
                 <Route path="/subscription" element={<Subscription />} />
                 <Route path="/team" element={<Team />} />
                 <Route path="/whatsapp" element={<WhatsApp />} />
+                <Route path="/accept-invite" element={<AcceptInvite />} />
                 <Route path="/admin/clients" element={<AdminClients />} />
                 <Route path="/admin/clients/:userId" element={<AdminClientDetails />} />
                 <Route path="/admin/plans" element={<AdminPlans />} />
