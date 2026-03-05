@@ -33,7 +33,7 @@ const slides: TutorialSlide[] = [
       'Visualize receitas, custos e ROI em tempo real',
       'Acompanhe a performance de cada imóvel',
     ],
-    screenshot: '/images/tutorial-dashboard.png?v=2',
+    screenshot: '/images/tutorial-dashboard.jpg',
     highlightArea: 'dashboard',
   },
   {
@@ -45,7 +45,7 @@ const slides: TutorialSlide[] = [
       'Clique no botão verde "Novo Imóvel"',
       'Preencha os dados: nome, endereço, valores',
     ],
-    screenshot: '/images/tutorial-properties.png?v=2',
+    screenshot: '/images/tutorial-properties.jpg',
     highlightArea: 'properties',
   },
   {
@@ -57,7 +57,7 @@ const slides: TutorialSlide[] = [
       'Clique em "Novo Documento" para fazer upload',
       'Escolha o imóvel e a categoria do documento',
     ],
-    screenshot: '/images/tutorial-documents.png?v=2',
+    screenshot: '/images/tutorial-documents.jpg',
     highlightArea: 'documents',
   },
   {
@@ -69,7 +69,7 @@ const slides: TutorialSlide[] = [
       'Altere entre tema claro e escuro',
       'Veja seu plano atual e faça upgrade',
     ],
-    screenshot: '/images/tutorial-settings.png?v=2',
+    screenshot: '/images/tutorial-settings.jpg',
     highlightArea: 'settings',
   },
 ];
@@ -155,12 +155,12 @@ export const TutorialModal = forwardRef<TutorialModalRef, TutorialModalProps>(
           {/* Screenshot Area */}
           <div className="relative">
             <img 
-              key={`${currentSlide}-${slide.screenshot}`}
-              src={`${slide.screenshot}${slide.screenshot.includes('?') ? '&' : '?'}t=${currentSlide}`}
+              key={currentSlide}
+              src={slide.screenshot}
               alt={slide.title}
-              className="w-full h-48 object-cover"
+              className="w-full h-56 object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
             
             {/* Step indicator */}
             <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium">

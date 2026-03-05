@@ -54,7 +54,7 @@ const featureTabs = [
     title: "Visão completa do seu portfólio",
     description:
       "Métricas de receita, custos, ROI e lucro líquido calculados automaticamente. Gráficos de evolução e ranking de performance dos seus imóveis.",
-    image: "/images/tutorial-dashboard.png",
+    image: "/images/tutorial-dashboard.jpg",
   },
   {
     id: "properties",
@@ -63,7 +63,7 @@ const featureTabs = [
     title: "Gestão centralizada de imóveis",
     description:
       "Cadastre todos os seus imóveis com fotos, endereço, valores e status. Filtre por tipo, status e performance com facilidade.",
-    image: "/images/tutorial-properties.png",
+    image: "/images/tutorial-properties.jpg",
   },
   {
     id: "documents",
@@ -72,7 +72,7 @@ const featureTabs = [
     title: "Documentos organizados por imóvel",
     description:
       "Contratos, matrículas, laudos e IPTUs salvos na nuvem. Busque e acesse qualquer documento de qualquer lugar.",
-    image: "/images/tutorial-documents.png",
+    image: "/images/tutorial-documents.jpg",
   },
   {
     id: "settings",
@@ -81,7 +81,7 @@ const featureTabs = [
     title: "Segurança e personalização",
     description:
       "Autenticação em duas etapas, gestão de equipe, planos e preferências. Tudo para você ter controle total da sua conta.",
-    image: "/images/tutorial-settings.png",
+    image: "/images/tutorial-settings.jpg",
   },
 ];
 
@@ -152,6 +152,20 @@ export default function Index() {
   useEffect(() => {
     if (!loading && user) navigate("/dashboard");
   }, [user, loading, navigate]);
+
+  // Preload all feature images for instant tab switching
+  useEffect(() => {
+    const imagesToPreload = [
+      '/images/tutorial-dashboard.jpg',
+      '/images/tutorial-properties.jpg',
+      '/images/tutorial-documents.jpg',
+      '/images/tutorial-settings.jpg',
+    ];
+    imagesToPreload.forEach(src => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, []);
 
   const benefits = [
     "Dashboard com métricas em tempo real",
@@ -263,7 +277,7 @@ export default function Index() {
                   <span className="text-xs text-muted-foreground ml-2">ImobiSmart — Dashboard</span>
                 </div>
                 <img
-                  src="/images/tutorial-dashboard.png"
+                  src="/images/tutorial-dashboard.jpg"
                   alt="Dashboard do ImobiSmart mostrando métricas de imóveis"
                   className="w-full"
                   loading="eager"
@@ -306,14 +320,14 @@ export default function Index() {
       <TutorialModal ref={tutorialRef} autoShow={false} />
 
       {/* Social Proof Bar */}
-      <section className="py-12 px-4 border-y border-border bg-muted/30">
+      <section className="py-16 px-4 border-y border-border bg-gradient-to-b from-muted/50 to-muted/20">
         <div className="container mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {[
-              { value: 200, suffix: "+", label: "Proprietários ativos" },
-              { value: 500, suffix: "+", label: "Imóveis gerenciados" },
-              { value: 99, suffix: ".9%", label: "Uptime garantido" },
-              { value: 4, suffix: ".9★", label: "Avaliação média" },
+              { value: 200, suffix: "+", label: "Proprietários ativos", icon: <Users className="h-6 w-6" /> },
+              { value: 500, suffix: "+", label: "Imóveis gerenciados", icon: <Building2 className="h-6 w-6" /> },
+              { value: 99, suffix: ".9%", label: "Uptime garantido", icon: <Shield className="h-6 w-6" /> },
+              { value: 4, suffix: ".9★", label: "Avaliação média", icon: <Sparkles className="h-6 w-6" /> },
             ].map((stat, i) => (
               <motion.div
                 key={i}
@@ -321,11 +335,15 @@ export default function Index() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
+                className="bg-card rounded-2xl border border-border/50 p-5 md:p-6 text-center shadow-sm hover:shadow-md transition-shadow"
               >
-                <p className="text-3xl md:text-4xl font-bold text-primary">
+                <div className="inline-flex p-3 rounded-xl bg-primary/10 text-primary mb-3">
+                  {stat.icon}
+                </div>
+                <p className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground tracking-tight">
                   <AnimatedCounter target={stat.value} suffix={stat.suffix} />
                 </p>
-                <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
+                <p className="text-sm text-muted-foreground mt-2 font-medium">{stat.label}</p>
               </motion.div>
             ))}
           </div>
@@ -446,7 +464,6 @@ export default function Index() {
                       src={tab.image}
                       alt={tab.title}
                       className="w-full"
-                      loading="lazy"
                     />
                   </div>
 
