@@ -61,14 +61,14 @@ export function PaymentHistory() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+      <CardHeader className="flex flex-row items-center gap-4 pb-2">
+        <div className="p-2 rounded-lg bg-primary/10">
           <Receipt className="h-5 w-5 text-primary" />
-          Informações da Assinatura
-        </CardTitle>
-        <CardDescription>
-          Detalhes do seu plano atual e histórico de pagamentos
-        </CardDescription>
+        </div>
+        <div>
+          <CardTitle className="text-base">Informações da Assinatura</CardTitle>
+          <CardDescription>Detalhes do seu plano atual e histórico de pagamentos</CardDescription>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">

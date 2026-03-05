@@ -154,14 +154,14 @@ export default function Subscription() {
           {/* Property Usage Card */}
           <motion.div variants={itemVariants}>
             <Card className="h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+              <CardHeader className="flex flex-row items-center gap-4 pb-2">
+                <div className="p-2 rounded-lg bg-primary/10">
                   <Crown className="h-5 w-5 text-primary" />
-                  Uso de Imóveis
-                </CardTitle>
-                <CardDescription>
-                  Consumo do seu plano atual
-                </CardDescription>
+                </div>
+                <div>
+                  <CardTitle className="text-base">Uso de Imóveis</CardTitle>
+                  <CardDescription>Consumo do seu plano atual</CardDescription>
+                </div>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
@@ -207,14 +207,14 @@ export default function Subscription() {
           {/* Current Plan Card */}
           <motion.div variants={itemVariants}>
             <Card className="h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+              <CardHeader className="flex flex-row items-center gap-4 pb-2">
+                <div className="p-2 rounded-lg bg-primary/10">
                   <Crown className="h-5 w-5 text-primary" />
-                  Plano Atual
-                </CardTitle>
-                <CardDescription>
-                  Detalhes da sua assinatura atual
-                </CardDescription>
+                </div>
+                <div>
+                  <CardTitle className="text-base">Plano Atual</CardTitle>
+                  <CardDescription>Detalhes da sua assinatura atual</CardDescription>
+                </div>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Plan Name */}
@@ -309,14 +309,14 @@ export default function Subscription() {
           {/* Payment Info Card */}
           <motion.div variants={itemVariants}>
             <Card className="h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+              <CardHeader className="flex flex-row items-center gap-4 pb-2">
+                <div className="p-2 rounded-lg bg-primary/10">
                   <CreditCard className="h-5 w-5 text-primary" />
-                  Pagamento
-                </CardTitle>
-                <CardDescription>
-                  Informações de pagamento e cobrança
-                </CardDescription>
+                </div>
+                <div>
+                  <CardTitle className="text-base">Pagamento</CardTitle>
+                  <CardDescription>Informações de pagamento e cobrança</CardDescription>
+                </div>
               </CardHeader>
               <CardContent className="space-y-6">
                 {isPaid ? (
@@ -374,7 +374,7 @@ export default function Subscription() {
         <motion.div variants={itemVariants}>
           <Card className="border-primary/20 bg-primary/5">
             <CardContent className="flex items-start gap-4 py-4">
-              <div className="p-2 rounded-full bg-primary/10">
+              <div className="p-2 rounded-lg bg-primary/10">
                 <Calendar className="h-5 w-5 text-primary" />
               </div>
               <div className="flex-1">
