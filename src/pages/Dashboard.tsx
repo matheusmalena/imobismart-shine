@@ -4,6 +4,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProperties } from '@/hooks/useProperties';
 import { useUserData } from '@/hooks/useUserData';
 import { useExportData } from '@/hooks/useExportData';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { DashboardMetrics } from '@/components/dashboard/DashboardMetrics';
 import { RevenueChart } from '@/components/dashboard/RevenueChart';
@@ -22,10 +26,55 @@ import {
   Users,
   MessageCircle,
   Clock,
-  ArrowRight,
   Home,
   TrendingUp,
 } from 'lucide-react';
+
+interface RecentActivityItem {
+  text: string;
+  time: string;
+  icon: typeof Building2;
+}
+
+function useRecentActivity() {
+  const { user } = useAuth();
+  
+  return useQuery({
+    queryKey: ['recent-activity', user?.id],
+    queryFn: async (): Promise<RecentActivityItem[]> => {
+      if (!user) return [];
+      
+      const [propertiesRes, tenantsRes, documentsRes] = await Promise.all([
+        supabase.from('properties').select('name, updated_at').eq('user_id', user.id).order('updated_at', { ascending: false }).limit(2),
+        supabase.from('tenants').select('name, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1),
+        supabase.from('documents').select('name, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1),
+      ]);
+      
+      const items: { text: string; timestamp: string; icon: typeof Building2 }[] = [];
+      
+      propertiesRes.data?.forEach(p => {
+        items.push({ text: `Imóvel "${p.name}" atualizado`, timestamp: p.updated_at, icon: Building2 });
+      });
+      tenantsRes.data?.forEach(t => {
+        items.push({ text: `Inquilino "${t.name}" cadastrado`, timestamp: t.created_at, icon: Users });
+      });
+      documentsRes.data?.forEach(d => {
+        items.push({ text: `Documento "${d.name}" adicionado`, timestamp: d.created_at, icon: FileText });
+      });
+      
+      return items
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, 4)
+        .map(item => ({
+          text: item.text,
+          time: formatDistanceToNow(new Date(item.timestamp), { addSuffix: true, locale: ptBR }),
+          icon: item.icon,
+        }));
+    },
+    enabled: !!user,
+    staleTime: 2 * 60 * 1000,
+  });
+}
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -33,59 +82,9 @@ export default function Dashboard() {
   const { activeProperties, isLoading, metrics } = useProperties();
   const { profile, plan, isPro, isPlus } = useUserData();
   const { exportToCSV } = useExportData();
+  const { data: recentActivity = [] } = useRecentActivity();
   
   const firstName = profile?.full_name?.split(' ')[0] || 'Investidor';
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/auth');
-    }
-  }, [user, authLoading, navigate]);
-
-  if (authLoading || isLoading) {
-    return (
-      <DashboardLayout>
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-28 rounded-xl" />
-            ))}
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Skeleton className="h-[350px] rounded-xl" />
-            <Skeleton className="h-[350px] rounded-xl" />
-          </div>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  const handleExportData = () => {
-    exportToCSV(activeProperties);
-  };
-
-  const getPlanLabel = () => {
-    switch (plan) {
-      case 'enterprise': return 'Enterprise';
-      case 'plus': return 'Plus';
-      case 'pro': return 'Pro';
-      default: return 'Gratuito';
-    }
-  };
-
-  const quickActions = [
-    { label: 'Novo Imóvel', icon: Home, href: '/properties', color: 'text-primary' },
-    { label: 'Inquilinos', icon: Users, href: '/tenants', color: 'text-info' },
-    { label: 'Documentos', icon: FileText, href: '/documents', color: 'text-success' },
-    { label: 'WhatsApp', icon: MessageCircle, href: '/whatsapp', color: 'text-warning' },
-  ];
-
-  const recentActivity = [
-    { text: 'Imóvel "Apt. Vila Mariana" atualizado', time: 'Agora', icon: Building2 },
-    { text: 'Novo documento adicionado', time: '2h atrás', icon: FileText },
-    { text: 'Inquilino cadastrado', time: '5h atrás', icon: Users },
-    { text: 'Receita mensal registrada', time: '1d atrás', icon: TrendingUp },
-  ];
 
   return (
     <DashboardLayout>
