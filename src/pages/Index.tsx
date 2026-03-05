@@ -10,6 +10,7 @@ import { SocialProofBar } from "@/components/landing/SocialProofBar";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { PlatformDemo } from "@/components/landing/PlatformDemo";
 import { BenefitsSection } from "@/components/landing/BenefitsSection";
+import { TargetAudienceSection } from "@/components/landing/TargetAudienceSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { FAQSection } from "@/components/landing/FAQSection";
@@ -72,6 +73,7 @@ export default function Index() {
       <FeaturesSection />
       <PlatformDemo />
       <BenefitsSection />
+      <TargetAudienceSection />
       <TestimonialsSection />
       <PricingSection />
       <FAQSection />
