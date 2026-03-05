@@ -1,17 +1,22 @@
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { useAuth } from "@/contexts/AuthContext";
-import { useSubscription } from "@/hooks/useSubscription";
-import { useUserData } from "@/hooks/useUserData";
-import { useProperties } from "@/hooks/useProperties";
-import { usePlans } from "@/hooks/usePlans";
-import { supabase } from "@/integrations/supabase/client";
-import DashboardLayout from "@/components/layout/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/hooks/useSubscription';
+import { useUserData } from '@/hooks/useUserData';
+import { useProperties } from '@/hooks/useProperties';
+import { usePlans } from '@/hooks/usePlans';
+import { supabase } from '@/integrations/supabase/client';
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,9 +26,19 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Crown, Check, X, Sparkles, FileText, HelpCircle, ArrowLeft, Loader2, AlertTriangle } from "lucide-react";
-import { toast } from "sonner";
+} from '@/components/ui/alert-dialog';
+import {
+  Crown,
+  Check,
+  X,
+  Sparkles,
+  FileText,
+  HelpCircle,
+  ArrowLeft,
+  Loader2,
+  AlertTriangle,
+} from 'lucide-react';
+import { toast } from 'sonner';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -50,29 +65,24 @@ const itemVariants = {
 
 const FAQ_ITEMS = [
   {
-    question: "Posso trocar de plano a qualquer momento?",
-    answer:
-      "Sim! Você pode fazer upgrade ou downgrade do seu plano quando quiser. As alterações são aplicadas imediatamente.",
+    question: 'Posso trocar de plano a qualquer momento?',
+    answer: 'Sim! Você pode fazer upgrade ou downgrade do seu plano quando quiser. As alterações são aplicadas imediatamente.',
   },
   {
-    question: "Cada plano tem um limite fixo de imóveis?",
-    answer:
-      "Sim. Cada plano possui um limite fixo: Free (2), Starter (10), Pro (25), Plus (50). Não há cobrança por excedente. Se precisar de mais de 50 imóveis, entre em contato para o plano Enterprise.",
+    question: 'Cada plano tem um limite fixo de imóveis?',
+    answer: 'Sim. Cada plano possui um limite fixo: Free (2), Starter (10), Pro (25), Plus (50). Não há cobrança por excedente. Se precisar de mais de 50 imóveis, entre em contato para o plano Enterprise.',
   },
   {
-    question: "Quais formas de pagamento são aceitas?",
-    answer:
-      "Aceitamos cartão de crédito, débito, Pix e boleto bancário. Os pagamentos são processados de forma segura pela Cakto.",
+    question: 'Quais formas de pagamento são aceitas?',
+    answer: 'Aceitamos cartão de crédito, débito, Pix e boleto bancário. Os pagamentos são processados de forma segura pela Cakto.',
   },
   {
-    question: "O que acontece se eu cancelar meu plano?",
-    answer:
-      "Ao cancelar, você mantém acesso aos recursos até o fim do período pago. Depois, sua conta volta para o plano Gratuito com limite de 2 imóveis. Os imóveis excedentes serão arquivados automaticamente.",
+    question: 'O que acontece se eu cancelar meu plano?',
+    answer: 'Ao cancelar, você mantém acesso aos recursos até o fim do período pago. Depois, sua conta volta para o plano Gratuito com limite de 2 imóveis. Os imóveis excedentes serão arquivados automaticamente.',
   },
   {
-    question: "Como funciona o plano Enterprise?",
-    answer:
-      "O plano Enterprise é para quem precisa de mais de 50 imóveis. O limite é personalizado e a contratação é feita via atendimento direto. Entre em contato pelo WhatsApp.",
+    question: 'Como funciona o plano Enterprise?',
+    answer: 'O plano Enterprise é para quem precisa de mais de 50 imóveis. O limite é personalizado e a contratação é feita via atendimento direto. Entre em contato pelo WhatsApp.',
   },
 ];
 
@@ -97,26 +107,26 @@ export default function Plans() {
 
   // Handle return from checkout
   useEffect(() => {
-    const status = searchParams.get("status");
-    const plan = searchParams.get("plan");
-
-    if (status === "success" && plan) {
-      toast.success("Pagamento em processamento! Seu plano será ativado em breve.", {
-        description: "Você receberá uma confirmação quando o pagamento for aprovado.",
+    const status = searchParams.get('status');
+    const plan = searchParams.get('plan');
+    
+    if (status === 'success' && plan) {
+      toast.success('Pagamento em processamento! Seu plano será ativado em breve.', {
+        description: 'Você receberá uma confirmação quando o pagamento for aprovado.',
         duration: 6000,
       });
       refetchSubscription();
-      navigate("/plans", { replace: true });
+      navigate('/plans', { replace: true });
     }
   }, [searchParams, navigate, refetchSubscription]);
 
   // Redirect if not authenticated
   if (!authLoading && !user) {
-    navigate("/auth");
+    navigate('/auth');
     return null;
   }
 
-  if (isLoading) {
+  if (authLoading || subscriptionLoading || plansLoading) {
     return (
       <DashboardLayout>
         <div className="space-y-8">
@@ -130,30 +140,30 @@ export default function Plans() {
   }
 
   const getPlanIndex = (planId: string): number => {
-    const order = ["free", "starter", "pro", "plus", "enterprise"];
+    const order = ['free', 'starter', 'pro', 'plus', 'enterprise'];
     return order.indexOf(planId);
   };
 
   const getCtaText = (planId: string, isCurrentPlan: boolean, isUpgrade: boolean, isDowngrade: boolean) => {
-    if (isCurrentPlan) return "Plano Atual";
-    if (planId === "enterprise") return "Falar com Vendas";
-    if (isUpgrade) return "Fazer Upgrade";
-    if (isDowngrade) return "Fazer Downgrade";
-    return "Selecionar";
+    if (isCurrentPlan) return 'Plano Atual';
+    if (planId === 'enterprise') return 'Falar com Vendas';
+    if (isUpgrade) return 'Fazer Upgrade';
+    if (isDowngrade) return 'Fazer Downgrade';
+    return 'Selecionar';
   };
 
   const handleDowngradeToFree = async () => {
     setIsDowngrading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("downgrade-to-free");
+      const { data, error } = await supabase.functions.invoke('downgrade-to-free');
 
       if (error) {
-        throw new Error(error.message || "Erro ao fazer downgrade");
+        throw new Error(error.message || 'Erro ao fazer downgrade');
       }
 
       const result = data as { success: boolean; archived_count: number; kept_count: number; message: string };
 
-      toast.success("Downgrade realizado!", {
+      toast.success('Downgrade realizado!', {
         description: result.message,
         duration: 6000,
       });
@@ -161,9 +171,9 @@ export default function Plans() {
       refetchSubscription();
       setShowDowngradeDialog(false);
     } catch (error) {
-      console.error("Downgrade error:", error);
-      toast.error("Erro ao fazer downgrade", {
-        description: error instanceof Error ? error.message : "Tente novamente.",
+      console.error('Downgrade error:', error);
+      toast.error('Erro ao fazer downgrade', {
+        description: error instanceof Error ? error.message : 'Tente novamente.',
       });
     } finally {
       setIsDowngrading(false);
@@ -172,33 +182,33 @@ export default function Plans() {
 
   const handleSelectPlan = async (planId: string) => {
     // Enterprise - WhatsApp contact
-    if (planId === "enterprise") {
-      window.open("https://wa.me/5511999999999?text=Olá! Tenho interesse no plano Enterprise do ImobiSmart.", "_blank");
+    if (planId === 'enterprise') {
+      window.open('https://wa.me/5511999999999?text=Olá! Tenho interesse no plano Enterprise do ImobiSmart.', '_blank');
       return;
     }
 
     // Free - downgrade with archiving
-    if (planId === "free") {
+    if (planId === 'free') {
       setShowDowngradeDialog(true);
       return;
     }
 
     // Starter / Pro / Plus - redirect to Cakto checkout URL from plans table
     setLoadingPlan(planId);
-
+    
     try {
-      const plan = activePlans.find((p) => p.id === planId);
+      const plan = activePlans.find(p => p.id === planId);
       const checkoutUrl = (plan as any)?.checkout_url;
 
       if (!checkoutUrl) {
-        throw new Error("Link de checkout não configurado para este plano. Entre em contato com o suporte.");
+        throw new Error('Link de checkout não configurado para este plano. Entre em contato com o suporte.');
       }
 
       window.location.href = checkoutUrl;
     } catch (error) {
-      console.error("Checkout error:", error);
-      toast.error("Erro ao iniciar pagamento", {
-        description: error instanceof Error ? error.message : "Tente novamente em alguns instantes.",
+      console.error('Checkout error:', error);
+      toast.error('Erro ao iniciar pagamento', {
+        description: error instanceof Error ? error.message : 'Tente novamente em alguns instantes.',
       });
       setLoadingPlan(null);
     }
@@ -209,7 +219,11 @@ export default function Plans() {
       <div className="space-y-8 pb-8">
         {/* Navigation Buttons */}
         <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={() => navigate("/subscription")} className="gap-2">
+          <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/subscription')} className="gap-2">
             <Crown className="h-4 w-4" />
             Minha Assinatura
           </Button>
@@ -239,7 +253,7 @@ export default function Plans() {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-[1400px] mx-auto"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 max-w-[1500px] mx-auto"
         >
           {activePlans.map((plan) => {
             const isCurrentPlan = plan.id === currentPlan;
@@ -257,8 +271,8 @@ export default function Plans() {
                   isCurrentPlan
                     ? "border-primary shadow-lg shadow-primary/15 ring-2 ring-primary/20 lg:scale-105 z-10"
                     : plan.is_highlighted && !isCurrentPlan
-                      ? "border-primary/50 shadow-lg shadow-primary/10 ring-1 ring-primary/30"
-                      : "border-border/50 shadow-card hover:border-primary/30"
+                    ? "border-primary/50 shadow-lg shadow-primary/10 ring-1 ring-primary/30"
+                    : "border-border/50 shadow-card hover:border-primary/30"
                 }`}
               >
                 {/* Badges */}
@@ -284,9 +298,9 @@ export default function Plans() {
                   <p className="text-xs text-muted-foreground mb-4 min-h-[32px]">{plan.description}</p>
                   <div className="flex items-baseline justify-center gap-1">
                     <span className="text-3xl md:text-4xl font-bold text-foreground">
-                      {plan.price_label.includes("consulta") ? plan.price_label : `R$ ${plan.price}`}
+                      {plan.price_label.includes('consulta') ? plan.price_label : `R$ ${plan.price}`}
                     </span>
-                    {!plan.price_label.includes("consulta") && plan.price > 0 && (
+                    {!plan.price_label.includes('consulta') && plan.price > 0 && (
                       <span className="text-sm text-muted-foreground">/mês</span>
                     )}
                   </div>
@@ -307,7 +321,7 @@ export default function Plans() {
                 {/* CTA Button */}
                 <Button
                   className={`w-full mt-auto ${isCurrentPlan || plan.is_highlighted ? "shadow-lg" : ""}`}
-                  variant={isCurrentPlan ? "secondary" : plan.is_highlighted || isUpgrade ? "default" : "outline"}
+                  variant={isCurrentPlan ? "secondary" : (plan.is_highlighted || isUpgrade) ? "default" : "outline"}
                   size="lg"
                   disabled={isCurrentPlan || loadingPlan === plan.id}
                   onClick={() => !isCurrentPlan && handleSelectPlan(plan.id)}
@@ -319,9 +333,7 @@ export default function Plans() {
                   ) : isUpgrade && !isCurrentPlan ? (
                     <Crown className="mr-2 h-4 w-4" />
                   ) : null}
-                  {loadingPlan === plan.id
-                    ? "Processando..."
-                    : getCtaText(plan.id, isCurrentPlan, isUpgrade, isDowngrade)}
+                  {loadingPlan === plan.id ? 'Processando...' : getCtaText(plan.id, isCurrentPlan, isUpgrade, isDowngrade)}
                 </Button>
               </motion.div>
             );
@@ -333,7 +345,7 @@ export default function Plans() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="max-w-4xl mx-auto"
+          className="max-w-[1500px] mx-auto"
         >
           <Card>
             <CardHeader className="text-center">
@@ -341,11 +353,13 @@ export default function Plans() {
                 <FileText className="h-5 w-5 text-primary" />
                 Comparativo de Recursos
               </CardTitle>
-              <CardDescription>Veja todos os recursos disponíveis em cada plano</CardDescription>
+              <CardDescription>
+                Veja todos os recursos disponíveis em cada plano
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b">
                       <th className="text-left py-3 px-2">Recurso</th>
@@ -359,163 +373,83 @@ export default function Plans() {
                   <tbody className="divide-y">
                     {(() => {
                       const getPlanLimit = (planId: string) => {
-                        const plan = activePlans.find((p) => p.id === planId);
-                        if (!plan) return "—";
-                        return plan.property_limit === -1 ? "Ilimitado" : plan.property_limit;
+                        const plan = activePlans.find(p => p.id === planId);
+                        if (!plan) return '—';
+                        return plan.property_limit === -1 ? 'Ilimitado' : plan.property_limit;
                       };
                       return (
                         <>
                           <tr className="transition-colors hover:bg-muted/50">
                             <td className="py-3 px-2">Limite de imóveis</td>
-                            <td className="text-center py-3 px-2">{getPlanLimit("free")}</td>
-                            <td className="text-center py-3 px-2">{getPlanLimit("starter")}</td>
-                            <td className="text-center py-3 px-2">{getPlanLimit("pro")}</td>
-                            <td className="text-center py-3 px-2">{getPlanLimit("plus")}</td>
-                            <td className="text-center py-3 px-2">{getPlanLimit("enterprise")}</td>
+                            <td className="text-center py-3 px-2">{getPlanLimit('free')}</td>
+                            <td className="text-center py-3 px-2">{getPlanLimit('starter')}</td>
+                            <td className="text-center py-3 px-2">{getPlanLimit('pro')}</td>
+                            <td className="text-center py-3 px-2">{getPlanLimit('plus')}</td>
+                            <td className="text-center py-3 px-2">{getPlanLimit('enterprise')}</td>
                           </tr>
                           <tr className="transition-colors hover:bg-muted/50">
                             <td className="py-3 px-2">Dashboard básico</td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                           </tr>
                           <tr className="transition-colors hover:bg-muted/50">
                             <td className="py-3 px-2">Gestão de inquilinos</td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                           </tr>
                           <tr className="transition-colors hover:bg-muted/50">
                             <td className="py-3 px-2">Exportação CSV/Excel/JSON</td>
-                            <td className="text-center py-3 px-2">
-                              <X className="h-4 w-4 text-destructive mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <X className="h-4 w-4 text-destructive mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                           </tr>
                           <tr className="transition-colors hover:bg-muted/50">
                             <td className="py-3 px-2">Análise avançada</td>
-                            <td className="text-center py-3 px-2">
-                              <X className="h-4 w-4 text-destructive mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <X className="h-4 w-4 text-destructive mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                           </tr>
                           <tr className="transition-colors hover:bg-muted/50">
                             <td className="py-3 px-2">Relatórios PDF</td>
-                            <td className="text-center py-3 px-2">
-                              <X className="h-4 w-4 text-destructive mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <X className="h-4 w-4 text-destructive mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <X className="h-4 w-4 text-destructive mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                           </tr>
                           <tr className="transition-colors hover:bg-muted/50">
                             <td className="py-3 px-2">Recomendações IA</td>
-                            <td className="text-center py-3 px-2">
-                              <X className="h-4 w-4 text-destructive mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <X className="h-4 w-4 text-destructive mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <X className="h-4 w-4 text-destructive mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                           </tr>
                           <tr className="transition-colors hover:bg-muted/50">
                             <td className="py-3 px-2">Gestão de equipe</td>
-                            <td className="text-center py-3 px-2">
-                              <X className="h-4 w-4 text-destructive mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <X className="h-4 w-4 text-destructive mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <X className="h-4 w-4 text-destructive mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <X className="h-4 w-4 text-destructive mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                           </tr>
                           <tr className="transition-colors hover:bg-muted/50">
                             <td className="py-3 px-2">Suporte prioritário</td>
-                            <td className="text-center py-3 px-2">
-                              <X className="h-4 w-4 text-destructive mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <X className="h-4 w-4 text-destructive mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <X className="h-4 w-4 text-destructive mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <X className="h-4 w-4 text-destructive mx-auto" />
-                            </td>
-                            <td className="text-center py-3 px-2">
-                              <Check className="h-4 w-4 text-primary mx-auto" />
-                            </td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><X className="h-4 w-4 text-destructive mx-auto" /></td>
+                            <td className="text-center py-3 px-2"><Check className="h-4 w-4 text-primary mx-auto" /></td>
                           </tr>
                         </>
                       );
@@ -532,7 +466,7 @@ export default function Plans() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
-          className="max-w-3xl mx-auto"
+          className="max-w-[1500px] mx-auto"
         >
           <Card>
             <CardHeader className="text-center">
@@ -540,14 +474,20 @@ export default function Plans() {
                 <HelpCircle className="h-5 w-5 text-primary" />
                 Perguntas Frequentes
               </CardTitle>
-              <CardDescription>Tire suas dúvidas sobre os planos e pagamentos</CardDescription>
+              <CardDescription>
+                Tire suas dúvidas sobre os planos e pagamentos
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Accordion type="single" collapsible className="w-full">
                 {FAQ_ITEMS.map((item, index) => (
                   <AccordionItem key={index} value={`item-${index}`}>
-                    <AccordionTrigger className="text-left">{item.question}</AccordionTrigger>
-                    <AccordionContent className="text-muted-foreground">{item.answer}</AccordionContent>
+                    <AccordionTrigger className="text-left">
+                      {item.question}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-muted-foreground">
+                      {item.answer}
+                    </AccordionContent>
                   </AccordionItem>
                 ))}
               </Accordion>
@@ -566,24 +506,20 @@ export default function Plans() {
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-3">
               <p>
-                Ao fazer downgrade para o plano Gratuito, seu limite de imóveis será reduzido para{" "}
-                <strong>{freeLimit} imóveis</strong>.
+                Ao fazer downgrade para o plano Gratuito, seu limite de imóveis será reduzido para <strong>{freeLimit} imóveis</strong>.
               </p>
               {excessCount > 0 ? (
                 <div className="p-3 rounded-lg bg-warning/10 border border-warning/30 text-warning-foreground">
                   <p className="font-medium">
-                    ⚠️ Você possui {activeCount} imóveis ativos. {excessCount}{" "}
-                    {excessCount === 1 ? "imóvel será arquivado" : "imóveis serão arquivados"} automaticamente.
+                    ⚠️ Você possui {activeCount} imóveis ativos. {excessCount} {excessCount === 1 ? 'imóvel será arquivado' : 'imóveis serão arquivados'} automaticamente.
                   </p>
                   <p className="text-sm mt-1 text-muted-foreground">
-                    Os {freeLimit} imóveis mais recentes serão mantidos. Você pode desarquivar os demais fazendo upgrade
-                    novamente.
+                    Os {freeLimit} imóveis mais recentes serão mantidos. Você pode desarquivar os demais fazendo upgrade novamente.
                   </p>
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  Você possui {activeCount} {activeCount === 1 ? "imóvel ativo" : "imóveis ativos"}, dentro do limite.
-                  Nenhum imóvel será arquivado.
+                  Você possui {activeCount} {activeCount === 1 ? 'imóvel ativo' : 'imóveis ativos'}, dentro do limite. Nenhum imóvel será arquivado.
                 </p>
               )}
             </AlertDialogDescription>
@@ -601,7 +537,7 @@ export default function Plans() {
                   Processando...
                 </>
               ) : (
-                "Confirmar Downgrade"
+                'Confirmar Downgrade'
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
