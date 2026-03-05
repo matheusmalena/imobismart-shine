@@ -6,36 +6,36 @@
 
 @layer base {
   :root {
-    /* ImobiSmart - Deep Teal Monochromatic Professional Theme */
-    --background: 180 15% 98%;
-    --foreground: 200 25% 15%;
+    /* ImobiSmart - Deep Blue Corporate Proptech Theme */
+    --background: 220 20% 98%;
+    --foreground: 222 30% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 200 25% 15%;
+    --card-foreground: 222 30% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 200 25% 15%;
+    --popover-foreground: 222 30% 12%;
 
-    /* Primary - Deep Teal */
-    --primary: 175 65% 35%;
+    /* Primary - Deep Blue */
+    --primary: 220 70% 45%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Lighter Teal */
-    --secondary: 175 45% 92%;
-    --secondary-foreground: 175 65% 25%;
+    /* Secondary - Lighter Blue */
+    --secondary: 220 45% 93%;
+    --secondary-foreground: 220 70% 30%;
 
-    --muted: 200 15% 92%;
-    --muted-foreground: 200 15% 45%;
+    --muted: 220 15% 92%;
+    --muted-foreground: 220 15% 45%;
 
-    --accent: 175 50% 94%;
-    --accent-foreground: 175 65% 30%;
+    --accent: 220 50% 94%;
+    --accent-foreground: 220 70% 35%;
 
     --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 200 15% 88%;
-    --input: 200 15% 88%;
-    --ring: 175 65% 35%;
+    --border: 220 15% 88%;
+    --input: 220 15% 88%;
+    --ring: 220 70% 45%;
 
     --radius: 0.75rem;
 
@@ -49,37 +49,37 @@
     --info: 200 70% 50%;
     --info-foreground: 0 0% 100%;
 
-    /* Gradients - Teal based */
-    --gradient-primary: linear-gradient(135deg, hsl(175, 65%, 35%) 0%, hsl(190, 70%, 30%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(175, 50%, 40%) 0%, hsl(190, 60%, 35%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(175, 50%, 25%) 0%, hsl(190, 60%, 20%) 50%, hsl(200, 50%, 18%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%) 0%, hsl(180, 20%, 98%) 100%);
-    --gradient-surface: linear-gradient(180deg, hsl(180, 20%, 97%) 0%, hsl(180, 20%, 94%) 100%);
+    /* Gradients - Deep Blue based */
+    --gradient-primary: linear-gradient(135deg, hsl(220, 70%, 45%) 0%, hsl(240, 60%, 40%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(220, 55%, 50%) 0%, hsl(240, 50%, 45%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(220, 55%, 20%) 0%, hsl(235, 50%, 18%) 50%, hsl(245, 45%, 15%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%) 0%, hsl(220, 20%, 98%) 100%);
+    --gradient-surface: linear-gradient(180deg, hsl(220, 20%, 97%) 0%, hsl(220, 20%, 94%) 100%);
 
     /* Shadows */
     --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.08), 0 1px 2px -1px hsl(0 0% 0% / 0.08);
     --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.08), 0 2px 4px -2px hsl(0 0% 0% / 0.08);
     --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.08), 0 4px 6px -4px hsl(0 0% 0% / 0.08);
     --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.08), 0 8px 10px -6px hsl(0 0% 0% / 0.08);
-    --shadow-glow: 0 0 20px hsl(175 65% 35% / 0.25);
-    --shadow-card: 0 1px 3px hsl(200 30% 10% / 0.04), 0 4px 12px hsl(200 30% 10% / 0.06);
+    --shadow-glow: 0 0 20px hsl(220 70% 45% / 0.25);
+    --shadow-card: 0 1px 3px hsl(220 30% 10% / 0.04), 0 4px 12px hsl(220 30% 10% / 0.06);
 
     /* Sidebar */
-    --sidebar-background: 200 30% 12%;
+    --sidebar-background: 222 30% 10%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 175 65% 45%;
+    --sidebar-primary: 220 70% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 175 50% 50%;
+    --sidebar-accent: 220 50% 55%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 200 20% 20%;
-    --sidebar-ring: 175 65% 45%;
+    --sidebar-border: 222 25% 18%;
+    --sidebar-ring: 220 70% 50%;
 
     /* Chart Colors */
-    --chart-1: 175 65% 40%;
-    --chart-2: 190 70% 35%;
-    --chart-3: 160 70% 40%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 240 60% 45%;
+    --chart-3: 200 65% 50%;
     --chart-4: 38 92% 55%;
-    --chart-5: 200 60% 45%;
+    --chart-5: 160 60% 45%;
     --sidebar: 0 0% 100%;
     --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
     --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
@@ -91,62 +91,62 @@
   }
 
   .dark {
-    --background: 200 25% 8%;
+    --background: 222 30% 7%;
     --foreground: 0 0% 98%;
 
-    --card: 200 25% 12%;
+    --card: 222 28% 11%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 200 25% 14%;
+    --popover: 222 28% 13%;
     --popover-foreground: 0 0% 98%;
 
-    /* Primary - Deep Teal */
-    --primary: 175 60% 45%;
-    --primary-foreground: 200 25% 8%;
+    /* Primary - Deep Blue */
+    --primary: 220 65% 55%;
+    --primary-foreground: 222 30% 7%;
 
-    /* Secondary - Lighter Teal */
-    --secondary: 175 40% 20%;
-    --secondary-foreground: 175 50% 75%;
+    /* Secondary */
+    --secondary: 220 40% 18%;
+    --secondary-foreground: 220 50% 75%;
 
-    --muted: 200 20% 20%;
-    --muted-foreground: 200 15% 65%;
+    --muted: 222 20% 18%;
+    --muted-foreground: 220 15% 65%;
 
-    --accent: 175 35% 18%;
-    --accent-foreground: 175 55% 60%;
+    --accent: 220 35% 16%;
+    --accent-foreground: 220 55% 65%;
 
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 200 20% 22%;
-    --input: 200 20% 22%;
-    --ring: 175 60% 45%;
+    --border: 222 20% 20%;
+    --input: 222 20% 20%;
+    --ring: 220 65% 55%;
 
     --success: 160 65% 45%;
     --warning: 38 90% 55%;
     --info: 200 65% 55%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(175, 60%, 40%) 0%, hsl(190, 65%, 35%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(200, 30%, 6%) 0%, hsl(190, 40%, 12%) 50%, hsl(175, 35%, 15%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(200, 25%, 14%) 0%, hsl(200, 25%, 10%) 100%);
-    --gradient-surface: linear-gradient(180deg, hsl(200, 25%, 8%) 0%, hsl(200, 25%, 6%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(220, 65%, 50%) 0%, hsl(240, 55%, 45%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(222, 30%, 5%) 0%, hsl(230, 40%, 10%) 50%, hsl(220, 35%, 13%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(222, 28%, 13%) 0%, hsl(222, 28%, 9%) 100%);
+    --gradient-surface: linear-gradient(180deg, hsl(222, 30%, 7%) 0%, hsl(222, 30%, 5%) 100%);
 
-    --shadow-glow: 0 0 25px hsl(175 60% 45% / 0.3);
+    --shadow-glow: 0 0 25px hsl(220 65% 55% / 0.3);
     --shadow-card: 0 1px 3px hsl(0 0% 0% / 0.25), 0 4px 12px hsl(0 0% 0% / 0.35);
 
-    --sidebar-background: 200 30% 6%;
+    --sidebar-background: 222 30% 5%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-accent: 175 50% 50%;
-    --sidebar-border: 200 20% 18%;
-    --chart-1: 175 60% 50%;
-    --chart-2: 190 65% 45%;
-    --chart-3: 160 65% 50%;
+    --sidebar-accent: 220 50% 55%;
+    --sidebar-border: 222 20% 16%;
+    --chart-1: 220 65% 55%;
+    --chart-2: 240 55% 50%;
+    --chart-3: 200 60% 55%;
     --chart-4: 38 90% 60%;
-    --chart-5: 200 55% 55%;
-    --sidebar: 200 25% 12%;
-    --sidebar-primary: 175 60% 45%;
-    --sidebar-primary-foreground: 200 25% 8%;
+    --chart-5: 160 55% 55%;
+    --sidebar: 222 28% 11%;
+    --sidebar-primary: 220 65% 55%;
+    --sidebar-primary-foreground: 222 30% 7%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-ring: 175 60% 45%;
+    --sidebar-ring: 220 65% 55%;
     --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
     --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
     --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
