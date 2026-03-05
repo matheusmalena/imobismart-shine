@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+
 import { useAuth } from '@/contexts/AuthContext';
 import { PageTransition } from '@/components/PageTransition';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,8 +13,7 @@ export default function WhatsApp() {
   const [activeTab, setActiveTab] = useState('send');
 
   return (
-    <DashboardLayout>
-      <PageTransition>
+    <PageTransition>
       {!user ? (
         <div className="space-y-6">
           <Skeleton className="h-10 w-64" />
@@ -53,7 +52,6 @@ export default function WhatsApp() {
         </Tabs>
       </div>
       )}
-      </PageTransition>
-    </DashboardLayout>
+    </PageTransition>
   );
 }

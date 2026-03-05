@@ -6,7 +6,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useUserData } from '@/hooks/useUserData';
 import { usePropertyLimit } from '@/hooks/usePropertyLimit';
 import { supabase } from '@/integrations/supabase/client';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+
 import { PaymentHistory } from '@/components/subscription/PaymentHistory';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -116,7 +116,7 @@ export default function Subscription() {
   const isPaid = currentPlan === 'starter' || currentPlan === 'pro' || currentPlan === 'plus' || currentPlan === 'enterprise';
 
   return (
-    <DashboardLayout>
+    <>
       {isLoading ? (
         <div className="space-y-6">
           <Skeleton className="h-8 w-48" />
@@ -383,6 +383,6 @@ export default function Subscription() {
         </motion.div>
       </motion.div>
       )}
-    </DashboardLayout>
+    </>
   );
 }
