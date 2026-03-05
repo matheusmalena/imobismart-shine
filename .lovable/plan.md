@@ -1,55 +1,63 @@
 
 
-# Auditoria Final: Landing Page vs Funcionalidades Reais + Dashboard
+# Adicionar Status "Vendido" + Outras Comodidades como Tags
 
-## Problemas Identificados
+## 1. Adicionar "Vendido" ao status do imovel
 
-### Landing Page
-1. **HeroSection mockup mostra "Leads: 156"** (linha 84) -- CRM/Leads NAO existe. Deve mostrar "Inquilinos" com dados coerentes.
-2. **BenefitsSection** -- Os 4 beneficios estao corretos, MAS as imagens de ilustracao sao apenas icones gigantes (linha 70-71). Precisa de mockups visuais reais (mini-interfaces) como na FeaturesSection.
-3. **TargetAudienceSection** -- Componente existe mas NAO esta sendo usado no Index.tsx. Deveria estar na landing page.
-4. **FinalCTA** -- Texto "centenas de imobiliarias e corretores" e exagerado para uma startup. Ajustar para algo mais realista.
-5. **SocialProofBar** -- "500+ Imobiliarias ativas", "50.000+ Imoveis gerenciados" sao numeros falsos. Ajustar para algo honesto ou remover.
-6. **PlatformDemo** -- Referencia imagens em `/images/tutorial-*.png` que podem nao existir ou estar desatualizadas. Substituir por mockups em codigo (como FeaturesSection faz).
-7. **FAQSection** -- O FAQ menciona "plano Starter e completamente gratuito" (linha 13) mas o plano Starter NAO e gratuito -- o plano Free e gratuito. Corrigir.
+O campo `status` usa um enum no banco de dados (`property_status`) com os valores atuais: `alugado`, `vago`, `em_reforma`, `a_venda`. Para adicionar "Vendido", e necessario:
 
-### Dashboard
-1. **Dashboard esta funcional** -- Metricas, RevenueChart, OccupancyChart, Quick Actions, Recent Activity (dados reais), ProFeaturesCard e PlusAICard estao todos implementados e funcionando.
-2. **Nenhuma imagem faltante no dashboard** -- Os componentes usam icones e graficos programaticos, nao dependem de imagens externas.
+### Migration SQL
+```sql
+ALTER TYPE property_status ADD VALUE 'vendido';
+```
 
-## Plano de Implementacao
+### Sugestoes de status adicionais
+Alem de "Vendido", sugiro tambem:
+- **Reservado** (`reservado`) - imovel com negociacao em andamento
 
-### 1. Corrigir HeroSection mockup
-- Trocar "Leads: 156" por "Inquilinos: 12" (funcionalidade real)
-- Manter Imoveis e Contratos
+Se quiser, posso adicionar esse tambem. Caso contrario, seguimos apenas com "Vendido".
 
-### 2. Melhorar BenefitsSection com mockups visuais
-- Substituir os icones gigantes por mini-interfaces ilustrativas (similar ao padrao da FeaturesSection)
-- Cada beneficio tera um mockup visual representando a funcionalidade real
+### Arquivos modificados para o status
 
-### 3. Adicionar TargetAudienceSection ao Index.tsx
-- Inserir entre BenefitsSection e TestimonialsSection
+| Arquivo | Alteracao |
+|---------|-----------|
+| Migration SQL | `ALTER TYPE property_status ADD VALUE 'vendido'` |
+| `src/types/property.ts` | Adicionar `'vendido'` ao tipo `PropertyStatus` e ao `PROPERTY_STATUS_LABELS` |
+| `src/components/properties/PropertyCard.tsx` | Adicionar cor para o badge "vendido" no `getStatusColor` |
 
-### 4. Corrigir textos enganosos
-- **SocialProofBar**: Mudar para metricas mais honestas ou genericas ("Investidores ativos", "Imoveis cadastrados", etc.) sem numeros inflados
-- **FinalCTA**: Ajustar texto para algo mais realista
-- **FAQSection**: Corrigir referencia ao plano Free (nao Starter)
+---
 
-### 5. Substituir PlatformDemo por mockups em codigo
-- Remover dependencia de imagens `/images/tutorial-*.png`
-- Criar mockups programaticos para cada tela (Dashboard, Imoveis, Documentos, Configuracoes)
+## 2. Outras Comodidades como tags editaveis
 
-## Arquivos a modificar
+Atualmente o campo "Outras Comodidades" e um textarea de texto livre. A proposta e transformar em um sistema de tags:
 
-| Arquivo | Acao |
-|---------|------|
-| `src/components/landing/HeroSection.tsx` | Corrigir "Leads" para "Inquilinos" |
-| `src/components/landing/BenefitsSection.tsx` | Adicionar mockups visuais nos beneficios |
-| `src/components/landing/SocialProofBar.tsx` | Ajustar numeros para algo honesto |
-| `src/components/landing/FinalCTA.tsx` | Ajustar texto |
-| `src/components/landing/FAQSection.tsx` | Corrigir referencia ao plano Free |
-| `src/components/landing/PlatformDemo.tsx` | Substituir imagens por mockups em codigo |
-| `src/pages/Index.tsx` | Adicionar TargetAudienceSection |
+- Um input onde o usuario digita uma comodidade e pressiona Enter (ou clica em um botao "+")
+- A comodidade aparece como uma tag/badge ao lado das comodidades padrao (Piscina, Academia, etc.)
+- Cada tag tem um botao "x" para remover
+- Os valores continuam salvos no campo `other_amenities` como texto separado por virgula (sem mudanca no banco)
 
-Nenhuma alteracao no banco de dados. Nenhum arquivo novo necessario. Dashboard esta completo e funcional.
+### Arquivos modificados
+
+| Arquivo | Alteracao |
+|---------|-----------|
+| `src/components/properties/PropertyForm.tsx` | Substituir o Textarea de "Outras Comodidades" por um input + lista de tags. Ao digitar e pressionar Enter, adiciona a tag. As tags ficam junto com as comodidades padrao visualmente. |
+
+### Comportamento
+- O usuario digita no input e pressiona Enter
+- A tag aparece como badge junto com as comodidades existentes
+- Cada tag tem "x" para remover
+- Internamente, o array de tags e convertido para string separada por virgula no campo `other_amenities`
+- Ao editar um imovel existente, o valor e parseado de volta para tags
+
+## Detalhes Tecnicos
+
+### Armazenamento das tags
+O campo `other_amenities` continua como `text` no banco. As tags sao armazenadas como string separada por virgula (ex: `"Sauna, Playground, Portaria 24h"`). Nenhuma migracao adicional necessaria para isso.
+
+### Componente de tags no formulario
+Sera implementado inline no `PropertyForm.tsx`:
+- Estado local `amenityTags: string[]` derivado de `formData.other_amenities.split(',')`
+- Input com `onKeyDown` para capturar Enter
+- Renderizar tags como badges com botao de remocao
+- Sincronizar de volta para `formData.other_amenities` via `tags.join(', ')`
 

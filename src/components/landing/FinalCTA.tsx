@@ -33,7 +33,7 @@ export function FinalCTA() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-white/80 text-lg max-w-xl mx-auto mb-10 leading-relaxed"
         >
-          Junte-se a centenas de imobiliárias e corretores que já usam o ImobiSmart para vender e alugar mais.
+          Junte-se a investidores, proprietários e administradores que já usam o ImobiSmart para gerenciar imóveis com mais eficiência.
         </motion.p>
         <motion.div
           initial={{ opacity: 0, y: 20 }}

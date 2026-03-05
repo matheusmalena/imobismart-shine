@@ -10,7 +10,7 @@ import { HelpCircle } from "lucide-react";
 const faqs = [
   {
     question: "O ImobiSmart é realmente gratuito para começar?",
-    answer: "Sim! Nosso plano Starter é completamente gratuito e permite gerenciar até 2 imóveis. Você pode usar todas as funcionalidades básicas sem nenhum custo e só faz upgrade quando precisar de mais recursos ou imóveis.",
+    answer: "Sim! Nosso plano Free é completamente gratuito e permite gerenciar até 2 imóveis. Você pode usar todas as funcionalidades básicas sem nenhum custo e só faz upgrade quando precisar de mais recursos ou imóveis.",
   },
   {
     question: "Posso migrar de plano a qualquer momento?",
