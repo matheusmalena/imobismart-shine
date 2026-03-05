@@ -86,6 +86,51 @@ export default function Dashboard() {
   
   const firstName = profile?.full_name?.split(' ')[0] || 'Investidor';
 
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, authLoading, navigate]);
+
+  if (authLoading || isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-28 rounded-xl" />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Skeleton className="h-[350px] rounded-xl" />
+            <Skeleton className="h-[350px] rounded-xl" />
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const handleExportData = () => {
+    exportToCSV(activeProperties);
+  };
+
+  const getPlanLabel = () => {
+    switch (plan) {
+      case 'enterprise': return 'Enterprise';
+      case 'plus': return 'Plus';
+      case 'pro': return 'Pro';
+      case 'starter': return 'Starter';
+      default: return 'Gratuito';
+    }
+  };
+
+  const quickActions = [
+    { label: 'Novo Imóvel', icon: Home, href: '/properties', color: 'text-primary' },
+    { label: 'Inquilinos', icon: Users, href: '/tenants', color: 'text-info' },
+    { label: 'Documentos', icon: FileText, href: '/documents', color: 'text-success' },
+    { label: 'WhatsApp', icon: MessageCircle, href: '/whatsapp', color: 'text-warning' },
+  ];
+
   return (
     <DashboardLayout>
       <div className="space-y-6 animate-fade-in">
