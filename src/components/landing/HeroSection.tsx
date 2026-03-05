@@ -31,7 +31,7 @@ export function HeroSection() {
               <span className="gradient-text">inteligência</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-xl mb-8 leading-relaxed">
-              CRM imobiliário, gestão de imóveis, documentos organizados e métricas em tempo real. Tudo em uma única plataforma para imobiliárias, corretores e investidores.
+              Gestão de imóveis, inquilinos, contratos, documentos e WhatsApp automatizado. Tudo em uma única plataforma para investidores, proprietários e administradores.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <Link to="/auth">

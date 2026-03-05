@@ -1,30 +1,30 @@
 import { motion } from "framer-motion";
-import { Clock, Target, RefreshCw, TrendingUp } from "lucide-react";
+import { DollarSign, FolderOpen, Bell, MessageCircle } from "lucide-react";
 
 const benefits = [
   {
-    icon: Clock,
-    title: "Economize horas por semana",
+    icon: DollarSign,
+    title: "Controle financeiro completo",
     description:
-      "Automatize tarefas repetitivas como publicação de imóveis, envio de mensagens e geração de relatórios. Foque no que gera resultado.",
+      "Acompanhe receita, custos, ROI e lucro líquido de cada imóvel. Saiba exatamente quanto cada propriedade rende e tome decisões baseadas em dados reais.",
   },
   {
-    icon: Target,
-    title: "Centralize todos os seus leads",
+    icon: FolderOpen,
+    title: "Documentos sempre organizados",
     description:
-      "Receba leads dos portais, site e WhatsApp em um único funil. Nunca mais perca uma oportunidade por falta de organização.",
+      "Upload e categorização automática de matrículas, IPTU, contratos e laudos. Acesse qualquer documento em segundos, organizado por imóvel.",
   },
   {
-    icon: RefreshCw,
-    title: "Automatize seus anúncios",
+    icon: Bell,
+    title: "Contratos sob controle",
     description:
-      "Publique e atualize imóveis nos principais portais automaticamente. Mudou o status? Todos os portais são atualizados em tempo real.",
+      "Alertas automáticos de vencimento de contrato. Nunca mais perca um prazo importante ou esqueça de renovar uma locação.",
   },
   {
-    icon: TrendingUp,
-    title: "Aumente suas vendas e locações",
+    icon: MessageCircle,
+    title: "Comunicação automatizada",
     description:
-      "Com dados precisos, pipeline organizado e automações inteligentes, sua equipe fecha mais negócios em menos tempo.",
+      "Envie lembretes de aluguel via WhatsApp automaticamente. Configure templates personalizados e reduza a inadimplência dos seus inquilinos.",
   },
 ];
 
@@ -43,7 +43,7 @@ export function BenefitsSection() {
             Por que escolher o ImobiSmart?
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Resultados reais para imobiliárias e corretores que querem crescer.
+            Resultados reais para quem gerencia imóveis com seriedade.
           </p>
         </motion.div>
 
@@ -57,7 +57,7 @@ export function BenefitsSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-80px" }}
                 transition={{ duration: 0.6 }}
-                className={`grid grid-cols-1 lg:grid-cols-2 gap-12 items-center ${isReversed ? "lg:direction-rtl" : ""}`}
+                className={`grid grid-cols-1 lg:grid-cols-2 gap-12 items-center`}
               >
                 <div className={isReversed ? "lg:order-2" : ""}>
                   <div className="p-4 rounded-2xl bg-primary/10 w-fit mb-6">
