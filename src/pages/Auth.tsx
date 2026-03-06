@@ -99,7 +99,11 @@ export default function Auth() {
   useEffect(() => {
     const hash = window.location.hash;
     if (hash && hash.includes('type=signup')) {
-      setAuthView('emailVerified');
+      // Supabase auto-creates a session on confirmation — destroy it immediately
+      // so the user sees the "email verified" screen without being logged in
+      supabase.auth.signOut({ scope: 'local' }).then(() => {
+        setAuthView('emailVerified');
+      });
       // Clean up the URL hash
       window.history.replaceState(null, '', window.location.pathname);
     }
