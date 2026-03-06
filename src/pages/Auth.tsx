@@ -95,16 +95,21 @@ export default function Auth() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [authView, setAuthView] = useState<AuthView>('default');
 
-  // Detect email confirmation from Supabase link redirect
+  // Detect email confirmation from Supabase link redirect or ?verified=true from global interceptor
   useEffect(() => {
     const hash = window.location.hash;
+    const params = new URLSearchParams(window.location.search);
+    
+    if (params.get('verified') === 'true') {
+      setAuthView('emailVerified');
+      window.history.replaceState(null, '', window.location.pathname);
+      return;
+    }
+    
     if (hash && hash.includes('type=signup')) {
-      // Supabase auto-creates a session on confirmation — destroy it immediately
-      // so the user sees the "email verified" screen without being logged in
       supabase.auth.signOut({ scope: 'local' }).then(() => {
         setAuthView('emailVerified');
       });
-      // Clean up the URL hash
       window.history.replaceState(null, '', window.location.pathname);
     }
   }, []);
