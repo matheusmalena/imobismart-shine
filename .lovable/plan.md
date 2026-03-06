@@ -1,29 +1,50 @@
 
 
-## Plan: Fix Landing Page Issues
+## Plan: Fix Cakto Webhook -- Payload Format Mismatch
 
-### Problems Identified
-1. **Duplicate metrics**: Hero floating badges show "ROI Médio 12.5%" and "Ocupação 94%" which duplicate data already visible in the dashboard screenshot itself
-2. **Ugly social proof cards**: The 200+, 500+, 99.9%, 4.9★ cards are oversized and plain
-3. **Non-real screenshots**: The `.png` images in `/images/` are screenshots of CSS mockups (from `ScreenMockups.tsx`), not real screenshots of the running system. The hero image `tutorial-dashboard-hero.png` shows a mockup with browser dots, fake data, and CSS-rendered UI
+### Root Cause
 
-### Changes
+The webhook function is reading the wrong fields from the Cakto payload. Based on the official Cakto API documentation, the actual payload format is:
 
-**1. Remove duplicate floating badges** (`src/pages/Index.tsx`)
-- Delete the two floating badge divs (ROI Médio + Ocupação) from the hero section since they duplicate info already visible in the screenshot
+```text
+{
+  "data": {
+    "id": "uuid-order-id",
+    "customer": { "email": "...", "name": "..." },
+    "product": { "name": "ImobiSmart Pro", "id": "uuid" },
+    "offer": { "name": "ImobiSmart Pro", "id": "abc" },
+    "amount": 49.90,
+    "status": "paid",
+    ...
+  },
+  "event": "purchase_approved",
+  "secret": "ffc72047-12a3-470c-a086-e10b429ee530"
+}
+```
 
-**2. Redesign social proof cards** (`src/pages/Index.tsx`)
-- Make them more compact and elegant: smaller font sizes, horizontal layout with icon+number+label in a single row, subtle gradient background instead of plain white cards
-- Reduce the huge `text-5xl` numbers to `text-2xl/3xl` for a cleaner look
+But the current code reads:
+- `body.buyer?.email` -- WRONG, should be `body.data?.customer?.email`
+- `body.product?.name` -- WRONG, should be `body.data?.product?.name`
+- `body.transaction?.id` -- WRONG, should be `body.data?.id`
+- Header `x-webhook-secret` -- WRONG, Cakto sends secret in the body as `body.secret`
 
-**3. Capture real screenshots** 
-- Navigate to the actual `/dashboard`, `/properties`, `/documents`, and `/settings` pages in the browser
-- Take screenshots of each page
-- The user will need to replace the image files in `public/images/` with these real screenshots. I will note this as a manual step since I cannot write image files
+### Three Critical Bugs
 
-**4. Use `.jpg` fallbacks where available** (`src/pages/Index.tsx`)
-- The project has both `.jpg` and `.png` versions for some images. Check if the `.jpg` versions are real screenshots and switch to those if they are
+1. **Secret validation fails**: Code checks headers for the secret, but Cakto sends it in the JSON body (`body.secret`). This means every webhook call is rejected with 401 Unauthorized.
 
-### Files to edit
-- `src/pages/Index.tsx` - Remove floating badges, redesign social proof cards
+2. **Email not found**: Even if auth passed, `body.buyer?.email` is undefined because Cakto nests it under `body.data.customer.email`.
+
+3. **Product name not found**: `body.product?.name` is undefined, so `plan` always resolves to `"free"` instead of the correct tier.
+
+### Fix (single file change)
+
+Update `supabase/functions/cakto-webhook/index.ts`:
+
+- Read the secret from `body.secret` instead of request headers
+- Extract email from `body.data?.customer?.email`
+- Extract product/offer name from `body.data?.product?.name` or `body.data?.offer?.name`
+- Extract amount from `body.data?.amount`
+- Extract transaction ID from `body.data?.id`
+- Add broader product name matching for "ImobiSmart" product names (e.g. "ImobiSmart Pro", "ImobiSmart Plus", "ImobiSmart -S..." for Starter)
+- Keep all existing event handling logic and fallbacks intact
 

@@ -265,25 +265,6 @@ export default function Index() {
                   loading="eager"
                 />
               </div>
-              {/* Floating badges */}
-              <div className="absolute -bottom-5 -left-5 bg-card rounded-xl shadow-xl border border-border/50 p-3 flex items-center gap-3 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <BarChart3 className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">ROI Médio</p>
-                  <p className="text-sm font-bold text-foreground">12.5%</p>
-                </div>
-              </div>
-              <div className="absolute -top-5 -right-5 bg-card rounded-xl shadow-xl border border-border/50 p-3 flex items-center gap-3 animate-fade-in" style={{ animationDelay: '0.5s' }}>
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Building2 className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Ocupação</p>
-                  <p className="text-sm font-bold text-foreground">94%</p>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -292,26 +273,28 @@ export default function Index() {
       <TutorialModal ref={tutorialRef} autoShow={false} />
 
       {/* Social Proof Bar */}
-      <section className="py-16 px-4 border-y border-border bg-gradient-to-b from-muted/50 to-muted/20 scroll-reveal" ref={reveal}>
+      <section className="py-10 px-4 border-y border-border/50 bg-muted/30 scroll-reveal" ref={reveal}>
         <div className="container mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+          <div className="flex flex-wrap justify-center gap-6 md:gap-12">
             {[
-              { value: 200, suffix: "+", label: "Proprietários ativos", icon: <Users className="h-6 w-6" /> },
-              { value: 500, suffix: "+", label: "Imóveis gerenciados", icon: <Building2 className="h-6 w-6" /> },
-              { value: 99, suffix: ".9%", label: "Uptime garantido", icon: <Shield className="h-6 w-6" /> },
-              { value: 4, suffix: ".9★", label: "Avaliação média", icon: <Sparkles className="h-6 w-6" /> },
+              { value: 200, suffix: "+", label: "Proprietários ativos", icon: <Users className="h-5 w-5" /> },
+              { value: 500, suffix: "+", label: "Imóveis gerenciados", icon: <Building2 className="h-5 w-5" /> },
+              { value: 99, suffix: ".9%", label: "Uptime garantido", icon: <Shield className="h-5 w-5" /> },
+              { value: 4, suffix: ".9★", label: "Avaliação média", icon: <Sparkles className="h-5 w-5" /> },
             ].map((stat, i) => (
               <div
                 key={i}
-                className="bg-card rounded-2xl border border-border/50 p-5 md:p-6 text-center shadow-sm hover:shadow-md transition-shadow"
+                className="flex items-center gap-3 px-5 py-3"
               >
-                <div className="inline-flex p-3 rounded-xl bg-primary/10 text-primary mb-3">
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
                   {stat.icon}
                 </div>
-                <p className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground tracking-tight">
-                  <AnimatedCounter target={stat.value} suffix={stat.suffix} />
-                </p>
-                <p className="text-sm text-muted-foreground mt-2 font-medium">{stat.label}</p>
+                <div>
+                  <p className="text-xl md:text-2xl font-bold text-foreground tracking-tight leading-none">
+                    <AnimatedCounter target={stat.value} suffix={stat.suffix} />
+                  </p>
+                  <p className="text-xs text-muted-foreground font-medium">{stat.label}</p>
+                </div>
               </div>
             ))}
           </div>
