@@ -1,22 +1,65 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Check, ArrowRight } from 'lucide-react';
+import { Check, ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [confirmed, setConfirmed] = useState(false);
 
-  // Invalidate user data cache so dashboard fetches fresh subscription
   useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ['user-data'] });
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    const poll = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        // No session — show success anyway after a few tries
+        if (attempts >= 3) setConfirmed(true);
+        return;
+      }
+
+      const { data: sub } = await supabase
+        .from('subscriptions')
+        .select('plan, status')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (sub && sub.plan !== 'free' && sub.status === 'active') {
+        queryClient.invalidateQueries({ queryKey: ['user-data'] });
+        setConfirmed(true);
+        return;
+      }
+
+      attempts++;
+      if (attempts >= maxAttempts) {
+        queryClient.invalidateQueries({ queryKey: ['user-data'] });
+        setConfirmed(true);
+        return;
+      }
+
+      setTimeout(poll, 3000);
+    };
+
+    poll();
   }, [queryClient]);
+
+  if (!confirmed) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 gap-4">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="text-lg text-muted-foreground font-medium">Processando seu pagamento...</p>
+        <p className="text-sm text-muted-foreground">Aguarde enquanto confirmamos sua assinatura.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-background px-4">
-      {/* Decorative blur circles */}
       <div className="absolute top-[-120px] left-[-80px] w-72 h-72 rounded-full bg-primary/10 blur-3xl" />
       <div className="absolute bottom-[-100px] right-[-60px] w-80 h-80 rounded-full bg-accent/20 blur-3xl" />
       <div className="absolute top-1/3 right-1/4 w-40 h-40 rounded-full bg-primary/5 blur-2xl" />
@@ -27,7 +70,6 @@ const PaymentSuccess = () => {
         transition={{ duration: 0.6, ease: 'easeOut' }}
         className="relative z-10 flex flex-col items-center text-center max-w-md w-full"
       >
-        {/* Animated check icon */}
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
@@ -44,7 +86,6 @@ const PaymentSuccess = () => {
           </motion.div>
         </motion.div>
 
-        {/* Decorative dots */}
         {[...Array(6)].map((_, i) => (
           <motion.div
             key={i}
@@ -84,7 +125,7 @@ const PaymentSuccess = () => {
           className="flex flex-col gap-3 w-full"
         >
           <Button
-            size="xl"
+            size="lg"
             onClick={() => navigate('/dashboard')}
             className="gap-2 w-full font-semibold"
           >
