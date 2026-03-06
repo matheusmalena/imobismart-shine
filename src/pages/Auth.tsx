@@ -85,8 +85,40 @@ type AuthView = 'default' | 'emailOTP' | 'mfa' | 'emailConfirmation' | 'emailVer
 // Extracted component for email verified screen with auto-redirect
 function EmailVerifiedScreen({ user, navigate }: { user: any; navigate: (path: string) => void }) {
   const [countdown, setCountdown] = useState(3);
+  const [sessionReady, setSessionReady] = useState(!!user);
 
+  // Wait for Supabase to establish the session from the hash token
   useEffect(() => {
+    if (user) {
+      setSessionReady(true);
+      return;
+    }
+
+    // Poll for session — Supabase may still be processing the hash
+    const poll = setInterval(async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setSessionReady(true);
+        clearInterval(poll);
+      }
+    }, 500);
+
+    // Give up after 10s
+    const timeout = setTimeout(() => {
+      clearInterval(poll);
+      setSessionReady(true); // show fallback login button
+    }, 10000);
+
+    return () => {
+      clearInterval(poll);
+      clearTimeout(timeout);
+    };
+  }, [user]);
+
+  // Start countdown only when session is ready
+  useEffect(() => {
+    if (!sessionReady) return;
+
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -99,7 +131,9 @@ function EmailVerifiedScreen({ user, navigate }: { user: any; navigate: (path: s
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [navigate]);
+  }, [sessionReady, navigate]);
+
+  const hasSession = user || sessionReady;
 
   return (
     <div className="min-h-screen bg-white dark:bg-background flex flex-col items-center justify-center p-4">
@@ -113,16 +147,16 @@ function EmailVerifiedScreen({ user, navigate }: { user: any; navigate: (path: s
           E-mail verificado com sucesso!
         </h1>
         <p className="text-lg text-muted-foreground">
-          {user
+          {hasSession
             ? `Redirecionando para o dashboard em ${countdown}s...`
-            : 'Você já pode fazer login na plataforma.'}
+            : 'Aguardando sessão...'}
         </p>
         <Button
           size="lg"
           className="w-full max-w-xs mx-auto"
-          onClick={() => navigate(user ? '/dashboard' : '/auth')}
+          onClick={() => navigate(hasSession ? '/dashboard' : '/auth')}
         >
-          {user ? 'Ir para o dashboard' : 'Ir para o login'}
+          {hasSession ? 'Ir para o dashboard' : 'Ir para o login'}
         </Button>
       </div>
     </div>

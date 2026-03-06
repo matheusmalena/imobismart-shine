@@ -39,8 +39,8 @@ function EmailConfirmationInterceptor() {
     const hash = window.location.hash;
     if (hash && hash.includes('type=signup') && location.pathname !== '/auth') {
       // Email confirmed — keep session active and redirect to verified screen
+      // Don't clear the hash here — let Supabase process it for session exchange
       navigate('/auth?verified=true', { replace: true });
-      window.history.replaceState(null, '', window.location.pathname);
     }
   }, [location, navigate]);
 
