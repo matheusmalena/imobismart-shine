@@ -67,7 +67,7 @@ const signupSchema = z.object({
   path: ['confirmPassword'],
 });
 
-type AuthView = 'default' | 'emailOTP' | 'mfa' | 'emailConfirmation' | 'emailVerified';
+type AuthView = 'default' | 'emailOTP' | 'signupOTP' | 'mfa' | 'emailConfirmation' | 'emailVerified';
 
 export default function Auth() {
   const navigate = useNavigate();
