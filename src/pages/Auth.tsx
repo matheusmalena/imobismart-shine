@@ -60,12 +60,25 @@ const signupSchema = z.object({
     return cleaned.length >= 10 && cleaned.length <= 11;
   }, 'Número de celular inválido'),
   email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+  password: z.string()
+    .min(8, 'Senha deve ter no mínimo 8 caracteres')
+    .regex(/[A-Z]/, 'Senha deve conter pelo menos uma letra maiúscula')
+    .regex(/[a-z]/, 'Senha deve conter pelo menos uma letra minúscula')
+    .regex(/[0-9]/, 'Senha deve conter pelo menos um número')
+    .regex(/[^A-Za-z0-9]/, 'Senha deve conter pelo menos um caractere especial'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'As senhas não coincidem',
   path: ['confirmPassword'],
 });
+
+const PASSWORD_RULES = [
+  { label: 'Mínimo 8 caracteres', test: (v: string) => v.length >= 8 },
+  { label: 'Uma letra maiúscula', test: (v: string) => /[A-Z]/.test(v) },
+  { label: 'Uma letra minúscula', test: (v: string) => /[a-z]/.test(v) },
+  { label: 'Um número', test: (v: string) => /[0-9]/.test(v) },
+  { label: 'Um caractere especial', test: (v: string) => /[^A-Za-z0-9]/.test(v) },
+];
 
 type AuthView = 'default' | 'emailOTP' | 'signupOTP' | 'mfa' | 'emailConfirmation' | 'emailVerified';
 
@@ -465,6 +478,19 @@ export default function Auth() {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              {signupPassword.length > 0 && (
+                <div className="space-y-1 pt-1">
+                  {PASSWORD_RULES.map((rule) => {
+                    const passed = rule.test(signupPassword);
+                    return (
+                      <div key={rule.label} className="flex items-center gap-2 text-xs">
+                        <CheckCircle className={`h-3.5 w-3.5 ${passed ? 'text-green-500' : 'text-muted-foreground/40'}`} />
+                        <span className={passed ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}>{rule.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="signup-confirm-password">Confirmar senha</Label>
