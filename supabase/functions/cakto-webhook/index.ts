@@ -132,6 +132,8 @@ serve(async (req) => {
       const updatePayload = {
         plan,
         status: "active",
+        started_at: new Date().toISOString(),
+        expires_at: null,
         external_subscription_id: transactionId,
         payer_email: buyerEmail,
         payment_method: actualPaymentMethod,
@@ -160,11 +162,23 @@ serve(async (req) => {
 
       console.log(`Cancelling subscription for user ${userId}: paymentStatus=${paymentStatus}`);
 
+      // Calculate expires_at from Cakto's next_payment_date or 30 days from now
+      let expiresAt: string;
+      const nextPaymentDate = data.subscription?.next_payment_date;
+      if (nextPaymentDate) {
+        expiresAt = new Date(nextPaymentDate).toISOString();
+        console.log(`Using Cakto next_payment_date for expires_at: ${expiresAt}`);
+      } else {
+        expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        console.log(`No next_payment_date, using 30 days from now: ${expiresAt}`);
+      }
+
+      // Keep the current plan — user retains access until expires_at
       const { error: updateError } = await supabase
         .from("subscriptions")
         .update({
-          plan: "free",
           status: "cancelled",
+          expires_at: expiresAt,
           payment_method: actualPaymentMethod,
           updated_at: new Date().toISOString(),
         })

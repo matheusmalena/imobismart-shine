@@ -7,6 +7,7 @@ import { useUserData } from '@/hooks/useUserData';
 import { useProperties } from '@/hooks/useProperties';
 import { usePlans } from '@/hooks/usePlans';
 import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -204,7 +205,10 @@ export default function Plans() {
         throw new Error('Link de checkout não configurado para este plano. Entre em contato com o suporte.');
       }
 
-      window.location.href = checkoutUrl;
+      // Append redirect URL so Cakto sends user back to payment-success page
+      const separator = checkoutUrl.includes('?') ? '&' : '?';
+      const redirectUrl = `${checkoutUrl}${separator}redirect_url=${encodeURIComponent(window.location.origin + '/payment-success')}`;
+      window.location.href = redirectUrl;
     } catch (error) {
       console.error('Checkout error:', error);
       toast.error('Erro ao iniciar pagamento', {

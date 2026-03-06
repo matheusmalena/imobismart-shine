@@ -108,6 +108,7 @@ export function useUserData() {
     enabled: !!user,
     staleTime: 30 * 1000,
     gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
   });
 
   const profile = data?.profile ?? null;
