@@ -120,18 +120,6 @@ export default function Plans() {
   const currentPlan = currentUserPlan;
   const isLoading = authLoading || subscriptionLoading || plansLoading;
 
-  if (isOrgMemberNotOwner) {
-    return (
-      <LockedPagePlaceholder
-        icon={<Crown className="h-8 w-8 text-muted-foreground" />}
-        title="Acesso Restrito"
-        description="Apenas o proprietário da conta pode gerenciar planos e assinatura. Entre em contato com o administrador da sua organização."
-        requiredPlan="enterprise"
-        buttonLabel="Voltar ao Dashboard"
-      />
-    );
-  }
-
   const activeCount = activeProperties.length;
   const freeLimit = 2;
   const excessCount = Math.max(0, activeCount - freeLimit);
