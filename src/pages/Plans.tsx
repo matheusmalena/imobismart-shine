@@ -98,6 +98,19 @@ export default function Plans() {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [showDowngradeDialog, setShowDowngradeDialog] = useState(false);
   const [isDowngrading, setIsDowngrading] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Force refresh subscription data when user returns to tab (e.g. after Cakto checkout)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        queryClient.invalidateQueries({ queryKey: ['user-data'] });
+        refetchSubscription();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [queryClient, refetchSubscription]);
 
   const currentPlan = currentUserPlan;
   const isLoading = authLoading || subscriptionLoading || plansLoading;
