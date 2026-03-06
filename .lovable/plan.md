@@ -1,50 +1,41 @@
 
 
-## Plan: Fix Cakto Webhook -- Payload Format Mismatch
+## Plano: Corrigir fluxo de verificação de email no cadastro
 
-### Root Cause
+### Problema
 
-The webhook function is reading the wrong fields from the Cakto payload. Based on the official Cakto API documentation, the actual payload format is:
+O `EmailConfirmationInterceptor` no `App.tsx` intercepta o link de confirmação (que contém `#access_token=...&type=signup`) e faz `navigate('/auth?verified=true')`, mas isso **descarta o hash com os tokens**. O Supabase nunca consegue trocar esses tokens por uma sessão, então o usuário chega na tela de "Email verificado" **sem sessão ativa** — o poll no `EmailVerifiedScreen` nunca encontra sessão e o redirect para o dashboard falha ou o usuário precisa fazer login novamente.
 
-```text
-{
-  "data": {
-    "id": "uuid-order-id",
-    "customer": { "email": "...", "name": "..." },
-    "product": { "name": "ImobiSmart Pro", "id": "uuid" },
-    "offer": { "name": "ImobiSmart Pro", "id": "abc" },
-    "amount": 49.90,
-    "status": "paid",
-    ...
-  },
-  "event": "purchase_approved",
-  "secret": "ffc72047-12a3-470c-a086-e10b429ee530"
-}
+### Correção
+
+#### 1. `src/App.tsx` — Preservar o hash no redirect
+
+Ao navegar para `/auth?verified=true`, incluir o hash original para que o Supabase client possa processá-lo na página de destino:
+
+```typescript
+// Antes:
+navigate('/auth?verified=true', { replace: true });
+
+// Depois:
+window.location.replace('/auth?verified=true' + window.location.hash);
 ```
 
-But the current code reads:
-- `body.buyer?.email` -- WRONG, should be `body.data?.customer?.email`
-- `body.product?.name` -- WRONG, should be `body.data?.product?.name`
-- `body.transaction?.id` -- WRONG, should be `body.data?.id`
-- Header `x-webhook-secret` -- WRONG, Cakto sends secret in the body as `body.secret`
+Usar `window.location.replace` em vez de `navigate` porque o react-router pode não preservar o hash corretamente. O `replace` também evita entrada no histórico.
 
-### Three Critical Bugs
+#### 2. `src/pages/Auth.tsx` — Garantir que o hash é processado
 
-1. **Secret validation fails**: Code checks headers for the secret, but Cakto sends it in the JSON body (`body.secret`). This means every webhook call is rejected with 401 Unauthorized.
+Na detecção de `?verified=true` (linha 184-188), **não** fazer `replaceState` imediatamente — deixar o hash ser processado pelo Supabase primeiro. Limpar a URL somente depois que a sessão for detectada (dentro do `EmailVerifiedScreen`).
 
-2. **Email not found**: Even if auth passed, `body.buyer?.email` is undefined because Cakto nests it under `body.data.customer.email`.
+Remover a linha 186 (`window.history.replaceState`) do bloco `verified=true` e mover para dentro do `EmailVerifiedScreen` após `sessionReady = true`.
 
-3. **Product name not found**: `body.product?.name` is undefined, so `plan` always resolves to `"free"` instead of the correct tier.
+#### 3. `src/pages/Auth.tsx` — Impedir redirect automático do useEffect Google
 
-### Fix (single file change)
+Na linha 230, o `useEffect` do Google OAuth verifica `authView !== 'default'` e retorna early — isso já está correto. Mas na linha 326-328, quando `user` existe e não tem `savedTab`, ele navega para `/dashboard` imediatamente, **pulando a tela de confirmação**. Adicionar check: se `authView === 'emailVerified'`, não redirecionar.
 
-Update `supabase/functions/cakto-webhook/index.ts`:
+### Arquivos
 
-- Read the secret from `body.secret` instead of request headers
-- Extract email from `body.data?.customer?.email`
-- Extract product/offer name from `body.data?.product?.name` or `body.data?.offer?.name`
-- Extract amount from `body.data?.amount`
-- Extract transaction ID from `body.data?.id`
-- Add broader product name matching for "ImobiSmart" product names (e.g. "ImobiSmart Pro", "ImobiSmart Plus", "ImobiSmart -S..." for Starter)
-- Keep all existing event handling logic and fallbacks intact
+| Arquivo | Mudança |
+|---|---|
+| `src/App.tsx` | Usar `window.location.replace` com hash preservado |
+| `src/pages/Auth.tsx` | Mover `replaceState` para depois da sessão estar pronta; proteger redirect automático |
 
