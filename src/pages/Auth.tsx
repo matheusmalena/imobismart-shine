@@ -82,7 +82,53 @@ const PASSWORD_RULES = [
 
 type AuthView = 'default' | 'emailOTP' | 'mfa' | 'emailConfirmation' | 'emailVerified';
 
-export default function Auth() {
+// Extracted component for email verified screen with auto-redirect
+function EmailVerifiedScreen({ user, navigate }: { user: any; navigate: (path: string) => void }) {
+  const [countdown, setCountdown] = useState(3);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          navigate('/dashboard');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [navigate]);
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-background flex flex-col items-center justify-center p-4">
+      <div className="max-w-md w-full text-center space-y-6">
+        <div className="flex justify-center">
+          <div className="p-4 rounded-full bg-green-100 dark:bg-green-900/30">
+            <CheckCircle className="h-16 w-16 text-green-500" />
+          </div>
+        </div>
+        <h1 className="text-3xl font-bold text-foreground">
+          E-mail verificado com sucesso!
+        </h1>
+        <p className="text-lg text-muted-foreground">
+          {user
+            ? `Redirecionando para o dashboard em ${countdown}s...`
+            : 'Você já pode fazer login na plataforma.'}
+        </p>
+        <Button
+          size="lg"
+          className="w-full max-w-xs mx-auto"
+          onClick={() => navigate(user ? '/dashboard' : '/auth')}
+        >
+          {user ? 'Ir para o dashboard' : 'Ir para o login'}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
   const navigate = useNavigate();
   const { user, signIn, signUp, loading, mfaPending, setMfaPending } = useAuth();
   
