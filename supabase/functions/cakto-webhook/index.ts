@@ -117,6 +117,8 @@ serve(async (req) => {
     let paymentStatus = "approved";
     const amount = data.amount || data.price || body.amount || 0;
     const transactionId = data.id || data.transaction?.id || productId;
+    // Capture actual payment method from Cakto payload (e.g. "pix", "credit_card", "boleto")
+    const actualPaymentMethod = data.paymentMethod || data.subscription?.paymentMethod || "cakto";
 
     console.log(`Payment info: amount=${amount}, transactionId=${transactionId}, event=${event}`);
 
@@ -132,7 +134,7 @@ serve(async (req) => {
         status: "active",
         external_subscription_id: transactionId,
         payer_email: buyerEmail,
-        payment_method: "cakto",
+        payment_method: actualPaymentMethod,
         updated_at: new Date().toISOString(),
       };
       console.log(`Activating subscription for user ${userId}:`, JSON.stringify(updatePayload));
@@ -163,7 +165,7 @@ serve(async (req) => {
         .update({
           plan: "free",
           status: "cancelled",
-          payment_method: "cakto",
+          payment_method: actualPaymentMethod,
           updated_at: new Date().toISOString(),
         })
         .eq("user_id", userId);

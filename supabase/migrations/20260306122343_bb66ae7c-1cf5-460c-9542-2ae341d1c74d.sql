@@ -1,0 +1,1 @@
+UPDATE subscriptions SET payment_method = 'pix' WHERE user_id = '3cbc285d-d0e8-428c-aa08-4844984a02f1' AND payment_method = 'cakto';
