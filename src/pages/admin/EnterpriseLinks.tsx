@@ -38,6 +38,7 @@ interface EnterpriseLink {
   plan_label: string;
   price: number;
   property_limit: number;
+  max_members: number;
   is_active: boolean;
   notes: string | null;
   created_by: string;
@@ -52,6 +53,7 @@ interface LinkFormData {
   plan_label: string;
   price: number;
   property_limit: number;
+  max_members: number;
   is_active: boolean;
   notes: string;
 }
@@ -63,6 +65,7 @@ const emptyForm: LinkFormData = {
   plan_label: 'Enterprise',
   price: 0,
   property_limit: 100,
+  max_members: 3,
   is_active: true,
   notes: '',
 };
