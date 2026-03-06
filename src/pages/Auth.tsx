@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MFAVerification } from '@/components/auth/MFAVerification';
 import { EmailOTPVerification } from '@/components/auth/EmailOTPVerification';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { LogoText } from '@/components/common/LogoText';
 import { Eye, EyeOff, Loader2, Mail, Lock, User, Building2, BarChart3, Shield, Phone, CheckCircle } from 'lucide-react';
