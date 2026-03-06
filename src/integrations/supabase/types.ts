@@ -1148,6 +1148,13 @@ export type Database = {
         Args: { encryption_key: string; plain_key: string }
         Returns: string
       }
+      get_enterprise_limits: {
+        Args: { _user_id: string }
+        Returns: {
+          max_members: number
+          property_limit: number
+        }[]
+      }
       get_org_owner_plan: {
         Args: { _user_id: string }
         Returns: {
