@@ -272,7 +272,7 @@ export default function Subscription() {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Cancelar Assinatura?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Ao cancelar, você perderá acesso aos recursos do plano {PLAN_NAMES[currentPlan]} e será revertido para o plano Gratuito. Esta ação não pode ser desfeita.
+                            Ao cancelar, você manterá acesso ao plano {PLAN_NAMES[currentPlan]} até o fim do período pago. Após essa data, será revertido para o plano Gratuito.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
