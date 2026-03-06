@@ -26,6 +26,8 @@ export interface Subscription {
   expires_at: string | null;
   created_at: string;
   updated_at: string;
+  payment_method: string | null;
+  payer_email: string | null;
 }
 
 interface UserData {
