@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -21,11 +21,7 @@ import {
   Sparkles,
   Rocket,
   Users,
-  MessageSquare,
   ClipboardList,
-  Monitor,
-  Smartphone,
-  Cloud,
 } from "lucide-react";
 
 const featureTabs = [
@@ -124,11 +120,35 @@ function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: str
   );
 }
 
+function useScrollReveal() {
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  const setRef = useCallback((node: HTMLElement | null) => {
+    if (!node) return;
+    if (!observerRef.current) {
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("revealed");
+            }
+          });
+        },
+        { threshold: 0.1, rootMargin: "0px 0px -60px 0px" }
+      );
+    }
+    observerRef.current.observe(node);
+  }, []);
+
+  return setRef;
+}
+
 export default function Index() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const tutorialRef = useRef<TutorialModalRef>(null);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const reveal = useScrollReveal();
 
   useEffect(() => {
     if (!loading && user) navigate("/dashboard");
@@ -140,6 +160,7 @@ export default function Index() {
       '/images/tutorial-properties.png',
       '/images/tutorial-documents.png',
       '/images/tutorial-settings.png',
+      '/images/tutorial-dashboard-hero.png',
     ];
     imagesToPreload.forEach(src => {
       const img = new Image();
@@ -179,21 +200,22 @@ export default function Index() {
       </header>
 
       {/* Hero - Split Layout */}
-      <section className="pt-28 pb-16 lg:pt-32 lg:pb-24 px-4 relative overflow-hidden">
+      <section className="pt-28 pb-16 lg:pt-36 lg:pb-28 px-4 relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
           <div className="absolute bottom-10 right-10 w-96 h-96 bg-primary/3 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/[0.02] rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             {/* Left - Text */}
             <div className="animate-fade-in">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-6 border border-primary/20">
                 <Sparkles className="h-4 w-4" />
                 Plataforma #1 de gestão imobiliária
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-[1.1] mb-6">
+              <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-bold text-foreground leading-[1.08] mb-6">
                 Gerencie seus imóveis de forma{" "}
                 <span className="gradient-text">inteligente</span>
               </h1>
@@ -233,26 +255,18 @@ export default function Index() {
               </div>
             </div>
 
-            {/* Right - Dashboard Screenshot */}
+            {/* Right - Dashboard Screenshot with 3D */}
             <div className="relative animate-fade-in" style={{ animationDelay: '0.15s' }}>
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border/50">
-                <div className="bg-card border-b border-border px-4 py-2.5 flex items-center gap-2">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-destructive/60" />
-                    <div className="w-3 h-3 rounded-full bg-warning/60" />
-                    <div className="w-3 h-3 rounded-full bg-success/60" />
-                  </div>
-                  <span className="text-xs text-muted-foreground ml-2">ImobiSmart — Dashboard</span>
-                </div>
+              <div className="hero-screenshot-3d hero-glow rounded-2xl overflow-hidden border border-border/50">
                 <img
                   src="/images/tutorial-dashboard-hero.png"
                   alt="Dashboard do ImobiSmart mostrando métricas de imóveis"
-                  className="w-full"
+                  className="w-full block"
                   loading="eager"
                 />
               </div>
               {/* Floating badges */}
-              <div className="absolute -bottom-4 -left-4 bg-card rounded-xl shadow-xl border border-border/50 p-3 flex items-center gap-3 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+              <div className="absolute -bottom-5 -left-5 bg-card rounded-xl shadow-xl border border-border/50 p-3 flex items-center gap-3 animate-fade-in" style={{ animationDelay: '0.4s' }}>
                 <div className="p-2 rounded-lg bg-primary/10">
                   <BarChart3 className="h-5 w-5 text-primary" />
                 </div>
@@ -261,8 +275,8 @@ export default function Index() {
                   <p className="text-sm font-bold text-foreground">12.5%</p>
                 </div>
               </div>
-              <div className="absolute -top-4 -right-4 bg-card rounded-xl shadow-xl border border-border/50 p-3 flex items-center gap-3 animate-fade-in" style={{ animationDelay: '0.5s' }}>
-                <div className="p-2 rounded-lg bg-success/10">
+              <div className="absolute -top-5 -right-5 bg-card rounded-xl shadow-xl border border-border/50 p-3 flex items-center gap-3 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+                <div className="p-2 rounded-lg bg-primary/10">
                   <Building2 className="h-5 w-5 text-primary" />
                 </div>
                 <div>
@@ -278,7 +292,7 @@ export default function Index() {
       <TutorialModal ref={tutorialRef} autoShow={false} />
 
       {/* Social Proof Bar */}
-      <section className="py-16 px-4 border-y border-border bg-gradient-to-b from-muted/50 to-muted/20">
+      <section className="py-16 px-4 border-y border-border bg-gradient-to-b from-muted/50 to-muted/20 scroll-reveal" ref={reveal}>
         <div className="container mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {[
@@ -305,7 +319,7 @@ export default function Index() {
       </section>
 
       {/* How it Works */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-4 scroll-reveal" ref={reveal}>
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
@@ -341,12 +355,12 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Interactive Feature Tabs - "Veja na prática" */}
-      <section className="py-20 px-4 bg-muted/30">
+      {/* Interactive Feature Tabs */}
+      <section className="py-20 px-4 bg-muted/30 scroll-reveal" ref={reveal}>
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-              <Monitor className="h-4 w-4" />
+              <Sparkles className="h-4 w-4" />
               Veja na prática
             </div>
             <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
@@ -375,22 +389,14 @@ export default function Index() {
             ))}
           </div>
 
-          {/* Tab Content - simple CSS transition */}
+          {/* Tab Content */}
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
-            {/* Screenshot */}
-            <div className="lg:col-span-3 rounded-2xl overflow-hidden shadow-2xl border border-border/50">
-              <div className="bg-card border-b border-border px-4 py-2.5 flex items-center gap-2">
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-destructive/60" />
-                  <div className="w-3 h-3 rounded-full bg-warning/60" />
-                  <div className="w-3 h-3 rounded-full bg-success/60" />
-                </div>
-                <span className="text-xs text-muted-foreground ml-2">ImobiSmart</span>
-              </div>
+            {/* Screenshot - clean, no browser frame */}
+            <div className="lg:col-span-3 rounded-2xl overflow-hidden shadow-2xl border border-border/50 hero-glow">
               <img
                 src={activeFeature.image}
                 alt={activeFeature.title}
-                className="w-full transition-opacity duration-200"
+                className="w-full block transition-opacity duration-200"
                 key={activeFeature.id}
               />
             </div>
@@ -414,7 +420,7 @@ export default function Index() {
       </section>
 
       {/* Target Audience */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-4 scroll-reveal" ref={reveal}>
         <TargetAudienceSection />
       </section>
 
@@ -427,22 +433,22 @@ export default function Index() {
       {/* FAQ */}
       <FAQSection />
 
-      {/* Benefits */}
-      <section className="py-20 px-4">
+      {/* Benefits with real screenshot */}
+      <section className="py-20 px-4 scroll-reveal" ref={reveal}>
         <div className="container mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
                 Pare de perder dinheiro com falta de controle
               </h2>
-              <p className="text-muted-foreground mb-8">
+              <p className="text-muted-foreground mb-8 leading-relaxed">
                 Muitos proprietários não sabem quanto realmente lucram. Com o ImobiSmart, você tem visibilidade total
                 sobre cada centavo — receitas, custos, ROI e lucro líquido de cada imóvel.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {benefits.map((benefit, index) => (
                   <div key={index} className="flex items-center gap-3">
-                    <div className="p-1.5 rounded-full bg-primary/10">
+                    <div className="p-1.5 rounded-full bg-primary/10 shrink-0">
                       <Check className="h-4 w-4 text-primary" />
                     </div>
                     <span className="text-sm text-foreground">{benefit}</span>
@@ -458,38 +464,39 @@ export default function Index() {
                 </Link>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { icon: <Cloud className="h-6 w-6" />, title: "Na nuvem", desc: "Acesse de qualquer lugar" },
-                { icon: <Smartphone className="h-6 w-6" />, title: "Responsivo", desc: "Funciona em qualquer tela" },
-                { icon: <Shield className="h-6 w-6" />, title: "Seguro", desc: "Dados criptografados" },
-                { icon: <Zap className="h-6 w-6" />, title: "Rápido", desc: "Métricas instantâneas" },
-              ].map((item, i) => (
-                <div
-                  key={i}
-                  className="bg-card rounded-2xl p-6 border border-border/50 shadow-card text-center hover:shadow-lg transition-shadow"
-                >
-                  <div className="inline-flex p-3 rounded-xl bg-primary/10 text-primary mb-3">
-                    {item.icon}
-                  </div>
-                  <h4 className="font-semibold text-foreground mb-1">{item.title}</h4>
-                  <p className="text-sm text-muted-foreground">{item.desc}</p>
-                </div>
-              ))}
+
+            {/* Real screenshot with perspective */}
+            <div className="benefits-screenshot rounded-2xl overflow-hidden shadow-2xl border border-border/50 hero-glow">
+              <img
+                src="/images/tutorial-properties.png"
+                alt="Tela de gestão de imóveis do ImobiSmart"
+                className="w-full block"
+                loading="lazy"
+              />
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-24 px-4 gradient-hero relative overflow-hidden">
+      {/* CTA with background screenshot */}
+      <section className="py-24 px-4 relative overflow-hidden">
+        {/* Background screenshot with overlay */}
+        <div className="absolute inset-0 -z-10">
+          <img
+            src="/images/tutorial-dashboard-hero.png"
+            alt=""
+            className="w-full h-full object-cover object-top opacity-[0.06] dark:opacity-[0.04]"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 gradient-hero" />
+        </div>
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
           <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
         </div>
         <div className="container mx-auto text-center max-w-3xl">
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight">
-            Pronto para multiplicar seus resultados?
+            Comece agora e veja resultados em minutos
           </h2>
           <p className="text-white/80 text-lg max-w-xl mx-auto mb-10 leading-relaxed">
             Junte-se a centenas de investidores que já usam o ImobiSmart para ter controle total sobre seu patrimônio imobiliário.
