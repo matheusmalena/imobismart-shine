@@ -3,31 +3,30 @@ import { useProperties } from '@/hooks/useProperties';
 import { usePlans } from '@/hooks/usePlans';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function usePropertyLimit() {
-  const { plan, profile } = useUserData();
+  const { plan } = useUserData();
+  const { user } = useAuth();
   const { activeProperties } = useProperties();
   const { getPlanLimit } = usePlans();
 
-  // For enterprise users, fetch custom limit from enterprise_checkout_links
-  const { data: customLimit } = useQuery({
-    queryKey: ['enterprise-custom-limit', profile?.email],
+  // For enterprise users, fetch custom limits via SECURITY DEFINER RPC
+  const { data: enterpriseLimits } = useQuery({
+    queryKey: ['enterprise-custom-limit', user?.id],
     queryFn: async () => {
-      if (!profile?.email) return null;
-      const { data } = await supabase
-        .from('enterprise_checkout_links')
-        .select('property_limit')
-        .eq('client_email', profile.email)
-        .eq('is_active', true)
-        .maybeSingle();
-      return data?.property_limit ?? null;
+      const { data, error } = await supabase.rpc('get_enterprise_limits', {
+        _user_id: user!.id,
+      });
+      if (error || !data || data.length === 0) return null;
+      return data[0];
     },
-    enabled: plan === 'enterprise' && !!profile?.email,
+    enabled: plan === 'enterprise' && !!user?.id,
     staleTime: 60 * 1000,
   });
 
-  const limit = plan === 'enterprise' && customLimit !== null && customLimit !== undefined
-    ? customLimit
+  const limit = plan === 'enterprise' && enterpriseLimits?.property_limit != null
+    ? enterpriseLimits.property_limit
     : getPlanLimit(plan);
 
   const activeCount = activeProperties.length;

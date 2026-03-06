@@ -174,6 +174,8 @@ export default function EnterpriseLinks() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['enterprise-links'] });
       queryClient.invalidateQueries({ queryKey: ['organization'] });
+      queryClient.invalidateQueries({ queryKey: ['enterprise-custom-limit'] });
+      queryClient.invalidateQueries({ queryKey: ['enterprise-max-members'] });
       toast.success(editingLink ? 'Link atualizado' : 'Link criado com sucesso');
       closeDialog();
     },
