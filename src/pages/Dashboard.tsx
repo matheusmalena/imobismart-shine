@@ -10,6 +10,7 @@ import { RevenueChart } from '@/components/dashboard/RevenueChart';
 import { OccupancyChart } from '@/components/dashboard/OccupancyChart';
 import { ProFeaturesCard } from '@/components/dashboard/ProFeaturesCard';
 import { PlusAICard } from '@/components/dashboard/PlusAICard';
+import { SubscriptionAlertBanner } from '@/components/dashboard/SubscriptionAlertBanner';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
