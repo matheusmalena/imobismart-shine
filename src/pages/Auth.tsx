@@ -149,8 +149,8 @@ export default function Auth() {
       const savedTab = localStorage.getItem('imobismart-auth-tab');
 
       if (provider === 'google') {
-        if (isNewUser) {
-          // New user trying to sign up via Google — block it
+        if (isNewUser && savedTab === 'login') {
+          // New user tried to login via Google but has no account
           (async () => {
             await supabase.auth.signOut();
             toast.error('Conta não encontrada', {
@@ -161,8 +161,8 @@ export default function Auth() {
           localStorage.removeItem('imobismart-auth-tab');
           return;
         }
-        if (savedTab === 'signup') {
-          // Existing user clicked "Cadastrar com Google" — block and redirect to login
+        if (!isNewUser && savedTab === 'signup') {
+          // Existing user tried to sign up again via Google
           (async () => {
             await supabase.auth.signOut();
             toast.error('Você já possui uma conta', {
