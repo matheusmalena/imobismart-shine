@@ -252,12 +252,7 @@ export default function Index() {
             {/* Right - Dashboard Screenshot with 3D */}
             <div className="relative animate-fade-in" style={{ animationDelay: '0.15s' }}>
               <div className="hero-screenshot-3d hero-glow rounded-2xl overflow-hidden border border-border/50">
-                <img
-                  src="/images/tutorial-dashboard-hero.png"
-                  alt="Dashboard do ImobiSmart mostrando métricas de imóveis"
-                  className="w-full block"
-                  loading="eager"
-                />
+                <DashboardMockup />
               </div>
             </div>
           </div>
@@ -370,12 +365,7 @@ export default function Index() {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
             {/* Screenshot - clean, no browser frame */}
             <div className="lg:col-span-3 rounded-2xl overflow-hidden shadow-2xl border border-border/50 hero-glow">
-              <img
-                src={activeFeature.image}
-                alt={activeFeature.title}
-                className="w-full block transition-opacity duration-200"
-                key={activeFeature.id}
-              />
+              {MOCKUP_COMPONENTS[activeFeature.mockup]}
             </div>
 
             {/* Description */}
