@@ -13,6 +13,8 @@ interface AuthContextType {
   loading: boolean;
   mfaPending: boolean;
   setMfaPending: (pending: boolean) => void;
+  startPendingAuth: () => void;
+  completePendingAuth: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<SignInResult>;
   signUp: (email: string, password: string, fullName: string, mobileNumber?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -84,6 +86,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Empty dependency array — listener is set up once, uses ref for mfaPending
   }, []);
 
+  const startPendingAuth = () => {
+    mfaPendingRef.current = true;
+    setMfaPending(true);
+  };
+
+  const completePendingAuth = async () => {
+    mfaPendingRef.current = false;
+    setMfaPending(false);
+    // Manually fetch and set the session that was blocked during mfaPending
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    if (currentSession) {
+      const { data: { user: verifiedUser } } = await supabase.auth.getUser();
+      if (verifiedUser) {
+        setSession(currentSession);
+        setUser(currentSession.user);
+      }
+    }
+  };
+
   const signIn = async (email: string, password: string): Promise<SignInResult> => {
     // Set mfaPending BEFORE login to prevent onAuthStateChange from updating user state
     setMfaPending(true);
@@ -146,7 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, mfaPending, setMfaPending, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, mfaPending, setMfaPending, startPendingAuth, completePendingAuth, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
