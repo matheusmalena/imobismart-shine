@@ -137,9 +137,10 @@ export default function EnterpriseLinks() {
             plan_label: data.plan_label,
             price: data.price,
             property_limit: data.property_limit,
+            max_members: data.max_members,
             is_active: data.is_active,
             notes: data.notes || null,
-          })
+          } as any)
           .eq('id', data.id);
         if (error) throw error;
       } else {
@@ -152,10 +153,11 @@ export default function EnterpriseLinks() {
             plan_label: data.plan_label,
             price: data.price,
             property_limit: data.property_limit,
+            max_members: data.max_members,
             is_active: data.is_active,
             notes: data.notes || null,
             created_by: user!.id,
-          });
+          } as any);
         if (error) throw error;
       }
     },
@@ -204,6 +206,7 @@ export default function EnterpriseLinks() {
       plan_label: link.plan_label,
       price: link.price,
       property_limit: link.property_limit,
+      max_members: link.max_members ?? 3,
       is_active: link.is_active,
       notes: link.notes || '',
     });
@@ -279,6 +282,7 @@ export default function EnterpriseLinks() {
                       <TableHead>Plano</TableHead>
                       <TableHead>Valor</TableHead>
                       <TableHead className="text-center">Limite Imóveis</TableHead>
+                      <TableHead className="text-center">Membros</TableHead>
                       <TableHead className="text-center">Status</TableHead>
                       <TableHead>Criado em</TableHead>
                       <TableHead className="text-center">Ações</TableHead>
@@ -304,6 +308,9 @@ export default function EnterpriseLinks() {
                         <TableCell className="font-medium">{formatCurrency(link.price)}</TableCell>
                         <TableCell className="text-center">
                           <Badge variant="outline">{link.property_limit}</Badge>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="outline">{(link as any).max_members ?? 3}</Badge>
                         </TableCell>
                         <TableCell className="text-center">
                           <Badge variant={link.is_active ? 'default' : 'secondary'}>
@@ -362,7 +369,7 @@ export default function EnterpriseLinks() {
                 <Label>Link de Checkout (Cakto)</Label>
                 <Input value={formData.checkout_url} onChange={e => setFormData({ ...formData, checkout_url: e.target.value })} placeholder="https://pay.cakto.com.br/..." />
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Descrição do Plano</Label>
                   <Input value={formData.plan_label} onChange={e => setFormData({ ...formData, plan_label: e.target.value })} placeholder="ex: Enterprise 50 imóveis" />
@@ -371,9 +378,15 @@ export default function EnterpriseLinks() {
                   <Label>Valor (R$)</Label>
                   <Input type="number" value={formData.price} onChange={e => setFormData({ ...formData, price: Number(e.target.value) })} min={0} />
                 </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Limite de Imóveis</Label>
                   <Input type="number" value={formData.property_limit} onChange={e => setFormData({ ...formData, property_limit: Number(e.target.value) })} min={1} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Limite de Membros</Label>
+                  <Input type="number" value={formData.max_members} onChange={e => setFormData({ ...formData, max_members: Number(e.target.value) })} min={1} />
                 </div>
               </div>
               <div className="space-y-2">
