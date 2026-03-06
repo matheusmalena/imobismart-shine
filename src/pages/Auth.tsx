@@ -80,7 +80,7 @@ const PASSWORD_RULES = [
   { label: 'Um caractere especial', test: (v: string) => /[^A-Za-z0-9]/.test(v) },
 ];
 
-type AuthView = 'default' | 'emailOTP' | 'signupOTP' | 'mfa' | 'emailConfirmation' | 'emailVerified';
+type AuthView = 'default' | 'emailOTP' | 'mfa' | 'emailConfirmation' | 'emailVerified';
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -95,7 +95,15 @@ export default function Auth() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [authView, setAuthView] = useState<AuthView>('default');
 
-  // No longer needed - using custom OTP verification instead of link-based
+  // Detect email confirmation from Supabase link redirect
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && hash.includes('type=signup')) {
+      setAuthView('emailVerified');
+      // Clean up the URL hash
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, []);
 
   // Login form
   const [loginEmail, setLoginEmail] = useState('');
@@ -213,11 +221,6 @@ export default function Auth() {
     navigate('/dashboard');
   };
 
-  const handleSignupOTPSuccess = async () => {
-    await supabase.auth.signOut({ scope: 'local' });
-    setMfaPending(false);
-    setAuthView('emailVerified');
-  };
 
   const handleOTPCancel = async () => {
     await supabase.auth.signOut();
@@ -275,24 +278,42 @@ export default function Auth() {
       });
       return;
     }
-    // Send OTP for email verification via Resend
+    // Show email confirmation screen - user must click the link sent by Supabase
     setOtpEmail(signupEmail);
-    try {
-      const { data, error: otpError } = await supabase.functions.invoke('send-login-otp', { body: { email: signupEmail } });
-      if (otpError || !data?.success) {
-        toast.error('Erro ao enviar código', { description: 'Tente novamente.' });
-        return;
-      }
-      setAuthView('signupOTP');
-    } catch {
-      toast.error('Erro ao enviar código', { description: 'Tente novamente.' });
-    }
+    setAuthView('emailConfirmation');
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Full-screen email confirmation pending page
+  if (authView === 'emailConfirmation') {
+    return (
+      <div className="min-h-screen bg-white dark:bg-background flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full text-center space-y-6">
+          <div className="flex justify-center">
+            <div className="p-4 rounded-full bg-primary/10">
+              <Mail className="h-16 w-16 text-primary" />
+            </div>
+          </div>
+          <h1 className="text-3xl font-bold text-foreground">
+            Confirme seu e-mail
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Enviamos um link de confirmação para <strong>{otpEmail}</strong>. Clique no link para ativar sua conta.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Não recebeu? Verifique sua caixa de spam.
+          </p>
+          <Button variant="outline" size="lg" className="w-full max-w-xs mx-auto" onClick={() => setAuthView('default')}>
+            Voltar ao login
+          </Button>
+        </div>
       </div>
     );
   }
@@ -326,8 +347,6 @@ export default function Auth() {
     switch (authView) {
       case 'emailOTP':
         return { title: 'Verificação por Email', subtitle: `Digite o código de 6 dígitos enviado para ${otpEmail}` };
-      case 'signupOTP':
-        return { title: 'Verifique seu Email', subtitle: `Digite o código de 6 dígitos enviado para ${otpEmail}` };
       case 'mfa':
         return { title: 'Verificação em Duas Etapas', subtitle: 'Digite o código do seu aplicativo autenticador' };
       default:
@@ -369,9 +388,6 @@ export default function Auth() {
       return <EmailOTPVerification email={otpEmail} onSuccess={handleOTPSuccess} onCancel={handleOTPCancel} inline />;
     }
 
-    if (authView === 'signupOTP') {
-      return <EmailOTPVerification email={otpEmail} onSuccess={handleSignupOTPSuccess} onCancel={() => setAuthView('default')} inline />;
-    }
 
     if (authView === 'mfa') {
       return <MFAVerification onSuccess={handleMFASuccess} onCancel={handleMFACancel} inline />;
