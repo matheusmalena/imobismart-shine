@@ -1,38 +1,50 @@
 
 
-## Plan: Delete All Users + Fix Google Auth Flow
+## Plan: Fix Cakto Webhook -- Payload Format Mismatch
 
-### Problem
-1. All users need to be deleted from the system (including admin `matheus@yup.group` and any Google accounts)
-2. The Google auth flow logic is currently **inverted**: it blocks new users from signing up via Google. The correct behavior should be:
-   - First time (new user): must use **"Cadastrar"** tab with Google → account is created
-   - Subsequent times (existing user): must use **"Entrar"** tab with Google → logs in
-   - If existing user tries **"Cadastrar"** tab: show error "you already have an account, use Login"
-   - If new user tries **"Entrar"** tab: show error "account not found, sign up first"
+### Root Cause
 
-### Changes
+The webhook function is reading the wrong fields from the Cakto payload. Based on the official Cakto API documentation, the actual payload format is:
 
-**1. Delete all users (SQL migration)**
-- Delete all data from all related tables (profiles, subscriptions, user_roles, properties, tenants, documents, etc.)
-- Delete all users from `auth.users` using admin API via Edge Function (since we can't directly delete from auth schema in migrations)
-- This includes the admin account `matheus@yup.group`
+```text
+{
+  "data": {
+    "id": "uuid-order-id",
+    "customer": { "email": "...", "name": "..." },
+    "product": { "name": "ImobiSmart Pro", "id": "uuid" },
+    "offer": { "name": "ImobiSmart Pro", "id": "abc" },
+    "amount": 49.90,
+    "status": "paid",
+    ...
+  },
+  "event": "purchase_approved",
+  "secret": "ffc72047-12a3-470c-a086-e10b429ee530"
+}
+```
 
-**2. Fix Google auth logic** (`src/pages/Auth.tsx`, lines 143-180)
+But the current code reads:
+- `body.buyer?.email` -- WRONG, should be `body.data?.customer?.email`
+- `body.product?.name` -- WRONG, should be `body.data?.product?.name`
+- `body.transaction?.id` -- WRONG, should be `body.data?.id`
+- Header `x-webhook-secret` -- WRONG, Cakto sends secret in the body as `body.secret`
 
-Current logic (wrong):
-- `isNewUser` + any tab → blocks signup (line 152-163)
-- `savedTab === 'signup'` + existing user → blocks (line 164-175)
+### Three Critical Bugs
 
-New logic:
-- `isNewUser` + `savedTab === 'login'` → block: "Conta nao encontrada, cadastre-se primeiro"
-- `!isNewUser` + `savedTab === 'signup'` → block: "Voce ja tem conta, use Entrar"
-- `isNewUser` + `savedTab === 'signup'` → allow (create account via Google)
-- `!isNewUser` + `savedTab === 'login'` → allow (login via Google)
+1. **Secret validation fails**: Code checks headers for the secret, but Cakto sends it in the JSON body (`body.secret`). This means every webhook call is rejected with 401 Unauthorized.
 
-### Files to edit
-- `src/pages/Auth.tsx` — fix the Google redirect useEffect logic
-- Edge Function or SQL — delete all users and their data
+2. **Email not found**: Even if auth passed, `body.buyer?.email` is undefined because Cakto nests it under `body.data.customer.email`.
 
-### Important note
-After deleting all users (including the admin), you will need to create a new account and manually assign the admin role again.
+3. **Product name not found**: `body.product?.name` is undefined, so `plan` always resolves to `"free"` instead of the correct tier.
+
+### Fix (single file change)
+
+Update `supabase/functions/cakto-webhook/index.ts`:
+
+- Read the secret from `body.secret` instead of request headers
+- Extract email from `body.data?.customer?.email`
+- Extract product/offer name from `body.data?.product?.name` or `body.data?.offer?.name`
+- Extract amount from `body.data?.amount`
+- Extract transaction ID from `body.data?.id`
+- Add broader product name matching for "ImobiSmart" product names (e.g. "ImobiSmart Pro", "ImobiSmart Plus", "ImobiSmart -S..." for Starter)
+- Keep all existing event handling logic and fallbacks intact
 
