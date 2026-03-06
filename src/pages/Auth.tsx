@@ -72,7 +72,7 @@ type AuthView = 'default' | 'emailOTP' | 'signupOTP' | 'mfa' | 'emailConfirmatio
 export default function Auth() {
   const navigate = useNavigate();
   const { user, signIn, signUp, loading, mfaPending, setMfaPending } = useAuth();
-  const { toast } = useToast();
+  
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
