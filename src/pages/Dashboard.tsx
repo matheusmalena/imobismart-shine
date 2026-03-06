@@ -27,7 +27,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { activeProperties, isLoading, metrics } = useProperties();
-  const { profile, plan, isPro, isPlus, isLoading: userDataLoading } = useUserData();
+  const { profile, subscription, plan, isPro, isPlus, isLoading: userDataLoading } = useUserData();
   const { exportToCSV } = useExportData();
   
   const firstName = profile?.full_name?.split(' ')[0] || 'Investidor';
