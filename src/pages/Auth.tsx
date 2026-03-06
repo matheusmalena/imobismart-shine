@@ -67,7 +67,7 @@ const signupSchema = z.object({
   path: ['confirmPassword'],
 });
 
-type AuthView = 'default' | 'emailOTP' | 'mfa' | 'emailConfirmation';
+type AuthView = 'default' | 'emailOTP' | 'mfa' | 'emailConfirmation' | 'emailVerified';
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -81,6 +81,19 @@ export default function Auth() {
   const [otpEmail, setOtpEmail] = useState('');
   const [googleLoading, setGoogleLoading] = useState(false);
   const [authView, setAuthView] = useState<AuthView>('default');
+
+  // Detect ?verified=true from email confirmation link
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('verified') === 'true') {
+      // Sign out to prevent auto-login from the email verification link
+      supabase.auth.signOut({ scope: 'local' }).then(() => {
+        setAuthView('emailVerified');
+        // Clean up URL
+        window.history.replaceState({}, '', '/auth');
+      });
+    }
+  }, []);
 
   // Login form
   const [loginEmail, setLoginEmail] = useState('');
@@ -178,10 +191,22 @@ export default function Auth() {
       setAuthView('mfa');
       return;
     }
-    // OTP disabled temporarily (Resend domain not verified)
-    setMfaPending(false);
-    toast({ title: 'Bem-vindo!', description: 'Login realizado com sucesso.' });
-    navigate('/dashboard');
+    // Send OTP code for email verification
+    setOtpEmail(loginEmail);
+    try {
+      const { data, error: otpError } = await supabase.functions.invoke('send-login-otp', { body: { email: loginEmail } });
+      if (otpError || !data?.success) {
+        toast({ title: 'Erro ao enviar código', description: 'Tente novamente.', variant: 'destructive' });
+        await supabase.auth.signOut();
+        setMfaPending(false);
+        return;
+      }
+      setAuthView('emailOTP');
+    } catch {
+      toast({ title: 'Erro ao enviar código', description: 'Tente novamente.', variant: 'destructive' });
+      await supabase.auth.signOut();
+      setMfaPending(false);
+    }
   };
 
   const handleOTPSuccess = () => {
@@ -198,10 +223,25 @@ export default function Auth() {
   };
 
   const handleMFASuccess = async () => {
-    // OTP disabled (Resend domain not verified) — go straight to dashboard
-    setMfaPending(false);
-    toast({ title: 'Bem-vindo!', description: 'Login realizado com sucesso.' });
-    navigate('/dashboard');
+    // After MFA, send OTP for additional verification
+    const email = user?.email || loginEmail;
+    setOtpEmail(email);
+    try {
+      const { data, error: otpError } = await supabase.functions.invoke('send-login-otp', { body: { email } });
+      if (otpError || !data?.success) {
+        toast({ title: 'Erro ao enviar código', description: 'Tente novamente.', variant: 'destructive' });
+        await supabase.auth.signOut();
+        setMfaPending(false);
+        setAuthView('default');
+        return;
+      }
+      setAuthView('emailOTP');
+    } catch {
+      toast({ title: 'Erro ao enviar código', description: 'Tente novamente.', variant: 'destructive' });
+      await supabase.auth.signOut();
+      setMfaPending(false);
+      setAuthView('default');
+    }
   };
 
   const handleMFACancel = async () => {
@@ -250,11 +290,13 @@ export default function Auth() {
   const getHeaderContent = () => {
     switch (authView) {
       case 'emailOTP':
-        return { title: 'Verificação por Email', subtitle: `Digite o código de 4 dígitos enviado para ${otpEmail}` };
+        return { title: 'Verificação por Email', subtitle: `Digite o código de 6 dígitos enviado para ${otpEmail}` };
+      case 'emailVerified':
+        return { title: 'Email Verificado!', subtitle: 'Seu email foi confirmado com sucesso' };
       case 'mfa':
         return { title: 'Verificação em Duas Etapas', subtitle: 'Digite o código do seu aplicativo autenticador' };
       case 'emailConfirmation':
-        return { title: 'Verifique seu email', subtitle: `Enviamos um link de confirmação para ${signupEmail}` };
+        return { title: 'Verifique seu Email', subtitle: 'Falta pouco para completar seu cadastro' };
       default:
         return showForgotPassword
           ? { title: 'Recuperar senha', subtitle: 'Digite seu email para receber o link de recuperação' }
@@ -298,18 +340,43 @@ export default function Auth() {
       return <MFAVerification onSuccess={handleMFASuccess} onCancel={handleMFACancel} inline />;
     }
 
+    if (authView === 'emailVerified') {
+      return (
+        <div className="space-y-4">
+          <div className="flex justify-center mb-2">
+            <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/30">
+              <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+          <p className="text-center text-foreground font-medium">
+            Seu email foi verificado com sucesso!
+          </p>
+          <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground text-center">
+            Agora você pode fazer login com suas credenciais.
+          </div>
+          <Button className="w-full" size="lg" onClick={() => setAuthView('default')}>
+            Ir para o login
+          </Button>
+        </div>
+      );
+    }
+
     if (authView === 'emailConfirmation') {
       return (
         <div className="space-y-4">
           <div className="flex justify-center mb-2">
             <div className="p-3 rounded-full bg-primary/10">
-              <CheckCircle className="h-8 w-8 text-primary" />
+              <Mail className="h-8 w-8 text-primary" />
             </div>
           </div>
+          <p className="text-center text-foreground font-medium">
+            Enviamos um link de confirmação para:
+          </p>
+          <p className="text-center text-primary font-semibold">{signupEmail}</p>
           <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground text-center">
-            Após confirmar seu email, volte aqui e faça login na aba "Entrar".
+            Abra seu email e clique no link de confirmação. Após confirmar, volte aqui para fazer login.
           </div>
-          <Button variant="outline" className="w-full" onClick={() => setAuthView('default')}>
+          <Button variant="outline" className="w-full" size="lg" onClick={() => setAuthView('default')}>
             Voltar ao login
           </Button>
         </div>

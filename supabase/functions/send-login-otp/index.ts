@@ -26,8 +26,8 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Generate 4-digit code
-    const otpCode = Math.floor(1000 + Math.random() * 9000).toString();
+    // Generate 6-digit code
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
 
     // Delete old OTPs for this email
     await supabaseAdmin
