@@ -131,7 +131,7 @@ function EmailVerifiedScreen({ user, navigate }: { user: any; navigate: (path: s
 
 export default function Auth() {
   const navigate = useNavigate();
-  const { user, signIn, signUp, loading, mfaPending, setMfaPending } = useAuth();
+  const { user, signIn, signUp, loading, mfaPending, setMfaPending, startPendingAuth, completePendingAuth } = useAuth();
   
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -258,7 +258,7 @@ export default function Auth() {
               return;
             }
 
-            setMfaPending(true);
+            startPendingAuth();
             setOtpEmail(email);
 
             const { data, error: otpError } = await supabase.functions.invoke('send-login-otp', {
@@ -348,19 +348,19 @@ export default function Auth() {
       if (otpError || !data?.success) {
         toast.error('Erro ao enviar código', { description: 'Tente novamente.' });
         await supabase.auth.signOut();
-        setMfaPending(false);
+        await completePendingAuth();
         return;
       }
       setAuthView('emailOTP');
     } catch {
       toast.error('Erro ao enviar código', { description: 'Tente novamente.' });
       await supabase.auth.signOut();
-      setMfaPending(false);
+      await completePendingAuth();
     }
   };
 
-  const handleOTPSuccess = () => {
-    setMfaPending(false);
+  const handleOTPSuccess = async () => {
+    await completePendingAuth();
     toast.success('Bem-vindo!', { description: 'Login realizado com sucesso.' });
     navigate('/dashboard');
   };
@@ -369,7 +369,7 @@ export default function Auth() {
   const handleOTPCancel = async () => {
     await supabase.auth.signOut();
     setAuthView('default');
-    setMfaPending(false);
+    await completePendingAuth();
   };
 
   const handleMFASuccess = async () => {
@@ -380,7 +380,7 @@ export default function Auth() {
       if (otpError || !data?.success) {
         toast.error('Erro ao enviar código', { description: 'Tente novamente.' });
         await supabase.auth.signOut();
-        setMfaPending(false);
+        await completePendingAuth();
         setAuthView('default');
         return;
       }
@@ -388,7 +388,7 @@ export default function Auth() {
     } catch {
       toast.error('Erro ao enviar código', { description: 'Tente novamente.' });
       await supabase.auth.signOut();
-      setMfaPending(false);
+      await completePendingAuth();
       setAuthView('default');
     }
   };
@@ -396,7 +396,7 @@ export default function Auth() {
   const handleMFACancel = async () => {
     await supabase.auth.signOut();
     setAuthView('default');
-    setMfaPending(false);
+    await completePendingAuth();
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
