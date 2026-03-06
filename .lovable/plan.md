@@ -1,55 +1,50 @@
 
 
-## Plano: Email verificado → Confirmação → Dashboard (sem OTP no cadastro)
+## Plan: Fix Cakto Webhook -- Payload Format Mismatch
 
-### Problema Atual
-Quando o usuário clica no link de confirmação de email, o `EmailConfirmationInterceptor` no `App.tsx` faz `signOut` e redireciona para uma tela estática de "email verificado" que pede para fazer login manualmente. O OTP não deveria ser exigido no primeiro acesso após verificação.
+### Root Cause
 
-### Mudanças
-
-#### 1. `src/App.tsx` — `EmailConfirmationInterceptor`
-Em vez de fazer `signOut` e redirecionar para `?verified=true`, **manter a sessão ativa** e redirecionar para `/auth?verified=true` sem sign out. O Supabase já autentica o usuário automaticamente ao clicar no link de confirmação.
+The webhook function is reading the wrong fields from the Cakto payload. Based on the official Cakto API documentation, the actual payload format is:
 
 ```text
-Antes: signOut → /auth?verified=true → tela estática → login manual → OTP
-Depois: mantém sessão → /auth?verified=true → tela de sucesso (3s) → /dashboard
+{
+  "data": {
+    "id": "uuid-order-id",
+    "customer": { "email": "...", "name": "..." },
+    "product": { "name": "ImobiSmart Pro", "id": "uuid" },
+    "offer": { "name": "ImobiSmart Pro", "id": "abc" },
+    "amount": 49.90,
+    "status": "paid",
+    ...
+  },
+  "event": "purchase_approved",
+  "secret": "ffc72047-12a3-470c-a086-e10b429ee530"
+}
 ```
 
-#### 2. `src/pages/Auth.tsx` — Tela `emailVerified`
-- Ao detectar `?verified=true`, mostrar a tela de confirmação de sucesso como hoje (ícone verde, "E-mail verificado com sucesso!")
-- Adicionar um `useEffect` que após 3 segundos redireciona automaticamente para `/dashboard`
-- Manter o botão "Ir para o dashboard" como ação imediata
-- **Não exigir OTP** — o usuário acabou de verificar o email, isso já é prova de identidade
+But the current code reads:
+- `body.buyer?.email` -- WRONG, should be `body.data?.customer?.email`
+- `body.product?.name` -- WRONG, should be `body.data?.product?.name`
+- `body.transaction?.id` -- WRONG, should be `body.data?.id`
+- Header `x-webhook-secret` -- WRONG, Cakto sends secret in the body as `body.secret`
 
-#### 3. `src/pages/Auth.tsx` — Detectar verificação no `useEffect` do Google/user
-- Quando `authView === 'emailVerified'` e o `user` está autenticado, não redirecionar para dashboard imediatamente (deixar a tela de sucesso aparecer por 3s)
-- Ajustar a condição na linha 150 para ignorar quando `authView === 'emailVerified'` (já está feito)
+### Three Critical Bugs
 
-#### 4. `src/contexts/AuthContext.tsx` — Sem bloqueio no signup redirect
-- O `onAuthStateChange` já usa `mfaPendingRef` para não bloquear. No caso de email verification, `mfaPending` é `false`, então a sessão será setada normalmente. Sem mudanças necessárias.
+1. **Secret validation fails**: Code checks headers for the secret, but Cakto sends it in the JSON body (`body.secret`). This means every webhook call is rejected with 401 Unauthorized.
 
-### Fluxo Final
+2. **Email not found**: Even if auth passed, `body.buyer?.email` is undefined because Cakto nests it under `body.data.customer.email`.
 
-```text
-Cadastro email/senha:
-  1. Preenche formulário → clica "Criar conta"
-  2. Tela "Confirme seu e-mail" (já existe)
-  3. Clica link no email → Supabase confirma e autentica
-  4. Redirect para /auth?verified=true
-  5. Tela de sucesso "E-mail verificado!" (3s)
-  6. Redirecionamento automático para /dashboard
+3. **Product name not found**: `body.product?.name` is undefined, so `plan` always resolves to `"free"` instead of the correct tier.
 
-Login email/senha:
-  1. Email + senha → OTP obrigatório (sem mudança)
+### Fix (single file change)
 
-Login Google:
-  1. Sem mudança (OTP no login, direto no signup)
-```
+Update `supabase/functions/cakto-webhook/index.ts`:
 
-### Arquivos a Modificar
-
-| Arquivo | Mudança |
-|---|---|
-| `src/App.tsx` | Remover `signOut` do interceptor; apenas redirecionar para `/auth?verified=true` mantendo sessão |
-| `src/pages/Auth.tsx` | Tela `emailVerified`: auto-redirect para `/dashboard` após 3s; detectar que user está logado e não exigir OTP |
+- Read the secret from `body.secret` instead of request headers
+- Extract email from `body.data?.customer?.email`
+- Extract product/offer name from `body.data?.product?.name` or `body.data?.offer?.name`
+- Extract amount from `body.data?.amount`
+- Extract transaction ID from `body.data?.id`
+- Add broader product name matching for "ImobiSmart" product names (e.g. "ImobiSmart Pro", "ImobiSmart Plus", "ImobiSmart -S..." for Starter)
+- Keep all existing event handling logic and fallbacks intact
 

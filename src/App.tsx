@@ -38,10 +38,8 @@ function EmailConfirmationInterceptor() {
   useEffect(() => {
     const hash = window.location.hash;
     if (hash && hash.includes('type=signup') && location.pathname !== '/auth') {
-      // Email confirmed — sign out and redirect to verified screen
-      supabase.auth.signOut({ scope: 'local' }).then(() => {
-        navigate('/auth?verified=true', { replace: true });
-      });
+      // Email confirmed — keep session active and redirect to verified screen
+      navigate('/auth?verified=true', { replace: true });
       window.history.replaceState(null, '', window.location.pathname);
     }
   }, [location, navigate]);
