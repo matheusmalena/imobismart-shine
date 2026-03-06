@@ -321,7 +321,16 @@ export default function Subscription() {
                       <span className="text-muted-foreground">Método</span>
                       <Badge variant="outline" className="gap-1.5">
                         <CreditCard className="h-3.5 w-3.5" />
-                        Cakto
+                        {(() => {
+                          const method = subscription?.payment_method;
+                          const methodLabels: Record<string, string> = {
+                            credit_card: 'Cartão de crédito',
+                            debit_card: 'Cartão de débito',
+                            pix: 'PIX',
+                            boleto: 'Boleto',
+                          };
+                          return methodLabels[method || ''] || 'Cartão de crédito';
+                        })()}
                       </Badge>
                     </div>
 
@@ -329,14 +338,14 @@ export default function Subscription() {
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Email</span>
                       <span className="text-foreground text-sm">
-                        {profile?.email || user?.email || '—'}
+                        {subscription?.payer_email || profile?.email || user?.email || '—'}
                       </span>
                     </div>
 
                     {/* Info */}
                     <div className="pt-4 border-t">
                       <p className="text-sm text-muted-foreground text-center">
-                        Para gerenciar detalhes do pagamento, acesse o painel da Cakto.
+                        Os pagamentos são processados de forma segura pelo nosso gateway.
                       </p>
                     </div>
                   </>

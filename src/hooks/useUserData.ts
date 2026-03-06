@@ -26,6 +26,8 @@ export interface Subscription {
   expires_at: string | null;
   created_at: string;
   updated_at: string;
+  payment_method: string | null;
+  payer_email: string | null;
 }
 
 interface UserData {
@@ -82,7 +84,7 @@ export function useUserData() {
       if (ownerPlan && Array.isArray(ownerPlan) && ownerPlan.length > 0) {
         const op = ownerPlan[0];
         subscription = {
-          ...(subscription || { id: '', user_id: user.id, started_at: '', expires_at: null, created_at: '', updated_at: '' }),
+          ...(subscription || { id: '', user_id: user.id, started_at: '', expires_at: null, created_at: '', updated_at: '', payment_method: null, payer_email: null }),
           plan: op.plan as Subscription['plan'],
           status: op.status as Subscription['status'],
         };

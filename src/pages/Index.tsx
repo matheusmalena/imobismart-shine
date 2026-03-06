@@ -9,6 +9,7 @@ import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { FAQSection } from "@/components/landing/FAQSection";
 import { TutorialModal, TutorialModalRef } from "@/components/onboarding/TutorialModal";
+import { DashboardMockup, PropertiesMockup, DocumentsMockup, SettingsMockup } from "@/components/landing/ScreenMockups";
 import {
   Building2,
   BarChart3,
@@ -32,7 +33,7 @@ const featureTabs = [
     title: "Visão completa do seu portfólio",
     description:
       "Métricas de receita, custos, ROI e lucro líquido calculados automaticamente. Gráficos de evolução e ranking de performance dos seus imóveis.",
-    image: "/images/tutorial-dashboard.png",
+    mockup: "dashboard",
   },
   {
     id: "properties",
@@ -41,7 +42,7 @@ const featureTabs = [
     title: "Gestão centralizada de imóveis",
     description:
       "Cadastre todos os seus imóveis com fotos, endereço, valores e status. Filtre por tipo, status e performance com facilidade.",
-    image: "/images/tutorial-properties.png",
+    mockup: "properties",
   },
   {
     id: "documents",
@@ -50,7 +51,7 @@ const featureTabs = [
     title: "Documentos organizados por imóvel",
     description:
       "Contratos, matrículas, laudos e IPTUs salvos na nuvem. Busque e acesse qualquer documento de qualquer lugar.",
-    image: "/images/tutorial-documents.png",
+    mockup: "documents",
   },
   {
     id: "settings",
@@ -59,7 +60,7 @@ const featureTabs = [
     title: "Segurança e personalização",
     description:
       "Autenticação em duas etapas, gestão de equipe, planos e preferências. Tudo para você ter controle total da sua conta.",
-    image: "/images/tutorial-settings.png",
+    mockup: "settings",
   },
 ];
 
@@ -154,19 +155,12 @@ export default function Index() {
     if (!loading && user) navigate("/dashboard");
   }, [user, loading, navigate]);
 
-  useEffect(() => {
-    const imagesToPreload = [
-      '/images/tutorial-dashboard.png',
-      '/images/tutorial-properties.png',
-      '/images/tutorial-documents.png',
-      '/images/tutorial-settings.png',
-      '/images/tutorial-dashboard-hero.png',
-    ];
-    imagesToPreload.forEach(src => {
-      const img = new Image();
-      img.src = src;
-    });
-  }, []);
+  const MOCKUP_COMPONENTS: Record<string, React.ReactNode> = {
+    dashboard: <DashboardMockup />,
+    properties: <PropertiesMockup />,
+    documents: <DocumentsMockup />,
+    settings: <SettingsMockup />,
+  };
 
   const benefits = [
     "Dashboard com métricas em tempo real",
@@ -258,12 +252,7 @@ export default function Index() {
             {/* Right - Dashboard Screenshot with 3D */}
             <div className="relative animate-fade-in" style={{ animationDelay: '0.15s' }}>
               <div className="hero-screenshot-3d hero-glow rounded-2xl overflow-hidden border border-border/50">
-                <img
-                  src="/images/tutorial-dashboard-hero.png"
-                  alt="Dashboard do ImobiSmart mostrando métricas de imóveis"
-                  className="w-full block"
-                  loading="eager"
-                />
+                <DashboardMockup />
               </div>
             </div>
           </div>
@@ -376,12 +365,7 @@ export default function Index() {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
             {/* Screenshot - clean, no browser frame */}
             <div className="lg:col-span-3 rounded-2xl overflow-hidden shadow-2xl border border-border/50 hero-glow">
-              <img
-                src={activeFeature.image}
-                alt={activeFeature.title}
-                className="w-full block transition-opacity duration-200"
-                key={activeFeature.id}
-              />
+              {MOCKUP_COMPONENTS[activeFeature.mockup]}
             </div>
 
             {/* Description */}
@@ -450,12 +434,7 @@ export default function Index() {
 
             {/* Real screenshot with perspective */}
             <div className="benefits-screenshot rounded-2xl overflow-hidden shadow-2xl border border-border/50 hero-glow">
-              <img
-                src="/images/tutorial-properties.png"
-                alt="Tela de gestão de imóveis do ImobiSmart"
-                className="w-full block"
-                loading="lazy"
-              />
+              <PropertiesMockup />
             </div>
           </div>
         </div>
@@ -465,12 +444,6 @@ export default function Index() {
       <section className="py-24 px-4 relative overflow-hidden">
         {/* Background screenshot with overlay */}
         <div className="absolute inset-0 -z-10">
-          <img
-            src="/images/tutorial-dashboard-hero.png"
-            alt=""
-            className="w-full h-full object-cover object-top opacity-[0.06] dark:opacity-[0.04]"
-            loading="lazy"
-          />
           <div className="absolute inset-0 gradient-hero" />
         </div>
         <div className="absolute inset-0 -z-10">
