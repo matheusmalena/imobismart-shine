@@ -33,7 +33,7 @@ const featureTabs = [
     title: "Visão completa do seu portfólio",
     description:
       "Métricas de receita, custos, ROI e lucro líquido calculados automaticamente. Gráficos de evolução e ranking de performance dos seus imóveis.",
-    image: "/images/tutorial-dashboard.png",
+    mockup: "dashboard",
   },
   {
     id: "properties",
@@ -42,7 +42,7 @@ const featureTabs = [
     title: "Gestão centralizada de imóveis",
     description:
       "Cadastre todos os seus imóveis com fotos, endereço, valores e status. Filtre por tipo, status e performance com facilidade.",
-    image: "/images/tutorial-properties.png",
+    mockup: "properties",
   },
   {
     id: "documents",
@@ -51,7 +51,7 @@ const featureTabs = [
     title: "Documentos organizados por imóvel",
     description:
       "Contratos, matrículas, laudos e IPTUs salvos na nuvem. Busque e acesse qualquer documento de qualquer lugar.",
-    image: "/images/tutorial-documents.png",
+    mockup: "documents",
   },
   {
     id: "settings",
@@ -60,7 +60,7 @@ const featureTabs = [
     title: "Segurança e personalização",
     description:
       "Autenticação em duas etapas, gestão de equipe, planos e preferências. Tudo para você ter controle total da sua conta.",
-    image: "/images/tutorial-settings.png",
+    mockup: "settings",
   },
 ];
 
@@ -155,19 +155,12 @@ export default function Index() {
     if (!loading && user) navigate("/dashboard");
   }, [user, loading, navigate]);
 
-  useEffect(() => {
-    const imagesToPreload = [
-      '/images/tutorial-dashboard.png',
-      '/images/tutorial-properties.png',
-      '/images/tutorial-documents.png',
-      '/images/tutorial-settings.png',
-      '/images/tutorial-dashboard-hero.png',
-    ];
-    imagesToPreload.forEach(src => {
-      const img = new Image();
-      img.src = src;
-    });
-  }, []);
+  const MOCKUP_COMPONENTS: Record<string, React.ReactNode> = {
+    dashboard: <DashboardMockup />,
+    properties: <PropertiesMockup />,
+    documents: <DocumentsMockup />,
+    settings: <SettingsMockup />,
+  };
 
   const benefits = [
     "Dashboard com métricas em tempo real",
