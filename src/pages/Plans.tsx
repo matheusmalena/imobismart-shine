@@ -6,9 +6,11 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useUserData } from '@/hooks/useUserData';
 import { useProperties } from '@/hooks/useProperties';
 import { usePlans } from '@/hooks/usePlans';
+import { useOrganization } from '@/hooks/useOrganization';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { LockedPagePlaceholder } from '@/components/common/LockedPagePlaceholder';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -112,8 +114,23 @@ export default function Plans() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [queryClient, refetchSubscription]);
 
+  const { organization, userRole: orgRole } = useOrganization();
+  const isOrgMemberNotOwner = !!organization && orgRole !== 'owner';
+
   const currentPlan = currentUserPlan;
   const isLoading = authLoading || subscriptionLoading || plansLoading;
+
+  if (isOrgMemberNotOwner) {
+    return (
+      <LockedPagePlaceholder
+        icon={<Crown className="h-8 w-8 text-muted-foreground" />}
+        title="Acesso Restrito"
+        description="Apenas o proprietário da conta pode gerenciar planos e assinatura. Entre em contato com o administrador da sua organização."
+        requiredPlan="enterprise"
+        buttonLabel="Voltar ao Dashboard"
+      />
+    );
+  }
 
   const activeCount = activeProperties.length;
   const freeLimit = 2;
