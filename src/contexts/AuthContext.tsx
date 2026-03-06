@@ -38,7 +38,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session) {
+        // Verify the user still exists by calling getUser (server-side check)
+        const { data: { user: verifiedUser }, error } = await supabase.auth.getUser();
+        if (error || !verifiedUser) {
+          // User was deleted — clear stale session
+          console.warn('Session refers to deleted user, clearing...');
+          await supabase.auth.signOut({ scope: 'local' });
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+      }
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
