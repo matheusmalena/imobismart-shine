@@ -10,6 +10,7 @@ import { RevenueChart } from '@/components/dashboard/RevenueChart';
 import { OccupancyChart } from '@/components/dashboard/OccupancyChart';
 import { ProFeaturesCard } from '@/components/dashboard/ProFeaturesCard';
 import { PlusAICard } from '@/components/dashboard/PlusAICard';
+import { SubscriptionAlertBanner } from '@/components/dashboard/SubscriptionAlertBanner';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -26,7 +27,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { activeProperties, isLoading, metrics } = useProperties();
-  const { profile, plan, isPro, isPlus, isLoading: userDataLoading } = useUserData();
+  const { profile, subscription, plan, isPro, isPlus, isLoading: userDataLoading } = useUserData();
   const { exportToCSV } = useExportData();
   
   const firstName = profile?.full_name?.split(' ')[0] || 'Investidor';
@@ -90,6 +91,9 @@ export default function Dashboard() {
             Novo Imóvel
           </Button>
         </div>
+
+        {/* Subscription Alert Banner */}
+        <SubscriptionAlertBanner subscription={subscription} />
 
         {/* Main Metrics - Always visible */}
         <DashboardMetrics
