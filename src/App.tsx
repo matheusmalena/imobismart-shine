@@ -38,9 +38,8 @@ function EmailConfirmationInterceptor() {
   useEffect(() => {
     const hash = window.location.hash;
     if (hash && hash.includes('type=signup') && location.pathname !== '/auth') {
-      // Email confirmed — keep session active and redirect to verified screen
-      // Don't clear the hash here — let Supabase process it for session exchange
-      navigate('/auth?verified=true', { replace: true });
+      // Preserve the hash so Supabase can exchange tokens for a session
+      window.location.replace('/auth?verified=true' + hash);
     }
   }, [location, navigate]);
 

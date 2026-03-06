@@ -115,6 +115,13 @@ function EmailVerifiedScreen({ user, navigate }: { user: any; navigate: (path: s
     };
   }, [user]);
 
+  // Clean up URL once session is confirmed
+  useEffect(() => {
+    if (sessionReady) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, [sessionReady]);
+
   // Start countdown only when session is ready
   useEffect(() => {
     if (!sessionReady) return;
@@ -181,16 +188,11 @@ export default function Auth() {
     const hash = window.location.hash;
     const params = new URLSearchParams(window.location.search);
     
-    if (params.get('verified') === 'true') {
+    if (params.get('verified') === 'true' || (hash && hash.includes('type=signup'))) {
       setAuthView('emailVerified');
-      window.history.replaceState(null, '', window.location.pathname);
+      // Don't clear URL yet — let Supabase process the hash tokens first.
+      // URL cleanup happens inside EmailVerifiedScreen after session is ready.
       return;
-    }
-    
-    if (hash && hash.includes('type=signup')) {
-      // Keep session active — user just verified email, no need to sign out
-      setAuthView('emailVerified');
-      window.history.replaceState(null, '', window.location.pathname);
     }
   }, []);
 
@@ -323,7 +325,7 @@ export default function Auth() {
     }
 
     // Non-Google user already authenticated (e.g. returning session)
-    if (!savedTab) {
+    if (!savedTab && authView !== 'emailVerified') {
       navigate('/dashboard');
     }
   }, [user, mfaPending, authView, navigate]);
