@@ -1,50 +1,43 @@
 
 
-## Plan: Fix Cakto Webhook -- Payload Format Mismatch
+## Plano: Bloquear página de Assinatura para membros não-proprietários da organização Enterprise
 
-### Root Cause
+### Problema
+Qualquer membro da equipe Enterprise pode acessar `/subscription` e potencialmente cancelar o plano. Apenas o **owner** da organização deveria ter acesso.
 
-The webhook function is reading the wrong fields from the Cakto payload. Based on the official Cakto API documentation, the actual payload format is:
+### Solução
 
-```text
-{
-  "data": {
-    "id": "uuid-order-id",
-    "customer": { "email": "...", "name": "..." },
-    "product": { "name": "ImobiSmart Pro", "id": "uuid" },
-    "offer": { "name": "ImobiSmart Pro", "id": "abc" },
-    "amount": 49.90,
-    "status": "paid",
-    ...
-  },
-  "event": "purchase_approved",
-  "secret": "ffc72047-12a3-470c-a086-e10b429ee530"
+#### 1. `src/pages/Subscription.tsx` — Bloquear acesso para membros não-owner
+No topo do componente, usar `useOrgPermissions` e `useOrganization` para verificar se o usuário pertence a uma organização e **não é o owner**. Se for o caso, renderizar o `LockedPagePlaceholder` com mensagem explicando que apenas o proprietário pode gerenciar a assinatura.
+
+```tsx
+import { useOrganization } from '@/hooks/useOrganization';
+
+// No início do componente:
+const { organization, userRole } = useOrganization();
+const isOrgMemberNotOwner = !!organization && userRole !== 'owner';
+
+if (isOrgMemberNotOwner) {
+  return <LockedPagePlaceholder ... />;
 }
 ```
 
-But the current code reads:
-- `body.buyer?.email` -- WRONG, should be `body.data?.customer?.email`
-- `body.product?.name` -- WRONG, should be `body.data?.product?.name`
-- `body.transaction?.id` -- WRONG, should be `body.data?.id`
-- Header `x-webhook-secret` -- WRONG, Cakto sends secret in the body as `body.secret`
+#### 2. `src/components/layout/DashboardLayout.tsx` — Esconder link "Assinatura" no menu
+Filtrar o item `Assinatura` da navegação lateral quando o usuário for membro de organização mas não for owner. Usar o mesmo hook `useOrganization` já disponível ou importá-lo.
 
-### Three Critical Bugs
+```tsx
+const filteredNavigation = navigation.filter(item => {
+  if (item.href === '/subscription' && organization && userRole !== 'owner') {
+    return false;
+  }
+  return true;
+});
+```
 
-1. **Secret validation fails**: Code checks headers for the secret, but Cakto sends it in the JSON body (`body.secret`). This means every webhook call is rejected with 401 Unauthorized.
+### Arquivos
 
-2. **Email not found**: Even if auth passed, `body.buyer?.email` is undefined because Cakto nests it under `body.data.customer.email`.
-
-3. **Product name not found**: `body.product?.name` is undefined, so `plan` always resolves to `"free"` instead of the correct tier.
-
-### Fix (single file change)
-
-Update `supabase/functions/cakto-webhook/index.ts`:
-
-- Read the secret from `body.secret` instead of request headers
-- Extract email from `body.data?.customer?.email`
-- Extract product/offer name from `body.data?.product?.name` or `body.data?.offer?.name`
-- Extract amount from `body.data?.amount`
-- Extract transaction ID from `body.data?.id`
-- Add broader product name matching for "ImobiSmart" product names (e.g. "ImobiSmart Pro", "ImobiSmart Plus", "ImobiSmart -S..." for Starter)
-- Keep all existing event handling logic and fallbacks intact
+| Arquivo | Mudança |
+|---|---|
+| `src/pages/Subscription.tsx` | Adicionar guard com `LockedPagePlaceholder` para não-owners |
+| `src/components/layout/DashboardLayout.tsx` | Filtrar item "Assinatura" do menu para não-owners |
 
