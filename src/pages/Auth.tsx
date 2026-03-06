@@ -82,18 +82,7 @@ export default function Auth() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [authView, setAuthView] = useState<AuthView>('default');
 
-  // Detect ?verified=true from email confirmation link
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('verified') === 'true') {
-      // Sign out to prevent auto-login from the email verification link
-      supabase.auth.signOut({ scope: 'local' }).then(() => {
-        setAuthView('emailVerified');
-        // Clean up URL
-        window.history.replaceState({}, '', '/auth');
-      });
-    }
-  }, []);
+  // No longer needed - using custom OTP verification instead of link-based
 
   // Login form
   const [loginEmail, setLoginEmail] = useState('');
@@ -273,8 +262,19 @@ export default function Auth() {
         description: error.message === 'User already registered' ? 'Este email já está cadastrado' : error.message,
         variant: 'destructive',
       });
-    } else {
-      setAuthView('emailConfirmation');
+      return;
+    }
+    // Send OTP for email verification via Resend
+    setOtpEmail(signupEmail);
+    try {
+      const { data, error: otpError } = await supabase.functions.invoke('send-login-otp', { body: { email: signupEmail } });
+      if (otpError || !data?.success) {
+        toast({ title: 'Erro ao enviar código', description: 'Tente novamente.', variant: 'destructive' });
+        return;
+      }
+      setAuthView('signupOTP');
+    } catch {
+      toast({ title: 'Erro ao enviar código', description: 'Tente novamente.', variant: 'destructive' });
     }
   };
 
