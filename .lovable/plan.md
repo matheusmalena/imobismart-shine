@@ -1,31 +1,50 @@
 
 
-## Plan: Fix Email Verification Flow and Re-enable Login OTP
+## Plan: Fix Cakto Webhook -- Payload Format Mismatch
 
-### Problems Identified
+### Root Cause
 
-1. **Signup redirect URL** points to `/` (root), which auto-logs the user in via Supabase session. Should redirect to `/auth?verified=true` instead.
-2. **No "email verified" screen** -- when user clicks the verification link, they land on the app logged in. Need to intercept this, sign them out, and show a confirmation message.
-3. **Email confirmation screen style** -- the current "Verifique seu email" view is minimal and doesn't match the login/signup visual pattern.
-4. **Login OTP is disabled** -- lines 181-184 in Auth.tsx bypass the OTP step. Need to re-enable it with 6-digit codes.
-5. **OTP is 4-digit** -- `send-login-otp` generates 4-digit codes; `EmailOTPVerification` expects 4 digits. Both need to be updated to 6 digits.
+The webhook function is reading the wrong fields from the Cakto payload. Based on the official Cakto API documentation, the actual payload format is:
 
-### Changes
+```text
+{
+  "data": {
+    "id": "uuid-order-id",
+    "customer": { "email": "...", "name": "..." },
+    "product": { "name": "ImobiSmart Pro", "id": "uuid" },
+    "offer": { "name": "ImobiSmart Pro", "id": "abc" },
+    "amount": 49.90,
+    "status": "paid",
+    ...
+  },
+  "event": "purchase_approved",
+  "secret": "ffc72047-12a3-470c-a086-e10b429ee530"
+}
+```
 
-**1. `src/contexts/AuthContext.tsx`** -- Change `emailRedirectTo` from `window.location.origin + '/'` to `window.location.origin + '/auth?verified=true'`
+But the current code reads:
+- `body.buyer?.email` -- WRONG, should be `body.data?.customer?.email`
+- `body.product?.name` -- WRONG, should be `body.data?.product?.name`
+- `body.transaction?.id` -- WRONG, should be `body.data?.id`
+- Header `x-webhook-secret` -- WRONG, Cakto sends secret in the body as `body.secret`
 
-**2. `src/pages/Auth.tsx`**:
-- Add a new `AuthView` value: `'emailVerified'`
-- On mount, detect `?verified=true` in URL params: sign the user out (to prevent auto-login), set `authView` to `'emailVerified'`
-- Add `emailVerified` view in `renderRightContent()` with a success icon, "Email verificado com sucesso!" title, message saying they can now login, and a "Voltar ao login" button
-- Update `getHeaderContent()` for the `emailVerified` case
-- Improve `emailConfirmation` view to include a Mail icon and more descriptive text matching the existing card style
-- **Re-enable OTP on login**: replace lines 181-184 with code that sends OTP via `send-login-otp` and transitions to `emailOTP` view
-- Update OTP header text to reference 6-digit code
+### Three Critical Bugs
 
-**3. `supabase/functions/send-login-otp/index.ts`** -- Change OTP generation from 4 digits (`Math.floor(1000 + Math.random() * 9000)`) to 6 digits (`Math.floor(100000 + Math.random() * 900000)`)
+1. **Secret validation fails**: Code checks headers for the secret, but Cakto sends it in the JSON body (`body.secret`). This means every webhook call is rejected with 401 Unauthorized.
 
-**4. `src/components/auth/EmailOTPVerification.tsx`** -- Change `maxLength` from 4 to 6, update validation check from `code.length !== 4` to `code.length !== 6`, update placeholder to `"000000"`
+2. **Email not found**: Even if auth passed, `body.buyer?.email` is undefined because Cakto nests it under `body.data.customer.email`.
 
-**5. `supabase/functions/verify-login-otp/index.ts`** -- Update validation check from 4-digit to 6-digit code length (if present)
+3. **Product name not found**: `body.product?.name` is undefined, so `plan` always resolves to `"free"` instead of the correct tier.
+
+### Fix (single file change)
+
+Update `supabase/functions/cakto-webhook/index.ts`:
+
+- Read the secret from `body.secret` instead of request headers
+- Extract email from `body.data?.customer?.email`
+- Extract product/offer name from `body.data?.product?.name` or `body.data?.offer?.name`
+- Extract amount from `body.data?.amount`
+- Extract transaction ID from `body.data?.id`
+- Add broader product name matching for "ImobiSmart" product names (e.g. "ImobiSmart Pro", "ImobiSmart Plus", "ImobiSmart -S..." for Starter)
+- Keep all existing event handling logic and fallbacks intact
 

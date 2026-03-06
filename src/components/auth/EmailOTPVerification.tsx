@@ -21,7 +21,7 @@ export function EmailOTPVerification({ email, onSuccess, onCancel, inline }: Ema
   const [error, setError] = useState('');
 
   const handleVerify = async () => {
-    if (code.length !== 4) { setError('Digite o código de 4 dígitos'); return; }
+    if (code.length !== 6) { setError('Digite o código de 6 dígitos'); return; }
     setIsVerifying(true);
     setError('');
     try {
@@ -64,16 +64,16 @@ export function EmailOTPVerification({ email, onSuccess, onCancel, inline }: Ema
         <Label htmlFor="otp-code">Código de Verificação</Label>
         <Input
           id="otp-code" type="text" inputMode="numeric" pattern="[0-9]*"
-          maxLength={4} placeholder="0000" value={code}
-          onChange={(e) => { setCode(e.target.value.replace(/\D/g, '')); setError(''); }}
+          maxLength={6} placeholder="000000" value={code}
+          onChange={(e) => { setCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setError(''); }}
           onKeyDown={(e) => e.key === 'Enter' && handleVerify()}
-          className="text-center text-3xl tracking-[0.5em] font-mono" autoFocus
+          className="text-center text-3xl tracking-[0.3em] font-mono" autoFocus
         />
         {error && <p className="text-sm text-destructive">{error}</p>}
       </div>
       <div className="flex gap-3">
         <Button variant="outline" onClick={onCancel} className="flex-1">Voltar</Button>
-        <Button onClick={handleVerify} disabled={isVerifying || code.length !== 4} className="flex-1">
+        <Button onClick={handleVerify} disabled={isVerifying || code.length !== 6} className="flex-1">
           {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Verificar
         </Button>
@@ -99,7 +99,7 @@ export function EmailOTPVerification({ email, onSuccess, onCancel, inline }: Ema
         </div>
         <CardTitle>Verificação por Email</CardTitle>
         <CardDescription>
-          Enviamos um código de 4 dígitos para <strong>{email}</strong>
+          Enviamos um código de 6 dígitos para <strong>{email}</strong>
         </CardDescription>
       </CardHeader>
       <CardContent>{content}</CardContent>

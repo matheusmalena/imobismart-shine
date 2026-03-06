@@ -26,8 +26,8 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Generate 4-digit code
-    const otpCode = Math.floor(1000 + Math.random() * 9000).toString();
+    // Generate 6-digit code
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
 
     // Delete old OTPs for this email
     await supabaseAdmin
@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
             <h2 style="color: #1a1a2e; text-align: center;">Código de Verificação</h2>
             <p style="color: #555; text-align: center;">Use o código abaixo para acessar sua conta:</p>
             <div style="text-align: center; margin: 32px 0;">
-              <span style="font-size: 36px; font-weight: bold; letter-spacing: 12px; color: #1a1a2e; background: #f0f0f5; padding: 16px 32px; border-radius: 12px; display: inline-block;">
+              <span style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #1a1a2e; background: #f0f0f5; padding: 16px 32px; border-radius: 12px; display: inline-block;">
                 ${otpCode}
               </span>
             </div>
