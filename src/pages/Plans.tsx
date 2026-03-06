@@ -139,6 +139,19 @@ export default function Plans() {
     }
   }, [searchParams, navigate, refetchSubscription]);
 
+  // Block non-owner org members
+  if (isOrgMemberNotOwner) {
+    return (
+      <LockedPagePlaceholder
+        icon={<Crown className="h-8 w-8 text-muted-foreground" />}
+        title="Acesso Restrito"
+        description="Apenas o proprietário da conta pode gerenciar planos e assinatura. Entre em contato com o administrador da sua organização."
+        requiredPlan="enterprise"
+        buttonLabel="Voltar ao Dashboard"
+      />
+    );
+  }
+
   // Redirect if not authenticated
   if (!authLoading && !user) {
     navigate('/auth');
