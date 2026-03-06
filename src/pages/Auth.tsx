@@ -98,7 +98,7 @@ export default function Auth() {
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!forgotPasswordEmail) {
-      toast({ title: 'Email obrigatório', description: 'Digite seu email para recuperar a senha.', variant: 'destructive' });
+      toast.error('Email obrigatório', { description: 'Digite seu email para recuperar a senha.' });
       return;
     }
     setForgotPasswordLoading(true);
@@ -107,9 +107,9 @@ export default function Auth() {
     });
     setForgotPasswordLoading(false);
     if (error) {
-      toast({ title: 'Erro ao enviar email', description: error.message, variant: 'destructive' });
+      toast.error('Erro ao enviar email', { description: error.message });
     } else {
-      toast({ title: 'Email enviado!', description: 'Verifique sua caixa de entrada para redefinir a senha.' });
+      toast.success('Email enviado!', { description: 'Verifique sua caixa de entrada para redefinir a senha.' });
       setShowForgotPassword(false);
       setForgotPasswordEmail('');
     }
@@ -125,10 +125,8 @@ export default function Auth() {
       if (provider === 'google' && isNewUser) {
         (async () => {
           await supabase.auth.signOut();
-          toast({
-            title: 'Conta não encontrada',
+          toast.error('Conta não encontrada', {
             description: 'Você precisa criar uma conta primeiro. Cadastre-se na aba "Cadastrar".',
-            variant: 'destructive',
             duration: 8000,
           });
         })();
@@ -145,10 +143,10 @@ export default function Auth() {
         redirect_uri: window.location.origin,
       });
       if (result?.error) {
-        toast({ title: 'Erro ao entrar com Google', description: result.error.message || 'Tente novamente.', variant: 'destructive' });
+        toast.error('Erro ao entrar com Google', { description: result.error.message || 'Tente novamente.' });
       }
     } catch {
-      toast({ title: 'Erro ao entrar com Google', description: 'Tente novamente.', variant: 'destructive' });
+      toast.error('Erro ao entrar com Google', { description: 'Tente novamente.' });
     } finally {
       setGoogleLoading(false);
     }
@@ -157,22 +155,20 @@ export default function Auth() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!checkAuthRateLimit('login', loginEmail)) {
-      toast({ title: 'Muitas tentativas', description: 'Aguarde um minuto antes de tentar novamente.', variant: 'destructive' });
+      toast.error('Muitas tentativas', { description: 'Aguarde um minuto antes de tentar novamente.' });
       return;
     }
     const result = loginSchema.safeParse({ email: loginEmail, password: loginPassword });
     if (!result.success) {
-      toast({ title: 'Erro de validação', description: result.error.errors[0].message, variant: 'destructive' });
+      toast.error('Erro de validação', { description: result.error.errors[0].message });
       return;
     }
     setIsLoading(true);
     const { error, requiresMFA } = await signIn(loginEmail, loginPassword);
     setIsLoading(false);
     if (error) {
-      toast({
-        title: 'Erro ao entrar',
+      toast.error('Erro ao entrar', {
         description: error.message === 'Invalid login credentials' ? 'Email ou senha incorretos' : error.message,
-        variant: 'destructive',
       });
       return;
     }
@@ -185,14 +181,14 @@ export default function Auth() {
     try {
       const { data, error: otpError } = await supabase.functions.invoke('send-login-otp', { body: { email: loginEmail } });
       if (otpError || !data?.success) {
-        toast({ title: 'Erro ao enviar código', description: 'Tente novamente.', variant: 'destructive' });
+        toast.error('Erro ao enviar código', { description: 'Tente novamente.' });
         await supabase.auth.signOut();
         setMfaPending(false);
         return;
       }
       setAuthView('emailOTP');
     } catch {
-      toast({ title: 'Erro ao enviar código', description: 'Tente novamente.', variant: 'destructive' });
+      toast.error('Erro ao enviar código', { description: 'Tente novamente.' });
       await supabase.auth.signOut();
       setMfaPending(false);
     }
@@ -200,12 +196,11 @@ export default function Auth() {
 
   const handleOTPSuccess = () => {
     setMfaPending(false);
-    toast({ title: 'Bem-vindo!', description: 'Login realizado com sucesso.' });
+    toast.success('Bem-vindo!', { description: 'Login realizado com sucesso.' });
     navigate('/dashboard');
   };
 
   const handleSignupOTPSuccess = async () => {
-    // Sign out after signup verification so user must login
     await supabase.auth.signOut({ scope: 'local' });
     setMfaPending(false);
     setAuthView('emailVerified');
@@ -218,13 +213,12 @@ export default function Auth() {
   };
 
   const handleMFASuccess = async () => {
-    // After MFA, send OTP for additional verification
     const email = user?.email || loginEmail;
     setOtpEmail(email);
     try {
       const { data, error: otpError } = await supabase.functions.invoke('send-login-otp', { body: { email } });
       if (otpError || !data?.success) {
-        toast({ title: 'Erro ao enviar código', description: 'Tente novamente.', variant: 'destructive' });
+        toast.error('Erro ao enviar código', { description: 'Tente novamente.' });
         await supabase.auth.signOut();
         setMfaPending(false);
         setAuthView('default');
@@ -232,7 +226,7 @@ export default function Auth() {
       }
       setAuthView('emailOTP');
     } catch {
-      toast({ title: 'Erro ao enviar código', description: 'Tente novamente.', variant: 'destructive' });
+      toast.error('Erro ao enviar código', { description: 'Tente novamente.' });
       await supabase.auth.signOut();
       setMfaPending(false);
       setAuthView('default');
@@ -248,7 +242,7 @@ export default function Auth() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!checkAuthRateLimit('signup', signupEmail)) {
-      toast({ title: 'Muitas tentativas', description: 'Aguarde 5 minutos antes de tentar novamente.', variant: 'destructive' });
+      toast.error('Muitas tentativas', { description: 'Aguarde 5 minutos antes de tentar novamente.' });
       return;
     }
     const result = signupSchema.safeParse({
@@ -256,17 +250,15 @@ export default function Auth() {
       email: signupEmail, password: signupPassword, confirmPassword: signupConfirmPassword,
     });
     if (!result.success) {
-      toast({ title: 'Erro de validação', description: result.error.errors[0].message, variant: 'destructive' });
+      toast.error('Erro de validação', { description: result.error.errors[0].message });
       return;
     }
     setIsLoading(true);
     const { error } = await signUp(signupEmail, signupPassword, signupFullName, signupMobileNumber || undefined);
     setIsLoading(false);
     if (error) {
-      toast({
-        title: 'Erro ao cadastrar',
+      toast.error('Erro ao cadastrar', {
         description: error.message === 'User already registered' ? 'Este email já está cadastrado' : error.message,
-        variant: 'destructive',
       });
       return;
     }
@@ -275,12 +267,12 @@ export default function Auth() {
     try {
       const { data, error: otpError } = await supabase.functions.invoke('send-login-otp', { body: { email: signupEmail } });
       if (otpError || !data?.success) {
-        toast({ title: 'Erro ao enviar código', description: 'Tente novamente.', variant: 'destructive' });
+        toast.error('Erro ao enviar código', { description: 'Tente novamente.' });
         return;
       }
       setAuthView('signupOTP');
     } catch {
-      toast({ title: 'Erro ao enviar código', description: 'Tente novamente.', variant: 'destructive' });
+      toast.error('Erro ao enviar código', { description: 'Tente novamente.' });
     }
   };
 
