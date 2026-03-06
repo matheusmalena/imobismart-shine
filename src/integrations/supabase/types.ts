@@ -131,6 +131,7 @@ export type Database = {
           created_by: string
           id: string
           is_active: boolean
+          max_members: number
           notes: string | null
           plan_label: string
           price: number
@@ -145,6 +146,7 @@ export type Database = {
           created_by: string
           id?: string
           is_active?: boolean
+          max_members?: number
           notes?: string | null
           plan_label?: string
           price?: number
@@ -159,6 +161,7 @@ export type Database = {
           created_by?: string
           id?: string
           is_active?: boolean
+          max_members?: number
           notes?: string | null
           plan_label?: string
           price?: number

@@ -23,7 +23,7 @@ export default function Tenants() {
   const { user, loading: authLoading } = useAuth();
   const { tenants, isLoading, createTenant, updateTenant, deleteTenant } = useTenants();
   const { contracts, expiringContracts, expiredContracts } = useLeaseContracts();
-  const { canCreate, canDelete } = useOrgPermissions();
+  const { canCreate, canDelete, canEdit } = useOrgPermissions();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
@@ -184,6 +184,7 @@ export default function Tenants() {
                       onEdit={handleEdit}
                       onDelete={handleDelete}
                       canDelete={canDelete}
+                      canEdit={canEdit}
                     />
                   ))}
                 </div>

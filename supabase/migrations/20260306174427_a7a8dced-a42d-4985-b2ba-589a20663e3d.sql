@@ -1,0 +1,1 @@
+ALTER TABLE public.enterprise_checkout_links ADD COLUMN max_members INTEGER NOT NULL DEFAULT 3;

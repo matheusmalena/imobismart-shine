@@ -32,9 +32,10 @@ interface PropertyCardProps {
   onDelete: (property: Property) => void;
   canDelete?: boolean;
   canCreate?: boolean;
+  canEdit?: boolean;
 }
 
-export function PropertyCard({ property, onClick, onEdit, onDuplicate, onArchive, onDelete, canDelete = true, canCreate = true }: PropertyCardProps) {
+export function PropertyCard({ property, onClick, onEdit, onDuplicate, onArchive, onDelete, canDelete = true, canCreate = true, canEdit = true }: PropertyCardProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -93,47 +94,53 @@ export function PropertyCard({ property, onClick, onEdit, onDuplicate, onArchive
             {PROPERTY_STATUS_LABELS[property.status]}
           </Badge>
         </div>
-        <div className="absolute top-3 right-3" onClick={(e) => e.stopPropagation()}>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="secondary" 
-                size="icon" 
-                className="h-8 w-8 bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(property)}>
-                <Edit className="mr-2 h-4 w-4" />
-                Editar
-              </DropdownMenuItem>
-              {canCreate && (
-                <DropdownMenuItem onClick={() => onDuplicate(property)}>
-                  <Copy className="mr-2 h-4 w-4" />
-                  Duplicar
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem onClick={() => onArchive(property)}>
-                <Archive className="mr-2 h-4 w-4" />
-                {property.is_archived ? 'Desarquivar' : 'Arquivar'}
-              </DropdownMenuItem>
-              {canDelete && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={() => onDelete(property)}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Excluir
+        {(canEdit || canCreate || canDelete) && (
+          <div className="absolute top-3 right-3" onClick={(e) => e.stopPropagation()}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="secondary" 
+                  size="icon" 
+                  className="h-8 w-8 bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {canEdit && (
+                  <DropdownMenuItem onClick={() => onEdit(property)}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Editar
                   </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+                )}
+                {canCreate && (
+                  <DropdownMenuItem onClick={() => onDuplicate(property)}>
+                    <Copy className="mr-2 h-4 w-4" />
+                    Duplicar
+                  </DropdownMenuItem>
+                )}
+                {canEdit && (
+                  <DropdownMenuItem onClick={() => onArchive(property)}>
+                    <Archive className="mr-2 h-4 w-4" />
+                    {property.is_archived ? 'Desarquivar' : 'Arquivar'}
+                  </DropdownMenuItem>
+                )}
+                {canDelete && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => onDelete(property)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Excluir
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
       </div>
 
       {/* Content */}

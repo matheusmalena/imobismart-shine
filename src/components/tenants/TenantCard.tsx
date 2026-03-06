@@ -16,9 +16,10 @@ interface TenantCardProps {
   onEdit: (tenant: Tenant) => void;
   onDelete: (tenant: Tenant) => void;
   canDelete?: boolean;
+  canEdit?: boolean;
 }
 
-export function TenantCard({ tenant, contractsCount, onEdit, onDelete, canDelete = true }: TenantCardProps) {
+export function TenantCard({ tenant, contractsCount, onEdit, onDelete, canDelete = true, canEdit = true }: TenantCardProps) {
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 border-border/50">
       <CardContent className="p-5">
@@ -34,28 +35,32 @@ export function TenantCard({ tenant, contractsCount, onEdit, onDelete, canDelete
               )}
             </div>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(tenant)}>
-                <Pencil className="h-4 w-4 mr-2" />
-                Editar
-              </DropdownMenuItem>
-              {canDelete && (
-                <DropdownMenuItem
-                  onClick={() => onDelete(tenant)}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Excluir
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {(canEdit || canDelete) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {canEdit && (
+                  <DropdownMenuItem onClick={() => onEdit(tenant)}>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Editar
+                  </DropdownMenuItem>
+                )}
+                {canDelete && (
+                  <DropdownMenuItem
+                    onClick={() => onDelete(tenant)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
 
         <div className="space-y-2 text-sm">
