@@ -5,7 +5,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useUserData } from '@/hooks/useUserData';
 import { usePropertyLimit } from '@/hooks/usePropertyLimit';
+import { useOrganization } from '@/hooks/useOrganization';
 import { supabase } from '@/integrations/supabase/client';
+import { LockedPagePlaceholder } from '@/components/common/LockedPagePlaceholder';
 
 import { PaymentHistory } from '@/components/subscription/PaymentHistory';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -74,7 +76,22 @@ export default function Subscription() {
   const { subscription, isLoading: subscriptionLoading, refetch } = useSubscription();
   const { profile } = useUserData();
   const { limit, activeCount, isUnlimited } = usePropertyLimit();
+  const { organization, userRole } = useOrganization();
   const [isCancelling, setIsCancelling] = useState(false);
+
+  const isOrgMemberNotOwner = !!organization && userRole !== 'owner';
+
+  if (isOrgMemberNotOwner) {
+    return (
+      <LockedPagePlaceholder
+        icon={<CreditCard className="h-8 w-8 text-muted-foreground" />}
+        title="Gerenciamento de Assinatura"
+        description="Apenas o proprietário da organização pode gerenciar, alterar ou cancelar a assinatura do plano Enterprise."
+        requiredPlan="enterprise"
+        buttonLabel="Falar com o proprietário"
+      />
+    );
+  }
 
   const isLoading = authLoading || subscriptionLoading;
 

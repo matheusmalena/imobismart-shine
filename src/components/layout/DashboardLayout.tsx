@@ -31,6 +31,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { TutorialModal } from '@/components/onboarding/TutorialModal';
 import { LogoText } from '@/components/common/LogoText';
 import { PortfolioCopilot, PortfolioCopilotRef } from '@/components/ai/PortfolioCopilot';
+import { useOrganization } from '@/hooks/useOrganization';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -57,8 +58,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { profile, isAdmin, isPro, isEnterprise } = useUserData();
+  const { organization, userRole } = useOrganization();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const copilotRef = useRef<PortfolioCopilotRef>(null);
+
+  const isOrgMemberNotOwner = !!organization && userRole !== 'owner';
+  const filteredNavigation = navigation.filter(item => {
+    if (item.href === '/subscription' && isOrgMemberNotOwner) return false;
+    return true;
+  });
 
   const getInitials = () => {
     if (profile?.full_name) {
@@ -116,7 +124,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-            {navigation.map((item) => {
+            {filteredNavigation.map((item) => {
               const isActive = location.pathname === item.href;
               return (
                 <Link
