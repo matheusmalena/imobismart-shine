@@ -205,6 +205,13 @@ export default function Auth() {
     navigate('/dashboard');
   };
 
+  const handleSignupOTPSuccess = async () => {
+    // Sign out after signup verification so user must login
+    await supabase.auth.signOut({ scope: 'local' });
+    setMfaPending(false);
+    setAuthView('emailVerified');
+  };
+
   const handleOTPCancel = async () => {
     await supabase.auth.signOut();
     setAuthView('default');
