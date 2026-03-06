@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useOrganization } from '@/hooks/useOrganization';
 import { TwoFactorSetup } from '@/components/settings/TwoFactorSetup';
 import { ProfilePhotoUpload } from '@/components/settings/ProfilePhotoUpload';
 import { Button } from '@/components/ui/button';
@@ -68,6 +69,8 @@ export default function Settings() {
   const { profile, isLoading: profileLoading, updateProfile } = useProfile();
   const { subscription, isLoading: subscriptionLoading, cancelSubscription } = useSubscription();
   const { role, isAdmin, isLoading: roleLoading } = useUserRole();
+  const { organization, userRole: orgRole } = useOrganization();
+  const isOrgMemberNotOwner = !!organization && orgRole !== 'owner';
   
   const [fullName, setFullName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
@@ -117,7 +120,9 @@ export default function Settings() {
         <div>
           <h1 className="text-3xl font-bold text-foreground">Configurações</h1>
           <p className="text-muted-foreground mt-1">
-            Gerencie suas informações pessoais e assinatura
+            {isOrgMemberNotOwner
+              ? 'Gerencie suas informações pessoais'
+              : 'Gerencie suas informações pessoais e assinatura'}
           </p>
         </div>
 
@@ -266,7 +271,8 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {/* Subscription Section */}
+        {/* Subscription Section - hidden for org members that are not owners */}
+        {!isOrgMemberNotOwner && (
         <Card>
           <CardHeader>
             <div className="flex items-center gap-3">
@@ -380,6 +386,7 @@ export default function Settings() {
             )}
           </CardContent>
         </Card>
+        )}
 
       </div>
       )}
