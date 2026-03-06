@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserRole } from '@/hooks/useUserRole';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 import { PageTransition } from '@/components/PageTransition';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -62,10 +62,8 @@ export default function ClientDetails() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { isAdmin, isLoading: roleLoading } = useUserRole();
-  const { toast } = useToast();
   const [loadingDocId, setLoadingDocId] = useState<string | null>(null);
 
-  // Helper function to extract file path from URL
   const getFilePath = (fileUrl: string): string | null => {
     const urlParts = fileUrl.split('/property-documents/');
     if (urlParts.length >= 2) {
@@ -74,14 +72,13 @@ export default function ClientDetails() {
     return null;
   };
 
-  // Generate signed URL for document viewing
   const getSignedUrl = async (fileUrl: string): Promise<string | null> => {
     const filePath = getFilePath(fileUrl);
     if (!filePath) return null;
 
     const { data, error } = await supabase.storage
       .from('property-documents')
-      .createSignedUrl(filePath, 3600); // 1 hour expiry
+      .createSignedUrl(filePath, 3600);
 
     if (error) {
       console.error('Error creating signed URL:', error);
@@ -91,7 +88,6 @@ export default function ClientDetails() {
     return data.signedUrl;
   };
 
-  // Handle document view with signed URL
   const handleViewDocument = async (doc: { id: string; file_url: string; name: string }) => {
     setLoadingDocId(doc.id);
     try {
@@ -99,24 +95,15 @@ export default function ClientDetails() {
       if (signedUrl) {
         window.open(signedUrl, '_blank');
       } else {
-        toast({
-          title: 'Erro',
-          description: 'Não foi possível gerar o link para visualizar o documento',
-          variant: 'destructive',
-        });
+        toast.error('Não foi possível gerar o link para visualizar o documento');
       }
     } catch (error) {
-      toast({
-        title: 'Erro',
-        description: 'Falha ao abrir o documento',
-        variant: 'destructive',
-      });
+      toast.error('Falha ao abrir o documento');
     } finally {
       setLoadingDocId(null);
     }
   };
 
-  // Fetch client profile
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['admin-client-profile', userId],
     queryFn: async () => {
@@ -131,7 +118,6 @@ export default function ClientDetails() {
     enabled: isAdmin && !!userId,
   });
 
-  // Fetch client role
   const { data: userRole } = useQuery({
     queryKey: ['admin-client-role', userId],
     queryFn: async () => {
@@ -146,7 +132,6 @@ export default function ClientDetails() {
     enabled: isAdmin && !!userId,
   });
 
-  // Fetch client subscription
   const { data: subscription } = useQuery({
     queryKey: ['admin-client-subscription', userId],
     queryFn: async () => {
@@ -161,7 +146,6 @@ export default function ClientDetails() {
     enabled: isAdmin && !!userId,
   });
 
-  // Fetch client properties
   const { data: properties = [], isLoading: propertiesLoading } = useQuery({
     queryKey: ['admin-client-properties', userId],
     queryFn: async () => {
@@ -176,7 +160,6 @@ export default function ClientDetails() {
     enabled: isAdmin && !!userId,
   });
 
-  // Fetch client documents
   const { data: documents = [], isLoading: documentsLoading } = useQuery({
     queryKey: ['admin-client-documents', userId],
     queryFn: async () => {
@@ -236,7 +219,6 @@ export default function ClientDetails() {
   return (
     <PageTransition>
         <div className="space-y-6">
-          {/* Header */}
           <div className="flex items-center gap-4">
             <Button onClick={() => navigate('/admin/clients')} variant="ghost" size="icon">
               <ArrowLeft className="h-5 w-5" />
@@ -253,7 +235,6 @@ export default function ClientDetails() {
             )}
           </div>
 
-          {/* Info Cards */}
           <div className="grid gap-4 md:grid-cols-4">
             <Card>
               <CardContent className="pt-6">
@@ -321,7 +302,6 @@ export default function ClientDetails() {
             </Card>
           </div>
 
-          {/* Stats Cards */}
           <div className="grid gap-4 md:grid-cols-3">
             <Card>
               <CardHeader className="pb-2">
@@ -361,7 +341,6 @@ export default function ClientDetails() {
             </Card>
           </div>
 
-          {/* Tabs with Properties and Documents */}
           <Tabs defaultValue="properties" className="w-full">
             <TabsList>
               <TabsTrigger value="properties" className="flex items-center gap-2">

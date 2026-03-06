@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Property, PropertyFormData } from '@/types/property';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useRateLimit, RATE_LIMITS } from '@/hooks/useRateLimit';
 import { validateAndNormalizePropertyFormData } from '@/utils/propertyValidation';
 import { useOrgPermissions } from '@/hooks/useOrgPermissions';
@@ -10,7 +10,6 @@ import { useOrgPermissions } from '@/hooks/useOrgPermissions';
 export function useProperties() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const { checkRateLimit } = useRateLimit();
   const { isInOrg, organizationId } = useOrgPermissions();
 
@@ -39,7 +38,6 @@ export function useProperties() {
     gcTime: 5 * 60 * 1000,
   });
 
-  // Check if property name already exists for this user
   const checkNameExists = async (name: string, excludeId?: string): Promise<boolean> => {
     if (!user) return false;
     
@@ -63,13 +61,11 @@ export function useProperties() {
 
       const normalized = validateAndNormalizePropertyFormData(formData);
 
-      // Rate limit check
       const rateLimitResult = await checkRateLimit(RATE_LIMITS.CREATE_PROPERTY);
       if (!rateLimitResult.allowed) {
         throw new Error('Muitas requisições. Aguarde um momento.');
       }
 
-      // Check for duplicate name
       const nameExists = await checkNameExists(normalized.name);
       if (nameExists) {
         throw new Error('Já existe um imóvel com este nome');
@@ -123,14 +119,10 @@ export function useProperties() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['properties'] });
-      toast({ title: 'Imóvel criado com sucesso!' });
+      toast.success('Imóvel criado com sucesso!');
     },
     onError: (error) => {
-      toast({
-        title: 'Erro ao criar imóvel',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast.error('Erro ao criar imóvel', { description: error.message });
     },
   });
 
@@ -138,13 +130,11 @@ export function useProperties() {
     mutationFn: async ({ id, ...formData }: PropertyFormData & { id: string }) => {
       const normalized = validateAndNormalizePropertyFormData(formData);
 
-      // Rate limit check
       const rateLimitResult = await checkRateLimit(RATE_LIMITS.UPDATE_PROPERTY);
       if (!rateLimitResult.allowed) {
         throw new Error('Muitas requisições. Aguarde um momento.');
       }
 
-      // Check for duplicate name (excluding current property)
       const nameExists = await checkNameExists(normalized.name, id);
       if (nameExists) {
         throw new Error('Já existe um imóvel com este nome');
@@ -197,20 +187,15 @@ export function useProperties() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['properties'] });
-      toast({ title: 'Imóvel atualizado com sucesso!' });
+      toast.success('Imóvel atualizado com sucesso!');
     },
     onError: (error) => {
-      toast({
-        title: 'Erro ao atualizar imóvel',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast.error('Erro ao atualizar imóvel', { description: error.message });
     },
   });
 
   const deleteProperty = useMutation({
     mutationFn: async (id: string) => {
-      // Rate limit check
       const rateLimitResult = await checkRateLimit(RATE_LIMITS.DELETE_PROPERTY);
       if (!rateLimitResult.allowed) {
         throw new Error('Muitas requisições. Aguarde um momento.');
@@ -225,14 +210,10 @@ export function useProperties() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['properties'] });
-      toast({ title: 'Imóvel excluído com sucesso!' });
+      toast.success('Imóvel excluído com sucesso!');
     },
     onError: (error) => {
-      toast({
-        title: 'Erro ao excluir imóvel',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast.error('Erro ao excluir imóvel', { description: error.message });
     },
   });
 
@@ -247,16 +228,10 @@ export function useProperties() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['properties'] });
-      toast({
-        title: variables.isArchived ? 'Imóvel arquivado!' : 'Imóvel desarquivado!',
-      });
+      toast.success(variables.isArchived ? 'Imóvel arquivado!' : 'Imóvel desarquivado!');
     },
     onError: (error) => {
-      toast({
-        title: 'Erro ao arquivar imóvel',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast.error('Erro ao arquivar imóvel', { description: error.message });
     },
   });
 
@@ -264,12 +239,10 @@ export function useProperties() {
     mutationFn: async ({ property, canAdd }: { property: Property; canAdd: boolean }) => {
       if (!user) throw new Error('Usuário não autenticado');
 
-      // Check property limit
       if (!canAdd) {
         throw new Error('Limite de imóveis atingido. Faça upgrade do seu plano para adicionar mais imóveis.');
       }
 
-      // Generate unique name for copy
       let copyName = `${property.name} (Cópia)`;
       let copyNumber = 1;
       while (await checkNameExists(copyName)) {
@@ -325,14 +298,10 @@ export function useProperties() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['properties'] });
-      toast({ title: 'Imóvel duplicado com sucesso!' });
+      toast.success('Imóvel duplicado com sucesso!');
     },
     onError: (error) => {
-      toast({
-        title: 'Erro ao duplicar imóvel',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast.error('Erro ao duplicar imóvel', { description: error.message });
     },
   });
 
@@ -349,15 +318,10 @@ export function useProperties() {
       queryClient.invalidateQueries({ queryKey: ['properties'] });
     },
     onError: (error) => {
-      toast({
-        title: 'Erro ao atualizar foto',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast.error('Erro ao atualizar foto', { description: error.message });
     },
   });
 
-  // Calculate metrics
   const activeProperties = properties.filter(p => !p.is_archived);
   
   const totalProperties = activeProperties.length;

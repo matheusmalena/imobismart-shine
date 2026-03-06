@@ -1,39 +1,25 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 export function usePhotoUpload() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
 
   const uploadPhoto = async (file: File): Promise<string | null> => {
     if (!user) {
-      toast({
-        title: 'Erro',
-        description: 'Usuário não autenticado',
-        variant: 'destructive',
-      });
+      toast.error('Usuário não autenticado');
       return null;
     }
 
     if (!file.type.startsWith('image/')) {
-      toast({
-        title: 'Arquivo inválido',
-        description: 'Por favor, selecione uma imagem',
-        variant: 'destructive',
-      });
+      toast.error('Arquivo inválido', { description: 'Por favor, selecione uma imagem.' });
       return null;
     }
 
-    // Max 5MB
     if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: 'Arquivo muito grande',
-        description: 'A imagem deve ter no máximo 5MB',
-        variant: 'destructive',
-      });
+      toast.error('Arquivo muito grande', { description: 'A imagem deve ter no máximo 5MB.' });
       return null;
     }
 
@@ -55,11 +41,7 @@ export function usePhotoUpload() {
 
       return data.publicUrl;
     } catch (error: any) {
-      toast({
-        title: 'Erro ao fazer upload',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast.error('Erro ao fazer upload', { description: error.message });
       return null;
     } finally {
       setIsUploading(false);
@@ -68,7 +50,6 @@ export function usePhotoUpload() {
 
   const deletePhoto = async (photoUrl: string): Promise<boolean> => {
     try {
-      // Extract path from URL
       const urlParts = photoUrl.split('/property-photos/');
       if (urlParts.length < 2) return false;
 
@@ -81,11 +62,7 @@ export function usePhotoUpload() {
       if (error) throw error;
       return true;
     } catch (error: any) {
-      toast({
-        title: 'Erro ao excluir foto',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast.error('Erro ao excluir foto', { description: error.message });
       return false;
     }
   };

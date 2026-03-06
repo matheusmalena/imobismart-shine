@@ -2,14 +2,13 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useRateLimit, RATE_LIMITS } from '@/hooks/useRateLimit';
 import type { DocumentCategory, PropertyDocument } from '@/types/property';
 import { useOrgPermissions } from '@/hooks/useOrgPermissions';
 
 export function useDocuments(propertyId?: string) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isUploading, setIsUploading] = useState(false);
   const { checkRateLimit } = useRateLimit();
@@ -56,7 +55,7 @@ export function useDocuments(propertyId?: string) {
 
     const { data, error } = await supabase.storage
       .from('property-documents')
-      .createSignedUrl(filePath, 3600); // 1 hour expiry
+      .createSignedUrl(filePath, 3600);
 
     if (error) {
       console.error('Error creating signed URL:', error);
@@ -73,32 +72,18 @@ export function useDocuments(propertyId?: string) {
     category: DocumentCategory
   ): Promise<boolean> => {
     if (!user) {
-      toast({
-        title: 'Erro',
-        description: 'Usuário não autenticado',
-        variant: 'destructive',
-      });
+      toast.error('Usuário não autenticado');
       return false;
     }
 
-    // Rate limit check
     const rateLimitResult = await checkRateLimit(RATE_LIMITS.UPLOAD_DOCUMENT);
     if (!rateLimitResult.allowed) {
-      toast({
-        title: 'Muitas requisições',
-        description: 'Aguarde um momento antes de enviar outro documento',
-        variant: 'destructive',
-      });
+      toast.error('Muitas requisições', { description: 'Aguarde um momento antes de enviar outro documento.' });
       return false;
     }
 
-    // Max 10MB
     if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: 'Arquivo muito grande',
-        description: 'O arquivo deve ter no máximo 10MB',
-        variant: 'destructive',
-      });
+      toast.error('Arquivo muito grande', { description: 'O arquivo deve ter no máximo 10MB.' });
       return false;
     }
 
@@ -114,7 +99,6 @@ export function useDocuments(propertyId?: string) {
 
       if (uploadError) throw uploadError;
 
-      // Store the path pattern for later retrieval (not the public URL since bucket is private)
       const baseUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/property-documents/${fileName}`;
 
       const { error: dbError } = await supabase.from('documents').insert({
@@ -131,19 +115,11 @@ export function useDocuments(propertyId?: string) {
       if (dbError) throw dbError;
 
       queryClient.invalidateQueries({ queryKey: ['documents'] });
-      
-      toast({
-        title: 'Sucesso',
-        description: 'Documento enviado com sucesso',
-      });
+      toast.success('Documento enviado com sucesso!');
       
       return true;
     } catch (error: any) {
-      toast({
-        title: 'Erro ao enviar documento',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast.error('Erro ao enviar documento', { description: error.message });
       return false;
     } finally {
       setIsUploading(false);
@@ -152,7 +128,6 @@ export function useDocuments(propertyId?: string) {
 
   const deleteDocument = useMutation({
     mutationFn: async (document: PropertyDocument) => {
-      // Rate limit check
       const rateLimitResult = await checkRateLimit(RATE_LIMITS.DELETE_DOCUMENT);
       if (!rateLimitResult.allowed) {
         throw new Error('Muitas requisições. Aguarde um momento.');
@@ -172,17 +147,10 @@ export function useDocuments(propertyId?: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents'] });
-      toast({
-        title: 'Sucesso',
-        description: 'Documento excluído com sucesso',
-      });
+      toast.success('Documento excluído com sucesso!');
     },
     onError: (error: any) => {
-      toast({
-        title: 'Erro ao excluir documento',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast.error('Erro ao excluir documento', { description: error.message });
     },
   });
 
@@ -201,7 +169,6 @@ export function useDocuments(propertyId?: string) {
       const a = window.document.createElement('a');
       a.href = url;
       
-      // Get extension from file_type or URL
       let ext = '';
       if (document.file_type) {
         const parts = document.file_type.split('/');
@@ -214,11 +181,7 @@ export function useDocuments(propertyId?: string) {
       window.URL.revokeObjectURL(url);
       a.remove();
     } catch (error: any) {
-      toast({
-        title: 'Erro ao baixar documento',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast.error('Erro ao baixar documento', { description: error.message });
     }
   };
 
