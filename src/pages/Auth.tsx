@@ -196,7 +196,6 @@ export default function Auth() {
   const handleGoogleSignIn = async (tab: 'login' | 'signup') => {
     setGoogleLoading(true);
     localStorage.setItem('imobismart-auth-tab', tab);
-    localStorage.setItem('imobismart-auth-ts', Date.now().toString());
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
