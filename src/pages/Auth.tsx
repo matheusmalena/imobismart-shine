@@ -129,7 +129,7 @@ function EmailVerifiedScreen({ user, navigate }: { user: any; navigate: (path: s
   );
 }
 
-  const navigate = useNavigate();
+  export default function Auth() {
   const { user, signIn, signUp, loading, mfaPending, setMfaPending } = useAuth();
   
   const [isLoading, setIsLoading] = useState(false);
