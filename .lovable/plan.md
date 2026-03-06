@@ -1,50 +1,40 @@
 
 
-## Plan: Fix Cakto Webhook -- Payload Format Mismatch
+## Plan: Repaginar a Landing Page do ImobiSmart
 
-### Root Cause
+### Situação Atual
+A landing page já tem uma boa estrutura (hero, social proof, como funciona, funcionalidades, público-alvo, preços, depoimentos, FAQ, CTA, footer), mas o hero exibe screenshots dentro de screenshots (dupla moldura de browser), e o visual geral pode ser mais impactante e profissional para converter visitantes.
 
-The webhook function is reading the wrong fields from the Cakto payload. Based on the official Cakto API documentation, the actual payload format is:
+### Mudanças Propostas
 
-```text
-{
-  "data": {
-    "id": "uuid-order-id",
-    "customer": { "email": "...", "name": "..." },
-    "product": { "name": "ImobiSmart Pro", "id": "uuid" },
-    "offer": { "name": "ImobiSmart Pro", "id": "abc" },
-    "amount": 49.90,
-    "status": "paid",
-    ...
-  },
-  "event": "purchase_approved",
-  "secret": "ffc72047-12a3-470c-a086-e10b429ee530"
-}
-```
+**1. Hero Section - Visual Premium** (`src/pages/Index.tsx`)
+- Remover a dupla moldura de browser (há dois wrappers com dots) e usar apenas uma moldura limpa
+- Adicionar um leve efeito de perspectiva/rotação 3D no screenshot para dar profundidade (CSS transform)
+- Melhorar o glow/shadow ao redor da imagem para dar destaque
+- Ajustar os floating badges para não sobrepor o screenshot duplicado
 
-But the current code reads:
-- `body.buyer?.email` -- WRONG, should be `body.data?.customer?.email`
-- `body.product?.name` -- WRONG, should be `body.data?.product?.name`
-- `body.transaction?.id` -- WRONG, should be `body.data?.id`
-- Header `x-webhook-secret` -- WRONG, Cakto sends secret in the body as `body.secret`
+**2. Seção "Veja na prática" - Mais Imersiva** (`src/pages/Index.tsx`)
+- Adicionar mais abas: Inquilinos, WhatsApp e Relatórios (com screenshots correspondentes)
+- Remover a moldura duplicada de browser que está aparecendo
+- Usar uma única moldura de browser limpa com o screenshot real
 
-### Three Critical Bugs
+**3. Seção Benefits - Com Screenshot Real** (`src/pages/Index.tsx`)
+- Substituir os 4 cards de ícones (Na nuvem, Responsivo, etc.) por um screenshot real da tela de Imóveis ou Dashboard em perspectiva, para reforçar visualmente o produto
 
-1. **Secret validation fails**: Code checks headers for the secret, but Cakto sends it in the JSON body (`body.secret`). This means every webhook call is rejected with 401 Unauthorized.
+**4. CTA Final - Mais Impactante** (`src/pages/Index.tsx`)
+- Adicionar um screenshot sutil de fundo no CTA final com overlay gradient
+- Reforçar o senso de urgência com texto mais direto
 
-2. **Email not found**: Even if auth passed, `body.buyer?.email` is undefined because Cakto nests it under `body.data.customer.email`.
+**5. Novas Imagens de Funcionalidades** 
+- Adicionar screenshots para as abas que ainda não têm: Inquilinos, WhatsApp, Relatórios (reutilizando imagens existentes ou adicionando referências a novas que serão capturadas)
+- Garantir que os `.png` existentes são usados consistentemente
 
-3. **Product name not found**: `body.product?.name` is undefined, so `plan` always resolves to `"free"` instead of the correct tier.
+**6. Melhorias Visuais Globais** (`src/pages/Index.tsx`)
+- Adicionar animações sutis de scroll (fade-in nos sections ao entrar na viewport)
+- Melhorar espaçamentos entre seções
+- Garantir que as abas de funcionalidades tenham transição suave entre screenshots
 
-### Fix (single file change)
-
-Update `supabase/functions/cakto-webhook/index.ts`:
-
-- Read the secret from `body.secret` instead of request headers
-- Extract email from `body.data?.customer?.email`
-- Extract product/offer name from `body.data?.product?.name` or `body.data?.offer?.name`
-- Extract amount from `body.data?.amount`
-- Extract transaction ID from `body.data?.id`
-- Add broader product name matching for "ImobiSmart" product names (e.g. "ImobiSmart Pro", "ImobiSmart Plus", "ImobiSmart -S..." for Starter)
-- Keep all existing event handling logic and fallbacks intact
+### Arquivos Editados
+- `src/pages/Index.tsx` - Hero, funcionalidades, benefits, CTA
+- `src/index.css` - Animações de scroll e efeitos 3D (se necessário)
 
