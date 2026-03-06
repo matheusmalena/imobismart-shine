@@ -1175,6 +1175,10 @@ export type Database = {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
       }
+      sync_enterprise_org_limits: {
+        Args: { _client_email: string; _max_members: number }
+        Returns: undefined
+      }
       validate_invitation_token: {
         Args: { _token: string }
         Returns: {

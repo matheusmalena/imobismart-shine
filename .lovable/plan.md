@@ -1,40 +1,50 @@
 
 
-## Plano: Sincronizar limites Enterprise automaticamente na plataforma
+## Plan: Fix Cakto Webhook -- Payload Format Mismatch
 
-### Problema
-Quando o admin ajusta `property_limit` ou `max_members` em `/admin/enterprise-links`, esses valores **não são propagados** para o restante da plataforma:
-- `useOrganization` lê `max_members` da tabela `organizations` (sempre 3, hardcoded na criação)
-- `usePropertyLimit` já lê de `enterprise_checkout_links` (funciona)
-- Não existe sincronização entre as tabelas
+### Root Cause
 
-### Solução
+The webhook function is reading the wrong fields from the Cakto payload. Based on the official Cakto API documentation, the actual payload format is:
 
-#### 1. `src/hooks/useOrganization.ts` — Buscar `max_members` dinâmico do enterprise link
-Adicionar uma query que busca o `max_members` customizado de `enterprise_checkout_links` pelo email do owner da organização (similar ao que `usePropertyLimit` já faz). Sobrescrever o `organization.max_members` com esse valor quando disponível.
+```text
+{
+  "data": {
+    "id": "uuid-order-id",
+    "customer": { "email": "...", "name": "..." },
+    "product": { "name": "ImobiSmart Pro", "id": "uuid" },
+    "offer": { "name": "ImobiSmart Pro", "id": "abc" },
+    "amount": 49.90,
+    "status": "paid",
+    ...
+  },
+  "event": "purchase_approved",
+  "secret": "ffc72047-12a3-470c-a086-e10b429ee530"
+}
+```
 
-Fluxo:
-- Buscar o email do owner via `profiles` usando `organization.owner_id`
-- Consultar `enterprise_checkout_links` pelo email do owner
-- Se encontrar, usar `max_members` do link enterprise em vez do valor da tabela `organizations`
+But the current code reads:
+- `body.buyer?.email` -- WRONG, should be `body.data?.customer?.email`
+- `body.product?.name` -- WRONG, should be `body.data?.product?.name`
+- `body.transaction?.id` -- WRONG, should be `body.data?.id`
+- Header `x-webhook-secret` -- WRONG, Cakto sends secret in the body as `body.secret`
 
-#### 2. `src/pages/admin/EnterpriseLinks.tsx` — Propagar alterações para a tabela `organizations`
-No `saveMutation`, após salvar o link enterprise, verificar se o `client_email` corresponde a um owner de organização e atualizar `organizations.max_members` automaticamente. Isso garante sincronização imediata.
+### Three Critical Bugs
 
-Fluxo no save:
-1. Salvar link em `enterprise_checkout_links`
-2. Buscar `profiles` pelo `client_email` → obter `user_id`
-3. Buscar `organizations` onde `owner_id = user_id`
-4. Se encontrar, atualizar `organizations.max_members` com o novo valor
+1. **Secret validation fails**: Code checks headers for the secret, but Cakto sends it in the JSON body (`body.secret`). This means every webhook call is rejected with 401 Unauthorized.
 
-#### 3. Edge function ou DB function para sincronização
-Criar uma database function `sync_enterprise_limits` que, dado um email, atualiza a `organizations.max_members` correspondente. Isso é mais seguro pois o admin não tem permissão direta de UPDATE na tabela `organizations` via RLS.
+2. **Email not found**: Even if auth passed, `body.buyer?.email` is undefined because Cakto nests it under `body.data.customer.email`.
 
-### Arquivos
+3. **Product name not found**: `body.product?.name` is undefined, so `plan` always resolves to `"free"` instead of the correct tier.
 
-| Arquivo | Mudança |
-|---|---|
-| Migração SQL | Criar function `sync_enterprise_org_limits(client_email, max_members)` |
-| `src/hooks/useOrganization.ts` | Buscar `max_members` dinâmico do enterprise link pelo email do owner |
-| `src/pages/admin/EnterpriseLinks.tsx` | Chamar sync após salvar para propagar `max_members` à organização |
+### Fix (single file change)
+
+Update `supabase/functions/cakto-webhook/index.ts`:
+
+- Read the secret from `body.secret` instead of request headers
+- Extract email from `body.data?.customer?.email`
+- Extract product/offer name from `body.data?.product?.name` or `body.data?.offer?.name`
+- Extract amount from `body.data?.amount`
+- Extract transaction ID from `body.data?.id`
+- Add broader product name matching for "ImobiSmart" product names (e.g. "ImobiSmart Pro", "ImobiSmart Plus", "ImobiSmart -S..." for Starter)
+- Keep all existing event handling logic and fallbacks intact
 
