@@ -434,12 +434,7 @@ export default function Index() {
 
             {/* Real screenshot with perspective */}
             <div className="benefits-screenshot rounded-2xl overflow-hidden shadow-2xl border border-border/50 hero-glow">
-              <img
-                src="/images/tutorial-properties.png"
-                alt="Tela de gestão de imóveis do ImobiSmart"
-                className="w-full block"
-                loading="lazy"
-              />
+              <PropertiesMockup />
             </div>
           </div>
         </div>
@@ -449,12 +444,6 @@ export default function Index() {
       <section className="py-24 px-4 relative overflow-hidden">
         {/* Background screenshot with overlay */}
         <div className="absolute inset-0 -z-10">
-          <img
-            src="/images/tutorial-dashboard-hero.png"
-            alt=""
-            className="w-full h-full object-cover object-top opacity-[0.06] dark:opacity-[0.04]"
-            loading="lazy"
-          />
           <div className="absolute inset-0 gradient-hero" />
         </div>
         <div className="absolute inset-0 -z-10">
