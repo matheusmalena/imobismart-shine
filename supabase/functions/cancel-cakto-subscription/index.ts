@@ -6,8 +6,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const FREE_PLAN_LIMIT = 2;
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -31,13 +29,41 @@ serve(async (req) => {
       throw new Error("Invalid or expired token");
     }
 
-    // Update local subscription status to cancelled/free
+    // Fetch current subscription to determine expires_at
+    const { data: currentSub } = await supabase
+      .from("subscriptions")
+      .select("plan, status, started_at, expires_at")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!currentSub || currentSub.plan === "free") {
+      throw new Error("Nenhuma assinatura ativa para cancelar");
+    }
+
+    // Calculate expires_at: use existing expires_at if in the future, otherwise 30 days from now
+    let expiresAt = currentSub.expires_at ? new Date(currentSub.expires_at) : null;
+    const now = new Date();
+
+    if (!expiresAt || expiresAt <= now) {
+      // Calculate next billing cycle: 30 days from started_at or from now
+      const startedAt = new Date(currentSub.started_at);
+      const daysSinceStart = Math.floor((now.getTime() - startedAt.getTime()) / (1000 * 60 * 60 * 24));
+      const currentCycle = Math.floor(daysSinceStart / 30);
+      expiresAt = new Date(startedAt.getTime() + (currentCycle + 1) * 30 * 24 * 60 * 60 * 1000);
+
+      // If calculated date is in the past, use 30 days from now
+      if (expiresAt <= now) {
+        expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      }
+    }
+
+    // Set status to cancelled but KEEP the current plan and set expires_at
     const { error: updateError } = await supabase
       .from("subscriptions")
       .update({
         status: "cancelled",
-        plan: "free",
-        updated_at: new Date().toISOString(),
+        expires_at: expiresAt.toISOString(),
+        updated_at: now.toISOString(),
       })
       .eq("user_id", user.id);
 
@@ -45,31 +71,14 @@ serve(async (req) => {
       throw updateError;
     }
 
-    // Archive excess properties (keep only 2 most recent)
-    const { data: activeProperties } = await supabase
-      .from("properties")
-      .select("id")
-      .eq("user_id", user.id)
-      .or("is_archived.is.null,is_archived.eq.false")
-      .order("created_at", { ascending: false });
-
-    let archivedCount = 0;
-    if (activeProperties && activeProperties.length > FREE_PLAN_LIMIT) {
-      const idsToArchive = activeProperties.slice(FREE_PLAN_LIMIT).map(p => p.id);
-      await supabase
-        .from("properties")
-        .update({ is_archived: true, updated_at: new Date().toISOString() })
-        .in("id", idsToArchive);
-      archivedCount = idsToArchive.length;
-    }
-
-    console.log(`Subscription cancelled for user ${user.id}, archived ${archivedCount} properties`);
+    console.log(`Subscription cancelled for user ${user.id}, plan ${currentSub.plan} active until ${expiresAt.toISOString()}`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Assinatura cancelada com sucesso. Cancele também no painel da Cakto.",
-        archived_count: archivedCount,
+        message: `Assinatura cancelada. Você terá acesso ao plano ${currentSub.plan} até ${expiresAt.toLocaleDateString('pt-BR')}.`,
+        expires_at: expiresAt.toISOString(),
+        plan: currentSub.plan,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

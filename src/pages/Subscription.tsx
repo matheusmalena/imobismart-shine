@@ -65,7 +65,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
   active: { label: 'Ativa', color: 'bg-green-500/10 text-green-600 border-green-200', icon: <CheckCircle className="h-4 w-4" /> },
   trial: { label: 'Período de Teste', color: 'bg-blue-500/10 text-blue-600 border-blue-200', icon: <Clock className="h-4 w-4" /> },
   inactive: { label: 'Inativa', color: 'bg-yellow-500/10 text-yellow-600 border-yellow-200', icon: <AlertTriangle className="h-4 w-4" /> },
-  cancelled: { label: 'Cancelada', color: 'bg-red-500/10 text-red-600 border-red-200', icon: <XCircle className="h-4 w-4" /> },
+  cancelled: { label: 'Cancelada', color: 'bg-orange-500/10 text-orange-600 border-orange-200', icon: <Clock className="h-4 w-4" /> },
 };
 
 export default function Subscription() {
@@ -94,10 +94,13 @@ export default function Subscription() {
         throw new Error(error.message || 'Erro ao cancelar assinatura');
       }
 
-      toast.success('Assinatura cancelada com sucesso', {
-        description: 'Você foi revertido para o plano Gratuito.',
+      const expiresAt = data?.expires_at ? new Date(data.expires_at).toLocaleDateString('pt-BR') : '';
+      toast.success('Assinatura cancelada', {
+        description: expiresAt
+          ? `Você terá acesso ao plano até ${expiresAt}.`
+          : 'Você manterá acesso até o fim do período pago.',
       });
-      
+
       refetch();
     } catch (error) {
       console.error('Cancel error:', error);
@@ -242,8 +245,10 @@ export default function Subscription() {
                 {/* Expiration */}
                 {subscription?.expires_at && (
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Próxima cobrança</span>
-                    <span className="text-foreground">
+                    <span className="text-muted-foreground">
+                      {currentStatus === 'cancelled' ? 'Acesso até' : 'Próxima cobrança'}
+                    </span>
+                    <span className={`text-foreground ${currentStatus === 'cancelled' ? 'font-semibold text-orange-600' : ''}`}>
                       {format(new Date(subscription.expires_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                     </span>
                   </div>
