@@ -92,6 +92,9 @@ export default function Dashboard() {
           </Button>
         </div>
 
+        {/* Subscription Alert Banner */}
+        <SubscriptionAlertBanner subscription={subscription} />
+
         {/* Main Metrics - Always visible */}
         <DashboardMetrics
           totalProperties={metrics.totalProperties}
