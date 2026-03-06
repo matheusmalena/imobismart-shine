@@ -134,6 +134,7 @@ export type Database = {
           notes: string | null
           plan_label: string
           price: number
+          property_limit: number
           updated_at: string
         }
         Insert: {
@@ -147,6 +148,7 @@ export type Database = {
           notes?: string | null
           plan_label?: string
           price?: number
+          property_limit?: number
           updated_at?: string
         }
         Update: {
@@ -160,6 +162,7 @@ export type Database = {
           notes?: string | null
           plan_label?: string
           price?: number
+          property_limit?: number
           updated_at?: string
         }
         Relationships: []

@@ -1,0 +1,1 @@
+ALTER TABLE public.enterprise_checkout_links ADD COLUMN property_limit INTEGER NOT NULL DEFAULT 100;
