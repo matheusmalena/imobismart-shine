@@ -62,12 +62,11 @@ export function useOrganization() {
   const queryClient = useQueryClient();
 
   // Fetch user's organization
-  const { data: organization, isLoading: orgLoading } = useQuery({
+  const { data: orgRaw, isLoading: orgLoading } = useQuery({
     queryKey: ['organization', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
 
-      // First check if user is a member of any organization
       const { data: membership, error: memberError } = await supabase
         .from('organization_members')
         .select('organization_id')
@@ -91,8 +90,42 @@ export function useOrganization() {
       return org as Organization;
     },
     enabled: !!user?.id,
-    staleTime: 5 * 60 * 1000, // 5 minutos de cache
+    staleTime: 5 * 60 * 1000,
   });
+
+  // Fetch dynamic max_members from enterprise_checkout_links by owner email
+  const { data: enterpriseMaxMembers } = useQuery({
+    queryKey: ['enterprise-max-members', orgRaw?.owner_id],
+    queryFn: async () => {
+      if (!orgRaw?.owner_id) return null;
+
+      // Get owner's email
+      const { data: ownerProfile } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('user_id', orgRaw.owner_id)
+        .maybeSingle();
+
+      if (!ownerProfile?.email) return null;
+
+      // Check enterprise_checkout_links for custom max_members
+      const { data: link } = await supabase
+        .from('enterprise_checkout_links')
+        .select('max_members')
+        .eq('client_email', ownerProfile.email)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      return (link as any)?.max_members ?? null;
+    },
+    enabled: !!orgRaw?.owner_id,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Override max_members with enterprise value if available
+  const organization = orgRaw
+    ? { ...orgRaw, max_members: enterpriseMaxMembers ?? orgRaw.max_members }
+    : null;
 
   // Fetch user's role in organization
   const { data: userRole, isLoading: roleLoading } = useQuery({

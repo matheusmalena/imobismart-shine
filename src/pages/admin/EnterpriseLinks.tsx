@@ -160,9 +160,20 @@ export default function EnterpriseLinks() {
           } as any);
         if (error) throw error;
       }
+
+      // Sync max_members to the organization table
+      try {
+        await supabase.rpc('sync_enterprise_org_limits', {
+          _client_email: data.client_email,
+          _max_members: data.max_members,
+        });
+      } catch (syncErr) {
+        console.error('Error syncing org limits:', syncErr);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['enterprise-links'] });
+      queryClient.invalidateQueries({ queryKey: ['organization'] });
       toast.success(editingLink ? 'Link atualizado' : 'Link criado com sucesso');
       closeDialog();
     },
