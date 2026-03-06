@@ -328,6 +328,8 @@ export default function Subscription() {
                             debit_card: 'Cartão de débito',
                             pix: 'PIX',
                             boleto: 'Boleto',
+                            cakto: 'Cartão de crédito',
+                            mercadopago: 'Cartão de crédito',
                           };
                           return methodLabels[method || ''] || 'Cartão de crédito';
                         })()}

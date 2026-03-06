@@ -1,10 +1,18 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Check, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  // Invalidate user data cache so dashboard fetches fresh subscription
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ['user-data'] });
+  }, [queryClient]);
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-background px-4">

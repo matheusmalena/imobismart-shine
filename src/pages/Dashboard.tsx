@@ -26,7 +26,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { activeProperties, isLoading, metrics } = useProperties();
-  const { profile, plan, isPro, isPlus } = useUserData();
+  const { profile, plan, isPro, isPlus, isLoading: userDataLoading } = useUserData();
   const { exportToCSV } = useExportData();
   
   const firstName = profile?.full_name?.split(' ')[0] || 'Investidor';
@@ -67,7 +67,7 @@ export default function Dashboard() {
 
   return (
     <PageTransition>
-      {(authLoading || isLoading) ? <LoadingSkeleton /> : (
+      {(authLoading || isLoading || userDataLoading) ? <LoadingSkeleton /> : (
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
