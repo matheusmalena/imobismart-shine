@@ -293,17 +293,39 @@ export default function Auth() {
     );
   }
 
+  // Full-screen email verified page
+  if (authView === 'emailVerified') {
+    return (
+      <div className="min-h-screen bg-white dark:bg-background flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full text-center space-y-6">
+          <div className="flex justify-center">
+            <div className="p-4 rounded-full bg-green-100 dark:bg-green-900/30">
+              <CheckCircle className="h-16 w-16 text-green-500" />
+            </div>
+          </div>
+          <h1 className="text-3xl font-bold text-foreground">
+            E-mail verificado com sucesso!
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Você já pode fazer login na plataforma.
+          </p>
+          <Button size="lg" className="w-full max-w-xs mx-auto" onClick={() => setAuthView('default')}>
+            Ir para o login
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   // Dynamic header content based on authView
   const getHeaderContent = () => {
     switch (authView) {
       case 'emailOTP':
         return { title: 'Verificação por Email', subtitle: `Digite o código de 6 dígitos enviado para ${otpEmail}` };
-      case 'emailVerified':
-        return { title: 'Email Verificado!', subtitle: 'Seu email foi confirmado com sucesso' };
+      case 'signupOTP':
+        return { title: 'Verifique seu Email', subtitle: `Digite o código de 6 dígitos enviado para ${otpEmail}` };
       case 'mfa':
         return { title: 'Verificação em Duas Etapas', subtitle: 'Digite o código do seu aplicativo autenticador' };
-      case 'emailConfirmation':
-        return { title: 'Verifique seu Email', subtitle: 'Falta pouco para completar seu cadastro' };
       default:
         return showForgotPassword
           ? { title: 'Recuperar senha', subtitle: 'Digite seu email para receber o link de recuperação' }
