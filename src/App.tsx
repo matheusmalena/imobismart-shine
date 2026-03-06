@@ -1,10 +1,12 @@
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { supabase } from "@/integrations/supabase/client";
 import DashboardLayoutRoute from "@/components/layout/DashboardLayoutRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -28,6 +30,25 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 
 const queryClient = new QueryClient();
 
+// Global interceptor for email confirmation hash on any route
+function EmailConfirmationInterceptor() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && hash.includes('type=signup') && location.pathname !== '/auth') {
+      // Email confirmed — sign out and redirect to verified screen
+      supabase.auth.signOut({ scope: 'local' }).then(() => {
+        navigate('/auth?verified=true', { replace: true });
+      });
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, [location, navigate]);
+
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="light" storageKey="imobismart-theme">
@@ -36,6 +57,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <EmailConfirmationInterceptor />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />

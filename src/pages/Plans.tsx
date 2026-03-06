@@ -218,9 +218,10 @@ export default function Plans() {
         throw new Error('Link de checkout não configurado para este plano. Entre em contato com o suporte.');
       }
 
-      // Append redirect URL so Cakto sends user back to payment-success page
+      // Append redirect URL and user email so webhook can match the correct account
       const separator = checkoutUrl.includes('?') ? '&' : '?';
-      const redirectUrl = `${checkoutUrl}${separator}redirect_url=${encodeURIComponent(window.location.origin + '/payment-success')}`;
+      const userEmail = user?.email || '';
+      const redirectUrl = `${checkoutUrl}${separator}redirect_url=${encodeURIComponent(window.location.origin + '/payment-success')}&src_email=${encodeURIComponent(userEmail)}`;
       window.location.href = redirectUrl;
     } catch (error) {
       console.error('Checkout error:', error);

@@ -143,38 +143,71 @@ export default function Auth() {
   useEffect(() => {
     if (user && !mfaPending && authView === 'default') {
       const provider = user.app_metadata?.provider;
-      const createdAt = new Date(user.created_at).getTime();
-      const now = Date.now();
-      const isNewUser = now - createdAt < 15000;
       const savedTab = localStorage.getItem('imobismart-auth-tab');
 
-      if (provider === 'google') {
-        if (isNewUser && savedTab === 'login') {
-          // New user tried to login via Google but has no account
-          (async () => {
-            await supabase.auth.signOut();
-            toast.error('Conta não encontrada', {
-              description: 'Você precisa criar uma conta primeiro. Cadastre-se na aba "Cadastrar".',
-              duration: 8000,
-            });
-          })();
-          localStorage.removeItem('imobismart-auth-tab');
-          return;
-        }
-        if (!isNewUser && savedTab === 'signup') {
-          // Existing user tried to sign up again via Google
-          (async () => {
-            await supabase.auth.signOut();
-            toast.error('Você já possui uma conta', {
-              description: 'Faça login na aba "Entrar" com o Google.',
-              duration: 8000,
-            });
-          })();
-          localStorage.removeItem('imobismart-auth-tab');
-          return;
-        }
+      if (provider === 'google' && savedTab) {
+        const preRedirectTs = parseInt(localStorage.getItem('imobismart-auth-ts') || '0', 10);
+        
+        (async () => {
+          try {
+            // Query profile to check if it existed before the redirect
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('created_at')
+              .eq('user_id', user.id)
+              .single();
+
+            if (!profile) {
+              // Profile not found - this shouldn't happen, but treat as new
+              localStorage.removeItem('imobismart-auth-tab');
+              localStorage.removeItem('imobismart-auth-ts');
+              navigate('/dashboard');
+              return;
+            }
+
+            const profileCreatedAt = new Date(profile.created_at).getTime();
+            // If profile was created before the redirect timestamp, user already existed
+            const isExistingUser = preRedirectTs > 0 && profileCreatedAt < preRedirectTs;
+
+            if (!isExistingUser && savedTab === 'login') {
+              // New user tried to login — block
+              await supabase.auth.signOut();
+              toast.error('Conta não encontrada', {
+                description: 'Você precisa criar uma conta primeiro. Cadastre-se na aba "Cadastrar".',
+                duration: 8000,
+              });
+              localStorage.removeItem('imobismart-auth-tab');
+              localStorage.removeItem('imobismart-auth-ts');
+              return;
+            }
+
+            if (isExistingUser && savedTab === 'signup') {
+              // Existing user tried to sign up again — block
+              await supabase.auth.signOut();
+              toast.error('Você já possui uma conta', {
+                description: 'Faça login na aba "Entrar" com o Google.',
+                duration: 8000,
+              });
+              localStorage.removeItem('imobismart-auth-tab');
+              localStorage.removeItem('imobismart-auth-ts');
+              return;
+            }
+
+            // Valid flow — proceed
+            localStorage.removeItem('imobismart-auth-tab');
+            localStorage.removeItem('imobismart-auth-ts');
+            navigate('/dashboard');
+          } catch {
+            localStorage.removeItem('imobismart-auth-tab');
+            localStorage.removeItem('imobismart-auth-ts');
+            navigate('/dashboard');
+          }
+        })();
+        return;
       }
+
       localStorage.removeItem('imobismart-auth-tab');
+      localStorage.removeItem('imobismart-auth-ts');
       navigate('/dashboard');
     }
   }, [user, mfaPending, authView, navigate]);
@@ -182,6 +215,7 @@ export default function Auth() {
   const handleGoogleSignIn = async (tab: 'login' | 'signup') => {
     setGoogleLoading(true);
     localStorage.setItem('imobismart-auth-tab', tab);
+    localStorage.setItem('imobismart-auth-ts', Date.now().toString());
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
