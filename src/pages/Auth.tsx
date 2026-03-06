@@ -365,51 +365,12 @@ export default function Auth() {
       return <EmailOTPVerification email={otpEmail} onSuccess={handleOTPSuccess} onCancel={handleOTPCancel} inline />;
     }
 
+    if (authView === 'signupOTP') {
+      return <EmailOTPVerification email={otpEmail} onSuccess={handleSignupOTPSuccess} onCancel={() => setAuthView('default')} inline />;
+    }
+
     if (authView === 'mfa') {
       return <MFAVerification onSuccess={handleMFASuccess} onCancel={handleMFACancel} inline />;
-    }
-
-    if (authView === 'emailVerified') {
-      return (
-        <div className="space-y-4">
-          <div className="flex justify-center mb-2">
-            <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/30">
-              <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
-            </div>
-          </div>
-          <p className="text-center text-foreground font-medium">
-            Seu email foi verificado com sucesso!
-          </p>
-          <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground text-center">
-            Agora você pode fazer login com suas credenciais.
-          </div>
-          <Button className="w-full" size="lg" onClick={() => setAuthView('default')}>
-            Ir para o login
-          </Button>
-        </div>
-      );
-    }
-
-    if (authView === 'emailConfirmation') {
-      return (
-        <div className="space-y-4">
-          <div className="flex justify-center mb-2">
-            <div className="p-3 rounded-full bg-primary/10">
-              <Mail className="h-8 w-8 text-primary" />
-            </div>
-          </div>
-          <p className="text-center text-foreground font-medium">
-            Enviamos um link de confirmação para:
-          </p>
-          <p className="text-center text-primary font-semibold">{signupEmail}</p>
-          <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground text-center">
-            Abra seu email e clique no link de confirmação. Após confirmar, volte aqui para fazer login.
-          </div>
-          <Button variant="outline" className="w-full" size="lg" onClick={() => setAuthView('default')}>
-            Voltar ao login
-          </Button>
-        </div>
-      );
     }
 
     // Default: login/signup tabs
