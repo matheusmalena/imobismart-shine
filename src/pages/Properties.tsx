@@ -38,7 +38,7 @@ export default function Properties() {
   } = useProperties();
   
   const { canAddProperty, remainingSlots, isAtLimit, plan, limit, activeCount: planActiveCount } = usePropertyLimit();
-  const { canCreate, canDelete } = useOrgPermissions();
+  const { canCreate, canDelete, canEdit } = useOrgPermissions();
   const { getPlanById } = usePlans();
   const [formOpen, setFormOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
@@ -331,6 +331,7 @@ export default function Properties() {
                 onDelete={handleDelete}
                 canDelete={canDelete}
                 canCreate={canCreate}
+                canEdit={canEdit}
               />
             ))}
           </div>

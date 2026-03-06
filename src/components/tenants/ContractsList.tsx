@@ -44,7 +44,7 @@ export function ContractsList() {
   const { contracts, isLoading, createContract, updateContract, deleteContract, getSignedUrl } = useLeaseContracts();
   const { tenants } = useTenants();
   const { properties } = useProperties();
-  const { canCreate, canDelete } = useOrgPermissions();
+  const { canCreate, canDelete, canEdit } = useOrgPermissions();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingContract, setEditingContract] = useState<LeaseContract | null>(null);
@@ -271,10 +271,12 @@ export function ContractsList() {
                             <DropdownMenuSeparator />
                           </>
                         )}
-                        <DropdownMenuItem onClick={() => handleEdit(contract)}>
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
+                        {canEdit && (
+                          <DropdownMenuItem onClick={() => handleEdit(contract)}>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                        )}
                         {canDelete && (
                           <DropdownMenuItem
                             onClick={() => handleDelete(contract)}

@@ -22,7 +22,7 @@ export default function Documents() {
   const { user, loading: authLoading } = useAuth();
   const { properties, activeProperties, isLoading: propertiesLoading } = useProperties();
   const { documents, isLoading: documentsLoading, isUploading, uploadDocument, deleteDocument, downloadDocument, viewDocument: getDocumentSignedUrl, getThumbnailUrl } = useDocuments();
-  const { canCreate, canDelete } = useOrgPermissions();
+  const { canCreate, canDelete, canEdit } = useOrgPermissions();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [propertyFilter, setPropertyFilter] = useState<string>('all');
