@@ -251,14 +251,20 @@ export default function Auth() {
   const handleGoogleSignIn = async (tab: 'login' | 'signup') => {
     setGoogleLoading(true);
     localStorage.setItem('imobismart-auth-tab', tab);
+    localStorage.setItem('imobismart-auth-ts', Date.now().toString());
+    localStorage.removeItem('imobismart-auth-processing');
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
       });
       if (result?.error) {
+        localStorage.removeItem('imobismart-auth-tab');
+        localStorage.removeItem('imobismart-auth-ts');
         toast.error('Erro ao entrar com Google', { description: result.error.message || 'Tente novamente.' });
       }
     } catch {
+      localStorage.removeItem('imobismart-auth-tab');
+      localStorage.removeItem('imobismart-auth-ts');
       toast.error('Erro ao entrar com Google', { description: 'Tente novamente.' });
     } finally {
       setGoogleLoading(false);
