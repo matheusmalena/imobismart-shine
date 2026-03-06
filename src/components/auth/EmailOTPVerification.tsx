@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, Loader2 } from 'lucide-react';
@@ -20,12 +20,12 @@ export function EmailOTPVerification({ email, onSuccess, onCancel, inline }: Ema
   const [isResending, setIsResending] = useState(false);
   const [error, setError] = useState('');
 
-  const handleVerify = async () => {
-    if (code.length !== 6) { setError('Digite o código de 6 dígitos'); return; }
+  const handleVerify = async (otpCode: string) => {
+    if (otpCode.length !== 6) { setError('Digite o código de 6 dígitos'); return; }
     setIsVerifying(true);
     setError('');
     try {
-      const { data, error: fnError } = await supabase.functions.invoke('verify-login-otp', { body: { email, code } });
+      const { data, error: fnError } = await supabase.functions.invoke('verify-login-otp', { body: { email, code: otpCode } });
       if (fnError || !data?.success) {
         setError(data?.error || 'Código inválido ou expirado');
         toast.error('Código inválido ou expirado');
@@ -41,6 +41,13 @@ export function EmailOTPVerification({ email, onSuccess, onCancel, inline }: Ema
     }
   };
 
+  // Auto-submit when all 6 digits are entered
+  useEffect(() => {
+    if (code.length === 6) {
+      handleVerify(code);
+    }
+  }, [code]);
+
   const handleResend = async () => {
     setIsResending(true);
     try {
@@ -52,28 +59,33 @@ export function EmailOTPVerification({ email, onSuccess, onCancel, inline }: Ema
   };
 
   const content = (
-    <div className="space-y-4">
-      {inline && (
-        <div className="flex justify-center mb-2">
-          <div className="p-3 rounded-full bg-primary/10">
-            <Mail className="h-8 w-8 text-primary" />
-          </div>
+    <div className="space-y-6">
+      <div className="space-y-3">
+        <Label className="text-center block text-sm font-medium text-muted-foreground">
+          Código de Verificação
+        </Label>
+        <div className="flex justify-center">
+          <InputOTP
+            maxLength={6}
+            value={code}
+            onChange={(value) => { setCode(value); setError(''); }}
+            disabled={isVerifying}
+          >
+            <InputOTPGroup>
+              <InputOTPSlot index={0} className="h-12 w-12 text-lg font-semibold" />
+              <InputOTPSlot index={1} className="h-12 w-12 text-lg font-semibold" />
+              <InputOTPSlot index={2} className="h-12 w-12 text-lg font-semibold" />
+              <InputOTPSlot index={3} className="h-12 w-12 text-lg font-semibold" />
+              <InputOTPSlot index={4} className="h-12 w-12 text-lg font-semibold" />
+              <InputOTPSlot index={5} className="h-12 w-12 text-lg font-semibold" />
+            </InputOTPGroup>
+          </InputOTP>
         </div>
-      )}
-      <div className="space-y-2">
-        <Label htmlFor="otp-code">Código de Verificação</Label>
-        <Input
-          id="otp-code" type="text" inputMode="numeric" pattern="[0-9]*"
-          maxLength={6} placeholder="000000" value={code}
-          onChange={(e) => { setCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setError(''); }}
-          onKeyDown={(e) => e.key === 'Enter' && handleVerify()}
-          className="text-center text-3xl tracking-[0.3em] font-mono" autoFocus
-        />
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {error && <p className="text-sm text-destructive text-center">{error}</p>}
       </div>
       <div className="flex gap-3">
         <Button variant="outline" onClick={onCancel} className="flex-1">Voltar</Button>
-        <Button onClick={handleVerify} disabled={isVerifying || code.length !== 6} className="flex-1">
+        <Button onClick={() => handleVerify(code)} disabled={isVerifying || code.length !== 6} className="flex-1">
           {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Verificar
         </Button>

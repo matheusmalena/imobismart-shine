@@ -199,7 +199,6 @@ export default function Auth() {
   };
 
   const handleOTPSuccess = () => {
-    setAuthView('default');
     setMfaPending(false);
     toast({ title: 'Bem-vindo!', description: 'Login realizado com sucesso.' });
     navigate('/dashboard');
