@@ -146,23 +146,42 @@ export default function Auth() {
       const createdAt = new Date(user.created_at).getTime();
       const now = Date.now();
       const isNewUser = now - createdAt < 15000;
+      const savedTab = localStorage.getItem('imobismart-auth-tab');
 
-      if (provider === 'google' && isNewUser) {
-        (async () => {
-          await supabase.auth.signOut();
-          toast.error('Conta não encontrada', {
-            description: 'Você precisa criar uma conta primeiro. Cadastre-se na aba "Cadastrar".',
-            duration: 8000,
-          });
-        })();
-        return;
+      if (provider === 'google') {
+        if (isNewUser) {
+          // New user trying to sign up via Google — block it
+          (async () => {
+            await supabase.auth.signOut();
+            toast.error('Conta não encontrada', {
+              description: 'Você precisa criar uma conta primeiro. Cadastre-se na aba "Cadastrar".',
+              duration: 8000,
+            });
+          })();
+          localStorage.removeItem('imobismart-auth-tab');
+          return;
+        }
+        if (savedTab === 'signup') {
+          // Existing user clicked "Cadastrar com Google" — block and redirect to login
+          (async () => {
+            await supabase.auth.signOut();
+            toast.error('Você já possui uma conta', {
+              description: 'Faça login na aba "Entrar" com o Google.',
+              duration: 8000,
+            });
+          })();
+          localStorage.removeItem('imobismart-auth-tab');
+          return;
+        }
       }
+      localStorage.removeItem('imobismart-auth-tab');
       navigate('/dashboard');
     }
   }, [user, mfaPending, authView, navigate]);
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = async (tab: 'login' | 'signup') => {
     setGoogleLoading(true);
+    localStorage.setItem('imobismart-auth-tab', tab);
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
@@ -362,8 +381,8 @@ export default function Auth() {
 
   const header = getHeaderContent();
 
-  const GoogleButton = ({ label }: { label: string }) => (
-    <Button type="button" variant="outline" className="w-full" size="lg" onClick={handleGoogleSignIn} disabled={googleLoading}>
+  const GoogleButton = ({ label, tab }: { label: string; tab: 'login' | 'signup' }) => (
+    <Button type="button" variant="outline" className="w-full" size="lg" onClick={() => handleGoogleSignIn(tab)} disabled={googleLoading}>
       {googleLoading ? (
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
       ) : (
@@ -406,7 +425,7 @@ export default function Auth() {
         </TabsList>
 
         <TabsContent value="login">
-          <GoogleButton label="Entrar com Google" />
+          <GoogleButton label="Entrar com Google" tab="login" />
           <Divider />
           {showForgotPassword ? (
             <form onSubmit={handleForgotPassword} className="space-y-4">
@@ -460,7 +479,7 @@ export default function Auth() {
         </TabsContent>
 
         <TabsContent value="signup">
-          <GoogleButton label="Cadastrar com Google" />
+          <GoogleButton label="Cadastrar com Google" tab="signup" />
           <Divider />
           <form onSubmit={handleSignUp} className="space-y-4">
             <div className="space-y-2">

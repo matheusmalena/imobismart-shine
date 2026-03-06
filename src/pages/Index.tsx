@@ -23,6 +23,7 @@ import {
   Rocket,
   Users,
   ClipboardList,
+  Loader2,
 } from "lucide-react";
 
 const featureTabs = [
@@ -154,6 +155,14 @@ export default function Index() {
   useEffect(() => {
     if (!loading && user) navigate("/dashboard");
   }, [user, loading, navigate]);
+
+  if (loading || user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const MOCKUP_COMPONENTS: Record<string, React.ReactNode> = {
     dashboard: <DashboardMockup />,
