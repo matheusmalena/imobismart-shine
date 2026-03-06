@@ -325,7 +325,7 @@ export default function Auth() {
     }
 
     // Non-Google user already authenticated (e.g. returning session)
-    if (!savedTab && authView !== 'emailVerified') {
+    if (!savedTab) {
       navigate('/dashboard');
     }
   }, [user, mfaPending, authView, navigate]);
