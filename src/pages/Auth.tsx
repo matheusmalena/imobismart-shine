@@ -151,68 +151,44 @@ export default function Auth() {
       const savedTab = localStorage.getItem('imobismart-auth-tab');
 
       if (provider === 'google' && savedTab) {
-        const preRedirectTs = parseInt(localStorage.getItem('imobismart-auth-ts') || '0', 10);
-        
-        (async () => {
-          try {
-            // Query profile to check if it existed before the redirect
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('created_at')
-              .eq('user_id', user.id)
-              .single();
+        // Use user.created_at to determine if user is new or existing
+        // If account was created more than 60 seconds ago, user is definitely existing
+        const createdAt = new Date(user.created_at).getTime();
+        const isExistingUser = Date.now() - createdAt > 60000;
 
-            if (!profile) {
-              // Profile not found - this shouldn't happen, but treat as new
-              localStorage.removeItem('imobismart-auth-tab');
-              localStorage.removeItem('imobismart-auth-ts');
-              navigate('/dashboard');
-              return;
-            }
+        if (!isExistingUser && savedTab === 'login') {
+          // New user tried to login — block and delete the just-created account
+          (async () => {
+            await supabase.auth.signOut();
+            toast.error('Conta não encontrada', {
+              description: 'Você precisa criar uma conta primeiro. Cadastre-se na aba "Cadastrar".',
+              duration: 8000,
+            });
+          })();
+          localStorage.removeItem('imobismart-auth-tab');
+          return;
+        }
 
-            const profileCreatedAt = new Date(profile.created_at).getTime();
-            // If profile was created before the redirect timestamp, user already existed
-            const isExistingUser = preRedirectTs > 0 && profileCreatedAt < preRedirectTs;
+        if (isExistingUser && savedTab === 'signup') {
+          // Existing user tried to sign up again — block
+          (async () => {
+            await supabase.auth.signOut();
+            toast.error('Você já possui uma conta', {
+              description: 'Faça login na aba "Entrar" com o Google.',
+              duration: 8000,
+            });
+          })();
+          localStorage.removeItem('imobismart-auth-tab');
+          return;
+        }
 
-            if (!isExistingUser && savedTab === 'login') {
-              // New user tried to login — block
-              await supabase.auth.signOut();
-              toast.error('Conta não encontrada', {
-                description: 'Você precisa criar uma conta primeiro. Cadastre-se na aba "Cadastrar".',
-                duration: 8000,
-              });
-              localStorage.removeItem('imobismart-auth-tab');
-              localStorage.removeItem('imobismart-auth-ts');
-              return;
-            }
-
-            if (isExistingUser && savedTab === 'signup') {
-              // Existing user tried to sign up again — block
-              await supabase.auth.signOut();
-              toast.error('Você já possui uma conta', {
-                description: 'Faça login na aba "Entrar" com o Google.',
-                duration: 8000,
-              });
-              localStorage.removeItem('imobismart-auth-tab');
-              localStorage.removeItem('imobismart-auth-ts');
-              return;
-            }
-
-            // Valid flow — proceed
-            localStorage.removeItem('imobismart-auth-tab');
-            localStorage.removeItem('imobismart-auth-ts');
-            navigate('/dashboard');
-          } catch {
-            localStorage.removeItem('imobismart-auth-tab');
-            localStorage.removeItem('imobismart-auth-ts');
-            navigate('/dashboard');
-          }
-        })();
+        // Valid flow — proceed
+        localStorage.removeItem('imobismart-auth-tab');
+        navigate('/dashboard');
         return;
       }
 
       localStorage.removeItem('imobismart-auth-tab');
-      localStorage.removeItem('imobismart-auth-ts');
       navigate('/dashboard');
     }
   }, [user, mfaPending, authView, navigate]);
