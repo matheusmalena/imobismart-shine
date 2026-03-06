@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -25,25 +25,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [mfaPending, setMfaPending] = useState(false);
+  const mfaPendingRef = useRef(false);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    mfaPendingRef.current = mfaPending;
+  }, [mfaPending]);
 
   useEffect(() => {
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        // Don't update user state if MFA is pending
-        if (mfaPending) return;
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+      async (event, currentSession) => {
+        // Don't update user state if MFA/OTP is pending (use ref to avoid re-subscription)
+        if (mfaPendingRef.current) return;
+
+        if (currentSession) {
+          // Validate session is not stale (deleted user) using setTimeout to avoid Supabase deadlock
+          setTimeout(async () => {
+            const { data: { user: verifiedUser }, error } = await supabase.auth.getUser();
+            if (error || !verifiedUser) {
+              console.warn('Session refers to deleted user, clearing...');
+              await supabase.auth.signOut({ scope: 'local' });
+              setSession(null);
+              setUser(null);
+              return;
+            }
+            setSession(currentSession);
+            setUser(currentSession.user);
+            setLoading(false);
+          }, 0);
+        } else {
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+        }
       }
     );
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session) {
-        // Verify the user still exists by calling getUser (server-side check)
+    // THEN check for existing session
+    supabase.auth.getSession().then(async ({ data: { session: existingSession } }) => {
+      if (existingSession) {
         const { data: { user: verifiedUser }, error } = await supabase.auth.getUser();
         if (error || !verifiedUser) {
-          // User was deleted — clear stale session
           console.warn('Session refers to deleted user, clearing...');
           await supabase.auth.signOut({ scope: 'local' });
           setSession(null);
@@ -52,42 +75,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
       }
-      setSession(session);
-      setUser(session?.user ?? null);
+      setSession(existingSession);
+      setUser(existingSession?.user ?? null);
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, [mfaPending]);
+    // Empty dependency array — listener is set up once, uses ref for mfaPending
+  }, []);
 
   const signIn = async (email: string, password: string): Promise<SignInResult> => {
     // Set mfaPending BEFORE login to prevent onAuthStateChange from updating user state
     setMfaPending(true);
+    mfaPendingRef.current = true;
     
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     
     if (error) {
       setMfaPending(false);
+      mfaPendingRef.current = false;
       return { error: error as Error };
     }
 
     // Check if MFA is required
     const { data: factors } = await supabase.auth.mfa.listFactors();
-    console.log('MFA Factors:', factors);
     const hasVerifiedFactor = factors?.totp?.some(f => f.status === 'verified');
-    console.log('Has verified factor:', hasVerifiedFactor);
     
     if (hasVerifiedFactor) {
       const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-      console.log('AAL Data:', aalData);
       if (aalData?.currentLevel === 'aal1' && aalData?.nextLevel === 'aal2') {
-        // MFA verification required - keep pending state
         return { error: null, requiresMFA: true };
       }
     }
 
     // No MFA required, but keep pending for OTP verification
-    // mfaPending stays true - will be cleared after OTP verification
     return { error: null, requiresMFA: false };
   };
 
@@ -120,6 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setSession(null);
       setMfaPending(false);
+      mfaPendingRef.current = false;
     }
   };
 

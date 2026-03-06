@@ -145,50 +145,105 @@ export default function Auth() {
     }
   };
 
+  // Handle Google OAuth return — deterministic check using profiles table + pre-redirect timestamp
   useEffect(() => {
-    if (user && !mfaPending && authView === 'default') {
-      const provider = user.app_metadata?.provider;
-      const savedTab = localStorage.getItem('imobismart-auth-tab');
+    if (!user || mfaPending || authView !== 'default') return;
 
-      if (provider === 'google' && savedTab) {
-        // Use user.created_at to determine if user is new or existing
-        // If account was created more than 60 seconds ago, user is definitely existing
-        const createdAt = new Date(user.created_at).getTime();
-        const isExistingUser = Date.now() - createdAt > 60000;
+    const provider = user.app_metadata?.provider;
+    const savedTab = localStorage.getItem('imobismart-auth-tab');
+    const savedTimestamp = localStorage.getItem('imobismart-auth-ts');
 
-        if (!isExistingUser && savedTab === 'login') {
-          // New user tried to login — block and delete the just-created account
-          (async () => {
+    if (provider === 'google' && savedTab && savedTimestamp) {
+      // Prevent multiple executions
+      const alreadyProcessing = localStorage.getItem('imobismart-auth-processing');
+      if (alreadyProcessing) return;
+      localStorage.setItem('imobismart-auth-processing', 'true');
+
+      (async () => {
+        try {
+          const preRedirectTs = parseInt(savedTimestamp, 10);
+
+          // Query the profiles table to check if user existed before this redirect
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('created_at')
+            .eq('user_id', user.id)
+            .single();
+
+          if (profileError || !profile) {
+            // Profile not found — shouldn't happen since trigger creates it, treat as new
+            await supabase.auth.signOut();
+            toast.error('Erro ao verificar conta', {
+              description: 'Tente novamente.',
+              duration: 6000,
+            });
+            return;
+          }
+
+          const profileCreatedAt = new Date(profile.created_at).getTime();
+          const isExistingUser = preRedirectTs > 0 && profileCreatedAt < preRedirectTs;
+
+          if (!isExistingUser && savedTab === 'login') {
+            // New user tried to login — block
             await supabase.auth.signOut();
             toast.error('Conta não encontrada', {
               description: 'Você precisa criar uma conta primeiro. Cadastre-se na aba "Cadastrar".',
               duration: 8000,
             });
-          })();
-          localStorage.removeItem('imobismart-auth-tab');
-          return;
-        }
+            return;
+          }
 
-        if (isExistingUser && savedTab === 'signup') {
-          // Existing user tried to sign up again — block
-          (async () => {
+          if (isExistingUser && savedTab === 'signup') {
+            // Existing user tried to sign up again — block
             await supabase.auth.signOut();
             toast.error('Você já possui uma conta', {
               description: 'Faça login na aba "Entrar" com o Google.',
               duration: 8000,
             });
-          })();
+            return;
+          }
+
+          if (isExistingUser && savedTab === 'login') {
+            // Existing user logging in — send OTP for verification (same security as email/password)
+            const email = user.email;
+            if (!email) {
+              await supabase.auth.signOut();
+              toast.error('Erro ao verificar conta', { description: 'Email não encontrado.' });
+              return;
+            }
+
+            setMfaPending(true);
+            setOtpEmail(email);
+
+            const { data, error: otpError } = await supabase.functions.invoke('send-login-otp', {
+              body: { email },
+            });
+
+            if (otpError || !data?.success) {
+              toast.error('Erro ao enviar código de verificação', { description: 'Tente novamente.' });
+              await supabase.auth.signOut();
+              setMfaPending(false);
+              return;
+            }
+
+            setAuthView('emailOTP');
+            return;
+          }
+
+          // New user + signup tab — valid first-time signup, go straight to dashboard
+          toast.success('Conta criada com sucesso!', { description: 'Bem-vindo ao ImobiSmart.' });
+          navigate('/dashboard');
+        } finally {
           localStorage.removeItem('imobismart-auth-tab');
-          return;
+          localStorage.removeItem('imobismart-auth-ts');
+          localStorage.removeItem('imobismart-auth-processing');
         }
+      })();
+      return;
+    }
 
-        // Valid flow — proceed
-        localStorage.removeItem('imobismart-auth-tab');
-        navigate('/dashboard');
-        return;
-      }
-
-      localStorage.removeItem('imobismart-auth-tab');
+    // Non-Google user already authenticated (e.g. returning session)
+    if (!savedTab) {
       navigate('/dashboard');
     }
   }, [user, mfaPending, authView, navigate]);
@@ -196,14 +251,20 @@ export default function Auth() {
   const handleGoogleSignIn = async (tab: 'login' | 'signup') => {
     setGoogleLoading(true);
     localStorage.setItem('imobismart-auth-tab', tab);
+    localStorage.setItem('imobismart-auth-ts', Date.now().toString());
+    localStorage.removeItem('imobismart-auth-processing');
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
       });
       if (result?.error) {
+        localStorage.removeItem('imobismart-auth-tab');
+        localStorage.removeItem('imobismart-auth-ts');
         toast.error('Erro ao entrar com Google', { description: result.error.message || 'Tente novamente.' });
       }
     } catch {
+      localStorage.removeItem('imobismart-auth-tab');
+      localStorage.removeItem('imobismart-auth-ts');
       toast.error('Erro ao entrar com Google', { description: 'Tente novamente.' });
     } finally {
       setGoogleLoading(false);
