@@ -90,6 +90,15 @@ export function useUserData() {
         };
       }
 
+      // Check if cancelled subscription has expired — treat as free client-side
+      if (subscription && subscription.status === 'cancelled' && subscription.expires_at) {
+        const expiresAt = new Date(subscription.expires_at);
+        if (expiresAt <= new Date()) {
+          subscription = { ...subscription, plan: 'free' as SubscriptionPlan };
+          supabase.functions.invoke('downgrade-to-free').catch(() => {});
+        }
+      }
+
       return {
         profile: profileResult.data as Profile | null,
         subscription,

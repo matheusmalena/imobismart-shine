@@ -478,6 +478,19 @@ export default function Auth() {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              {signupPassword.length > 0 && (
+                <div className="space-y-1 pt-1">
+                  {PASSWORD_RULES.map((rule) => {
+                    const passed = rule.test(signupPassword);
+                    return (
+                      <div key={rule.label} className="flex items-center gap-2 text-xs">
+                        <CheckCircle className={`h-3.5 w-3.5 ${passed ? 'text-green-500' : 'text-muted-foreground/40'}`} />
+                        <span className={passed ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}>{rule.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="signup-confirm-password">Confirmar senha</Label>
