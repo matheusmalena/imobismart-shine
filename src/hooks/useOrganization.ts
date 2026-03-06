@@ -93,30 +93,18 @@ export function useOrganization() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch dynamic max_members from enterprise_checkout_links by owner email
+  // Fetch dynamic max_members via SECURITY DEFINER RPC (bypasses RLS)
   const { data: enterpriseMaxMembers } = useQuery({
     queryKey: ['enterprise-max-members', orgRaw?.owner_id],
     queryFn: async () => {
       if (!orgRaw?.owner_id) return null;
 
-      // Get owner's email
-      const { data: ownerProfile } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('user_id', orgRaw.owner_id)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc('get_enterprise_limits', {
+        _user_id: orgRaw.owner_id,
+      });
 
-      if (!ownerProfile?.email) return null;
-
-      // Check enterprise_checkout_links for custom max_members
-      const { data: link } = await supabase
-        .from('enterprise_checkout_links')
-        .select('max_members')
-        .eq('client_email', ownerProfile.email)
-        .eq('is_active', true)
-        .maybeSingle();
-
-      return (link as any)?.max_members ?? null;
+      if (error || !data || data.length === 0) return null;
+      return data[0].max_members;
     },
     enabled: !!orgRaw?.owner_id,
     staleTime: 5 * 60 * 1000,

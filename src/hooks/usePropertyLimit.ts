@@ -6,12 +6,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function usePropertyLimit() {
-  const { plan } = useUserData();
+  const { plan, isLoading: userDataLoading } = useUserData();
   const { user } = useAuth();
   const { activeProperties } = useProperties();
   const { getPlanLimit } = usePlans();
 
-  // For enterprise users, fetch custom limits via SECURITY DEFINER RPC
+  // Always try to fetch enterprise limits — the RPC returns empty if not enterprise
   const { data: enterpriseLimits } = useQuery({
     queryKey: ['enterprise-custom-limit', user?.id],
     queryFn: async () => {
@@ -21,11 +21,12 @@ export function usePropertyLimit() {
       if (error || !data || data.length === 0) return null;
       return data[0];
     },
-    enabled: plan === 'enterprise' && !!user?.id,
+    enabled: !!user?.id && !userDataLoading,
     staleTime: 60 * 1000,
   });
 
-  const limit = plan === 'enterprise' && enterpriseLimits?.property_limit != null
+  // If enterprise limits exist, use them regardless of plan state
+  const limit = enterpriseLimits?.property_limit != null
     ? enterpriseLimits.property_limit
     : getPlanLimit(plan);
 
