@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Crown, ArrowRight } from 'lucide-react';
+import { AlertTriangle, Crown, ArrowRight, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -11,9 +11,11 @@ interface PropertyLimitBannerProps {
 }
 
 const PLAN_NAMES: Record<string, string> = {
-  starter: 'Gratuito',
+  free: 'Gratuito',
+  starter: 'Starter',
   pro: 'Pro',
-  enterprise: 'Plus',
+  plus: 'Plus',
+  enterprise: 'Enterprise',
 };
 
 export function PropertyLimitBanner({ remainingSlots, isAtLimit, plan, limit }: PropertyLimitBannerProps) {
@@ -21,6 +23,7 @@ export function PropertyLimitBanner({ remainingSlots, isAtLimit, plan, limit }: 
   
   const planName = PLAN_NAMES[plan] || plan;
   const limitText = limit === Infinity ? 'ilimitados' : limit;
+  const isEnterprise = plan === 'enterprise';
   
   return (
     <Card className={`border-2 ${isAtLimit ? 'border-destructive bg-destructive/5' : 'border-warning bg-warning/5'}`}>
@@ -43,23 +46,44 @@ export function PropertyLimitBanner({ remainingSlots, isAtLimit, plan, limit }: 
               </h4>
               <p className="text-sm text-muted-foreground">
                 {isAtLimit 
-                  ? `O plano ${planName} permite apenas ${limitText} imóveis. Faça upgrade para adicionar mais.`
-                  : `Resta apenas 1 vaga no plano ${planName} (limite: ${limitText}). Considere fazer upgrade.`
+                  ? isEnterprise
+                    ? `O plano ${planName} permite ${limitText} imóveis. Entre em contato para aumentar seu limite.`
+                    : `O plano ${planName} permite apenas ${limitText} imóveis. Faça upgrade para adicionar mais.`
+                  : isEnterprise
+                    ? `Resta apenas 1 vaga no plano ${planName} (limite: ${limitText}). Entre em contato para aumentar seu limite.`
+                    : `Resta apenas 1 vaga no plano ${planName} (limite: ${limitText}). Considere fazer upgrade.`
                 }
               </p>
             </div>
           </div>
-          <Link to="/plans">
-            <Button 
-              size="sm" 
-              className="gap-2 whitespace-nowrap"
-              variant={isAtLimit ? 'default' : 'outline'}
+          {isEnterprise ? (
+            <a
+              href="https://wa.me/5513997069979?text=Olá! Gostaria de aumentar o limite de imóveis do meu plano Enterprise no ImobiSmart."
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <Crown className="h-4 w-4" />
-              Fazer Upgrade
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
+              <Button 
+                size="sm" 
+                className="gap-2 whitespace-nowrap"
+                variant={isAtLimit ? 'default' : 'outline'}
+              >
+                <MessageCircle className="h-4 w-4" />
+                Falar com Suporte
+              </Button>
+            </a>
+          ) : (
+            <Link to="/plans">
+              <Button 
+                size="sm" 
+                className="gap-2 whitespace-nowrap"
+                variant={isAtLimit ? 'default' : 'outline'}
+              >
+                <Crown className="h-4 w-4" />
+                Fazer Upgrade
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          )}
         </div>
       </CardContent>
     </Card>

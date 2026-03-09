@@ -215,7 +215,7 @@ export default function Plans() {
   const handleSelectPlan = async (planId: string) => {
     // Enterprise - WhatsApp contact
     if (planId === 'enterprise') {
-      window.open('https://wa.me/5511999999999?text=Olá! Tenho interesse no plano Enterprise do ImobiSmart.', '_blank');
+      window.open('https://wa.me/5513997069979?text=Olá! Tenho interesse no plano Enterprise do ImobiSmart.', '_blank');
       return;
     }
 

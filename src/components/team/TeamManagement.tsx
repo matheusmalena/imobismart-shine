@@ -322,9 +322,11 @@ export function TeamManagement() {
                 Entre em contato conosco para adicionar mais membros à sua equipe.
               </p>
             </div>
-            <Button size="sm" variant="outline" className="border-amber-500/30 text-amber-600 hover:bg-amber-500/10">
-              Aumentar Limite
-            </Button>
+            <a href="https://wa.me/5513997069979?text=Olá! Gostaria de aumentar o limite de membros da minha equipe no ImobiSmart." target="_blank" rel="noopener noreferrer">
+              <Button size="sm" variant="outline" className="border-amber-500/30 text-amber-600 hover:bg-amber-500/10">
+                Aumentar Limite
+              </Button>
+            </a>
           </div>
         )}
 
