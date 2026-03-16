@@ -152,11 +152,6 @@ export default function Plans() {
     );
   }
 
-  // Redirect if not authenticated
-  if (!authLoading && !user) {
-    navigate('/auth');
-    return null;
-  }
 
   if (authLoading || subscriptionLoading || plansLoading) {
     return (
