@@ -34,7 +34,7 @@ const slides: TutorialSlide[] = [
       'Visualize receitas, custos e ROI em tempo real',
       'Acompanhe a performance de cada imóvel',
     ],
-    screenshot: '/images/tutorial-dashboard.jpg',
+    mockupKey: 'dashboard',
     highlightArea: 'dashboard',
   },
   {
