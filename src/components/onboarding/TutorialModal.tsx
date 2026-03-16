@@ -46,7 +46,7 @@ const slides: TutorialSlide[] = [
       'Clique no botão verde "Novo Imóvel"',
       'Preencha os dados: nome, endereço, valores',
     ],
-    screenshot: '/images/tutorial-properties.jpg',
+    mockupKey: 'properties',
     highlightArea: 'properties',
   },
   {
