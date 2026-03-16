@@ -41,7 +41,7 @@ const MetricCard = ({ label, value, icon }: { label: string; value: string; icon
     <div className="p-1.5 rounded-lg bg-primary/10">{icon}</div>
     <div>
       <p className="text-[8px] text-muted-foreground uppercase tracking-wide">{label}</p>
-      <p className="text-sm font-bold text-foreground">{value}</p>
+      <p className="text-sm font-bold text-foreground whitespace-nowrap">{value}</p>
     </div>
   </div>
 );
