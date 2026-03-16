@@ -20,7 +20,7 @@ interface TutorialSlide {
   title: string;
   description: string;
   tips: string[];
-  screenshot: string;
+  mockupKey: string;
   highlightArea?: string;
 }
 
