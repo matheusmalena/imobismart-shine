@@ -174,6 +174,13 @@ export default function Index() {
     "Acesso de qualquer dispositivo",
   ];
 
+  const FEATURE_MOBILE_IMAGES: Record<string, string> = {
+    dashboard: "/images/tutorial-dashboard.png",
+    properties: "/images/tutorial-properties.png",
+    documents: "/images/tutorial-documents.png",
+    settings: "/images/tutorial-settings.png",
+  };
+
   const activeFeature = featureTabs.find((t) => t.id === activeTab)!;
 
   return (
@@ -255,7 +262,10 @@ export default function Index() {
             {/* Right - Dashboard Screenshot with 3D */}
             <div className="relative animate-fade-in" style={{ animationDelay: '0.15s' }}>
               <div className="hero-screenshot-3d hero-glow rounded-2xl overflow-hidden border border-border/50">
-                <DashboardMockup />
+                <img src="/images/tutorial-dashboard.png" alt="Dashboard ImobiSmart" className="block md:hidden w-full h-auto" loading="eager" />
+                <div className="hidden md:block">
+                  <DashboardMockup />
+                </div>
               </div>
             </div>
           </div>
@@ -364,20 +374,28 @@ export default function Index() {
 
           {/* Tab Content */}
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
-            {/* CSS Mockup */}
             <div className="lg:col-span-3 rounded-2xl overflow-hidden shadow-2xl border border-border/50 hero-glow" key={`mockup-${activeFeature.id}`}>
-              <div className="bg-card border-b border-border/30 px-4 py-2 flex items-center gap-2">
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-destructive/60" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
-                  <div className="w-3 h-3 rounded-full bg-green-500/60" />
+              <img
+                src={FEATURE_MOBILE_IMAGES[activeFeature.mockup]}
+                alt={activeFeature.title}
+                className="block md:hidden w-full h-auto"
+                loading="eager"
+              />
+
+              <div className="hidden md:block">
+                <div className="bg-card border-b border-border/30 px-4 py-2 flex items-center gap-2">
+                  <div className="flex gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-destructive/60" />
+                    <div className="w-3 h-3 rounded-full bg-accent/70" />
+                    <div className="w-3 h-3 rounded-full bg-primary/50" />
+                  </div>
+                  <span className="text-xs text-muted-foreground ml-2">ImobiSmart</span>
                 </div>
-                <span className="text-xs text-muted-foreground ml-2">ImobiSmart</span>
+                {(() => {
+                  const MockupComponent = SCREEN_MOCKUPS[activeFeature.mockup];
+                  return MockupComponent ? <MockupComponent /> : null;
+                })()}
               </div>
-              {(() => {
-                const MockupComponent = SCREEN_MOCKUPS[activeFeature.mockup];
-                return MockupComponent ? <MockupComponent /> : null;
-              })()}
             </div>
 
             {/* Description */}
@@ -444,9 +462,12 @@ export default function Index() {
               </div>
             </div>
 
-            {/* CSS Mockup */}
+            {/* Properties Preview */}
             <div className="rounded-2xl overflow-hidden shadow-2xl border border-border/50 hero-glow">
-              <PropertiesMockup />
+              <img src="/images/tutorial-properties.png" alt="Gestão de Imóveis ImobiSmart" className="block md:hidden w-full h-auto" loading="lazy" />
+              <div className="hidden md:block">
+                <PropertiesMockup />
+              </div>
             </div>
           </div>
         </div>

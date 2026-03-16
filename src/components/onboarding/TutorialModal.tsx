@@ -12,6 +12,7 @@ import {
   MousePointer,
 } from 'lucide-react';
 import { SCREEN_MOCKUPS } from '@/components/landing/ScreenMockups';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const TUTORIAL_KEY = 'imobismart-tutorial-completed';
 
@@ -21,6 +22,7 @@ interface TutorialSlide {
   description: string;
   tips: string[];
   mockupKey: string;
+  mobileImage: string;
   highlightArea?: string;
 }
 
@@ -35,6 +37,7 @@ const slides: TutorialSlide[] = [
       'Acompanhe a performance de cada imóvel',
     ],
     mockupKey: 'dashboard',
+    mobileImage: '/images/tutorial-dashboard.png',
     highlightArea: 'dashboard',
   },
   {
@@ -47,6 +50,7 @@ const slides: TutorialSlide[] = [
       'Preencha os dados: nome, endereço, valores',
     ],
     mockupKey: 'properties',
+    mobileImage: '/images/tutorial-properties.png',
     highlightArea: 'properties',
   },
   {
@@ -59,6 +63,7 @@ const slides: TutorialSlide[] = [
       'Escolha o imóvel e a categoria do documento',
     ],
     mockupKey: 'documents',
+    mobileImage: '/images/tutorial-documents.png',
     highlightArea: 'documents',
   },
   {
@@ -71,6 +76,7 @@ const slides: TutorialSlide[] = [
       'Veja seu plano atual e faça upgrade',
     ],
     mockupKey: 'settings',
+    mobileImage: '/images/tutorial-settings.png',
     highlightArea: 'settings',
   },
 ];
@@ -144,6 +150,7 @@ export const TutorialModal = forwardRef<TutorialModalRef, TutorialModalProps>(
     };
 
     const slide = slides[currentSlide];
+    const isMobile = useIsMobile();
 
     return (
       <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -156,7 +163,9 @@ export const TutorialModal = forwardRef<TutorialModalRef, TutorialModalProps>(
           {/* Screenshot Area */}
           <div className="relative">
             <div key={currentSlide} className="w-full max-h-64 overflow-hidden">
-              {(() => {
+              {isMobile ? (
+                <img src={slide.mobileImage} alt={slide.title} className="w-full h-56 object-cover" loading="eager" />
+              ) : (() => {
                 const MockupComponent = SCREEN_MOCKUPS[slide.mockupKey];
                 return MockupComponent ? <MockupComponent /> : null;
               })()}
