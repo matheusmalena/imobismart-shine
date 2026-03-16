@@ -9,7 +9,7 @@ import { usePlans } from '@/hooks/usePlans';
 import { useOrganization } from '@/hooks/useOrganization';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import { PageTransition } from '@/components/PageTransition';
 import { LockedPagePlaceholder } from '@/components/common/LockedPagePlaceholder';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
