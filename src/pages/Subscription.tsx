@@ -410,6 +410,6 @@ export default function Subscription() {
         </motion.div>
       </motion.div>
       )}
-    </>
+    </PageTransition>
   );
 }
