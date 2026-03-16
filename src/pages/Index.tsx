@@ -180,7 +180,7 @@ export default function Index() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border animate-fade-in">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="container mx-auto px-3 sm:px-4 h-16 flex items-center justify-between">
           <Link to="/">
             <LogoText size="md" />
           </Link>
