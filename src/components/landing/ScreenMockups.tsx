@@ -14,6 +14,7 @@ const Sidebar = ({ active }: { active: string }) => {
     { icon: <CreditCard className="h-3.5 w-3.5" />, label: 'Assinatura' },
     { icon: <ClipboardList className="h-3.5 w-3.5" />, label: 'Relatórios' },
     { icon: <Users className="h-3.5 w-3.5" />, label: 'Equipe' },
+    { icon: <Settings className="h-3.5 w-3.5" />, label: 'Configurações' },
   ];
   return (
     <div className="w-[140px] shrink-0 bg-[hsl(var(--sidebar-background,var(--card)))] border-r border-border/30 p-3 flex flex-col gap-1">
@@ -220,7 +221,7 @@ export function DocumentsMockup() {
 export function SettingsMockup() {
   return (
     <div className="flex h-[320px] bg-background rounded-b-lg overflow-hidden text-foreground">
-      <Sidebar active="Dashboard" />
+      <Sidebar active="Configurações" />
       <div className="flex-1 p-4 overflow-hidden">
         <div className="mb-4">
           <h3 className="text-sm font-bold">Configurações</h3>
