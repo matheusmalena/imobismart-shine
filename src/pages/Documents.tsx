@@ -126,7 +126,7 @@ export default function Documents() {
               </SelectContent>
             </Select>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
               <SelectContent>

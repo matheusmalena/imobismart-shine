@@ -130,7 +130,7 @@ export default function Subscription() {
   const isPaid = currentPlan === 'starter' || currentPlan === 'pro' || currentPlan === 'plus' || currentPlan === 'enterprise';
 
   return (
-    <>
+    <PageTransition>
       {isLoading ? (
         <div className="space-y-6">
           <Skeleton className="h-8 w-48" />

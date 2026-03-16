@@ -280,31 +280,31 @@ export default function Settings() {
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            {mockSubscription ? (
+            {displaySubscription ? (
               <>
                 <div className="flex items-start justify-between p-4 bg-muted/50 rounded-xl border">
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
                       <Crown className="h-5 w-5 text-primary" />
                       <span className="text-lg font-semibold">
-                        Plano {PLAN_LABELS[mockSubscription.plan]}
+                        Plano {PLAN_LABELS[displaySubscription.plan]}
                       </span>
-                      <Badge className={STATUS_COLORS[mockSubscription.status]}>
-                        {STATUS_LABELS[mockSubscription.status]}
+                      <Badge className={STATUS_COLORS[displaySubscription.status]}>
+                        {STATUS_LABELS[displaySubscription.status]}
                       </Badge>
                     </div>
                     <p className="text-muted-foreground text-sm">
-                      {PLAN_DESCRIPTIONS[mockSubscription.plan]}
+                      {PLAN_DESCRIPTIONS[displaySubscription.plan]}
                     </p>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => navigate('/plans')}
+                    onClick={() => navigate('/subscription')}
                     className="flex items-center gap-1"
                   >
                     <ArrowUpRight className="h-4 w-4" />
-                    Alterar Plano
+                    Gerenciar Assinatura
                   </Button>
                 </div>
 
@@ -312,57 +312,21 @@ export default function Settings() {
                   <div className="space-y-2">
                     <Label className="text-muted-foreground">Início da Assinatura</Label>
                     <div className="px-3 py-2 bg-muted rounded-lg text-foreground">
-                      {format(new Date(mockSubscription.started_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                      {format(new Date(displaySubscription.started_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
                     </div>
                   </div>
                   
                   <div className="space-y-2">
                     <Label className="text-muted-foreground">Próxima Renovação</Label>
                     <div className="px-3 py-2 bg-muted rounded-lg text-foreground">
-                      {mockSubscription.expires_at 
-                        ? format(new Date(mockSubscription.expires_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })
+                      {displaySubscription.expires_at 
+                        ? format(new Date(displaySubscription.expires_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })
                         : 'Sem data de expiração'}
                     </div>
                   </div>
                 </div>
 
-                <Separator />
-
-                {mockSubscription.status !== 'cancelled' && mockSubscription.plan !== 'starter' && (
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <AlertTriangle className="h-4 w-4" />
-                      <span>Ao cancelar, você perderá acesso às funcionalidades do plano</span>
-                    </div>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="outline" className="text-destructive hover:text-destructive">
-                          Cancelar Assinatura
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Cancelar Assinatura</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Tem certeza que deseja cancelar sua assinatura? Você perderá acesso às 
-                            funcionalidades premium do plano {PLAN_LABELS[mockSubscription.plan]}.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Voltar</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={handleCancelSubscription}
-                            className="bg-destructive hover:bg-destructive/90"
-                          >
-                            Confirmar Cancelamento
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                )}
-
-                {mockSubscription.status === 'cancelled' && (
+                {displaySubscription.status === 'cancelled' && (
                   <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg flex items-center justify-between">
                     <p className="text-sm text-destructive">
                       Sua assinatura foi cancelada.

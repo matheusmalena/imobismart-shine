@@ -285,7 +285,7 @@ export default function Properties() {
 
 
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full sm:w-[160px]">
                 <SlidersHorizontal className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Ordenar por" />
               </SelectTrigger>

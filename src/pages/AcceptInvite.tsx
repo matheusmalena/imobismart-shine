@@ -20,8 +20,8 @@ interface InvitationData {
 }
 
 const ROLE_LABELS: Record<string, string> = {
+  owner: 'Proprietário',
   admin: 'Administrador',
-  financial: 'Financeiro',
   operator: 'Operador',
 };
 
