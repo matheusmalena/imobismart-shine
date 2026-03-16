@@ -197,7 +197,7 @@ export default function Index() {
       </header>
 
       {/* Hero - Split Layout */}
-      <section className="pt-28 pb-16 lg:pt-36 lg:pb-28 px-4 relative overflow-hidden">
+      <section className="pt-28 pb-16 lg:pt-36 lg:pb-28 px-3 sm:px-4 relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
           <div className="absolute bottom-10 right-10 w-96 h-96 bg-primary/3 rounded-full blur-3xl" />
@@ -208,15 +208,15 @@ export default function Index() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             {/* Left - Text */}
             <div className="animate-fade-in">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-6 border border-primary/20">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-semibold mb-6 border border-primary/20">
                 <Sparkles className="h-4 w-4" />
                 Plataforma #1 de gestão imobiliária
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-bold text-foreground leading-[1.08] mb-6">
+              <h1 className="text-[2.1rem] sm:text-4xl md:text-5xl lg:text-[3.5rem] font-bold text-foreground leading-[1.1] mb-5">
                 Gerencie seus imóveis de forma{" "}
                 <span className="gradient-text">inteligente</span>
               </h1>
-              <p className="text-lg text-muted-foreground max-w-xl mb-8 leading-relaxed">
+              <p className="text-base sm:text-lg text-muted-foreground max-w-xl mb-8 leading-relaxed">
                 Controle financeiro, documentos organizados e métricas em tempo real para investidores, imobiliárias e proprietários.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 mb-8">
