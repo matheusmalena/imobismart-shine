@@ -50,6 +50,7 @@ const slides: TutorialSlide[] = [
       'Preencha os dados: nome, endereço, valores',
     ],
     mockupKey: 'properties',
+    mobileImage: '/images/tutorial-properties.png',
     highlightArea: 'properties',
   },
   {
