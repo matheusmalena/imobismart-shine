@@ -79,9 +79,6 @@ export default function Settings() {
     setIsEditing(true);
   };
 
-  const handleCancelSubscription = async () => {
-    await cancelSubscription.mutateAsync();
-  };
 
   const displayUser = user;
   const displayProfile = profile;
