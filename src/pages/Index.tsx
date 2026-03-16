@@ -164,11 +164,11 @@ export default function Index() {
     );
   }
 
-  const MOCKUP_COMPONENTS: Record<string, React.ReactNode> = {
-    dashboard: <DashboardMockup />,
-    properties: <PropertiesMockup />,
-    documents: <DocumentsMockup />,
-    settings: <SettingsMockup />,
+  const MOCKUP_IMAGES: Record<string, string> = {
+    dashboard: "/images/tutorial-dashboard.png",
+    properties: "/images/tutorial-properties.png",
+    documents: "/images/tutorial-documents.png",
+    settings: "/images/tutorial-settings.png",
   };
 
   const benefits = [
