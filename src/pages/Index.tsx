@@ -413,7 +413,7 @@ export default function Index() {
       <FAQSection />
 
       {/* Benefits with real screenshot */}
-      <section className="py-20 px-4 scroll-reveal" ref={reveal}>
+      <section className="py-20 px-3 sm:px-4 scroll-reveal" ref={reveal}>
         <div className="container mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
