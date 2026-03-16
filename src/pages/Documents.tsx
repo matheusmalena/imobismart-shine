@@ -112,7 +112,7 @@ export default function Documents() {
               />
             </div>
             <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-full sm:w-[200px]">
                 <Building2 className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Filtrar por imóvel" />
               </SelectTrigger>
