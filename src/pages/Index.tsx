@@ -272,7 +272,7 @@ export default function Index() {
       <TutorialModal ref={tutorialRef} autoShow={false} />
 
       {/* Social Proof Bar */}
-      <section className="py-12 px-4 border-y border-border/50 bg-card scroll-reveal" ref={reveal}>
+      <section className="py-12 px-4 border-y border-border/50 bg-card">
         <div className="container mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             {[
