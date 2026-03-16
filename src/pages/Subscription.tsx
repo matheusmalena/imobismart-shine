@@ -8,6 +8,7 @@ import { usePropertyLimit } from '@/hooks/usePropertyLimit';
 import { useOrganization } from '@/hooks/useOrganization';
 import { supabase } from '@/integrations/supabase/client';
 import { LockedPagePlaceholder } from '@/components/common/LockedPagePlaceholder';
+import { PageTransition } from '@/components/PageTransition';
 
 import { PaymentHistory } from '@/components/subscription/PaymentHistory';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
