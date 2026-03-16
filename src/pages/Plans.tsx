@@ -577,6 +577,6 @@ export default function Plans() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </PageTransition>
+    </DashboardLayout>
   );
 }
