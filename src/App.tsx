@@ -61,6 +61,7 @@ const App = () => (
               
               <Route path="/accept-invite" element={<AcceptInvite />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/plans" element={<Plans />} />
               
               {/* Dashboard routes - shared layout */}
               <Route element={<DashboardLayoutRoute />}>
