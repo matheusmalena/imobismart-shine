@@ -374,7 +374,7 @@ export default function Index() {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
             {/* Screenshot - clean, no browser frame */}
             <div className="lg:col-span-3 rounded-2xl overflow-hidden shadow-2xl border border-border/50 hero-glow">
-              {MOCKUP_COMPONENTS[activeFeature.mockup]}
+              <img src={MOCKUP_IMAGES[activeFeature.mockup]} alt={activeFeature.title} className="w-full h-auto" loading="lazy" />
             </div>
 
             {/* Description */}
