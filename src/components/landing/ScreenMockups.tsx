@@ -167,9 +167,9 @@ export function PropertiesMockup() {
           </div>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <PropertyCard name="Apartamento Jardins" type="Apartamento" area="120m²" beds={3} baths={2} revenue="R$ 8.500" profit="R$ 6.650" status="Alugado" />
-          <PropertyCard name="Casa Alphaville" type="Casa" area="280m²" beds={4} baths={4} revenue="R$ 12.000" profit="R$ 9.800" status="Alugado" />
-          <PropertyCard name="Sala Comercial Faria Lima" type="Sala" area="65m²" beds={1} baths={1} revenue="R$ 5.500" profit="R$ 4.100" status="Alugado" />
+          <PropertyCard name="Apartamento Jardins" type="Apartamento" area="120m²" beds={3} baths={2} revenue="R$ 8.500" profit="R$ 6.650" status="Alugado" photo={demoProp1} />
+          <PropertyCard name="Casa Alphaville" type="Casa" area="280m²" beds={4} baths={4} revenue="R$ 12.000" profit="R$ 9.800" status="Alugado" photo={demoProp2} />
+          <PropertyCard name="Sala Comercial Faria Lima" type="Sala" area="65m²" beds={1} baths={1} revenue="R$ 5.500" profit="R$ 4.100" status="Alugado" photo={demoProp3} />
         </div>
       </div>
     </div>
