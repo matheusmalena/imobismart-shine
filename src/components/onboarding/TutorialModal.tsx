@@ -155,12 +155,12 @@ export const TutorialModal = forwardRef<TutorialModalRef, TutorialModalProps>(
           
           {/* Screenshot Area */}
           <div className="relative">
-            <img 
-              key={currentSlide}
-              src={slide.screenshot}
-              alt={slide.title}
-              className="w-full h-56 object-cover"
-            />
+            <div key={currentSlide} className="w-full max-h-64 overflow-hidden">
+              {(() => {
+                const MockupComponent = SCREEN_MOCKUPS[slide.mockupKey];
+                return MockupComponent ? <MockupComponent /> : null;
+              })()}
+            </div>
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
             
             {/* Step indicator */}
