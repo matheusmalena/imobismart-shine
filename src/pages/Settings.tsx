@@ -94,15 +94,9 @@ export default function Settings() {
     await cancelSubscription.mutateAsync();
   };
 
-  // TEMPORÁRIO: Desabilitado para screenshots - usar dados mock
-  const mockUser = user || { email: 'usuario@exemplo.com' };
-  const mockProfile = profile || { full_name: 'João da Silva', created_at: '2024-06-15' };
-  const mockSubscription = subscription || { 
-    plan: 'pro' as const, 
-    status: 'active' as const, 
-    started_at: '2024-06-15',
-    expires_at: '2025-06-15'
-  };
+  const displayUser = user;
+  const displayProfile = profile;
+  const displaySubscription = subscription;
 
   return (
     <PageTransition>
