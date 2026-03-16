@@ -11,6 +11,7 @@ import {
   Check,
   MousePointer,
 } from 'lucide-react';
+import { SCREEN_MOCKUPS } from '@/components/landing/ScreenMockups';
 
 const TUTORIAL_KEY = 'imobismart-tutorial-completed';
 
