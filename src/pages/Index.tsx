@@ -443,7 +443,7 @@ export default function Index() {
 
             {/* Real screenshot with perspective */}
             <div className="benefits-screenshot rounded-2xl overflow-hidden shadow-2xl border border-border/50 hero-glow">
-              <PropertiesMockup />
+              <img src="/images/tutorial-properties.png" alt="Gestão de Imóveis ImobiSmart" className="w-full h-auto" loading="lazy" />
             </div>
           </div>
         </div>
