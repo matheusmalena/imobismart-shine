@@ -221,7 +221,7 @@ export function DocumentsMockup() {
 export function SettingsMockup() {
   return (
     <div className="flex h-[320px] bg-background rounded-b-lg overflow-hidden text-foreground">
-      <Sidebar active="Dashboard" />
+      <Sidebar active="Configurações" />
       <div className="flex-1 p-4 overflow-hidden">
         <div className="mb-4">
           <h3 className="text-sm font-bold">Configurações</h3>
