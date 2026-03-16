@@ -449,13 +449,9 @@ export default function Index() {
         </div>
       </section>
 
-      {/* CTA with background screenshot */}
-      <section className="py-24 px-4 relative overflow-hidden">
-        {/* Background screenshot with overlay */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute inset-0 gradient-hero" />
-        </div>
-        <div className="absolute inset-0 -z-10">
+      {/* CTA */}
+      <section className="py-24 px-4 relative overflow-hidden bg-[hsl(175,50%,25%)] dark:bg-[hsl(200,30%,10%)]">
+        <div className="absolute inset-0 -z-0">
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
           <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
         </div>

@@ -300,3 +300,14 @@
     transform: perspective(1000px) rotateY(-1deg);
   }
 }
+
+@media (max-width: 768px) {
+  .hero-screenshot-3d,
+  .hero-screenshot-3d:hover {
+    transform: none;
+  }
+  .benefits-screenshot,
+  .benefits-screenshot:hover {
+    transform: none;
+  }
+}
