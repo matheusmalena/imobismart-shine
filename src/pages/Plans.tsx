@@ -9,6 +9,7 @@ import { usePlans } from '@/hooks/usePlans';
 import { useOrganization } from '@/hooks/useOrganization';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { PageTransition } from '@/components/PageTransition';
 import { LockedPagePlaceholder } from '@/components/common/LockedPagePlaceholder';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -142,25 +143,29 @@ export default function Plans() {
   // Block non-owner org members
   if (isOrgMemberNotOwner) {
     return (
-      <LockedPagePlaceholder
-        icon={<Crown className="h-8 w-8 text-muted-foreground" />}
-        title="Acesso Restrito"
-        description="Apenas o proprietário da conta pode gerenciar planos e assinatura. Entre em contato com o administrador da sua organização."
-        requiredPlan="enterprise"
-        buttonLabel="Voltar ao Dashboard"
-      />
+      <DashboardLayout>
+        <LockedPagePlaceholder
+          icon={<Crown className="h-8 w-8 text-muted-foreground" />}
+          title="Acesso Restrito"
+          description="Apenas o proprietário da conta pode gerenciar planos e assinatura. Entre em contato com o administrador da sua organização."
+          requiredPlan="enterprise"
+          buttonLabel="Voltar ao Dashboard"
+        />
+      </DashboardLayout>
     );
   }
 
 
   if (authLoading || subscriptionLoading || plansLoading) {
     return (
-      <div className="space-y-8">
-        <Skeleton className="h-32 max-w-xl mx-auto" />
-        <div className="flex justify-center items-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <DashboardLayout>
+        <div className="space-y-8">
+          <Skeleton className="h-32 max-w-xl mx-auto" />
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
@@ -244,7 +249,7 @@ export default function Plans() {
   };
 
   return (
-    <PageTransition>
+    <DashboardLayout>
       <div className="space-y-8 pb-8">
         {/* Navigation Buttons */}
         <div className="flex items-center gap-3">
@@ -572,6 +577,6 @@ export default function Plans() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </PageTransition>
+    </DashboardLayout>
   );
 }
