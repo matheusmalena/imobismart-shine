@@ -1,5 +1,8 @@
 import { BarChart3, Building2, FileText, Shield, Search, Users, TrendingUp, Home, MessageSquare, CreditCard, ClipboardList, Settings, Camera, ChevronDown } from 'lucide-react';
 import logoIcon from '@/assets/logo-icon.png';
+import demoProp1 from '@/assets/demo-prop-1.jpg';
+import demoProp2 from '@/assets/demo-prop-2.jpg';
+import demoProp3 from '@/assets/demo-prop-3.jpg';
 
 const Sidebar = ({ active }: { active: string }) => {
   const items = [
@@ -114,11 +117,12 @@ export function DashboardMockup() {
   );
 }
 
-const PropertyCard = ({ name, type, area, beds, baths, revenue, profit, status }: {
-  name: string; type: string; area: string; beds: number; baths: number; revenue: string; profit: string; status: string;
+const PropertyCard = ({ name, type, area, beds, baths, revenue, profit, status, photo }: {
+  name: string; type: string; area: string; beds: number; baths: number; revenue: string; profit: string; status: string; photo: string;
 }) => (
   <div className="bg-card rounded-lg border border-border/40 overflow-hidden">
-    <div className="h-20 bg-gradient-to-br from-muted to-muted/50 relative">
+    <div className="h-20 relative">
+      <img src={photo} alt={name} className="w-full h-full object-cover" />
       <span className="absolute top-1.5 left-1.5 text-[7px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded font-medium">{status}</span>
     </div>
     <div className="p-2.5">
@@ -163,9 +167,9 @@ export function PropertiesMockup() {
           </div>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <PropertyCard name="Apartamento Jardins" type="Apartamento" area="120m²" beds={3} baths={2} revenue="R$ 8.500" profit="R$ 6.650" status="Alugado" />
-          <PropertyCard name="Casa Alphaville" type="Casa" area="280m²" beds={4} baths={4} revenue="R$ 12.000" profit="R$ 9.800" status="Alugado" />
-          <PropertyCard name="Sala Comercial Faria Lima" type="Sala" area="65m²" beds={1} baths={1} revenue="R$ 5.500" profit="R$ 4.100" status="Alugado" />
+          <PropertyCard name="Apartamento Jardins" type="Apartamento" area="120m²" beds={3} baths={2} revenue="R$ 8.500" profit="R$ 6.650" status="Alugado" photo={demoProp1} />
+          <PropertyCard name="Casa Alphaville" type="Casa" area="280m²" beds={4} baths={4} revenue="R$ 12.000" profit="R$ 9.800" status="Alugado" photo={demoProp2} />
+          <PropertyCard name="Sala Comercial Faria Lima" type="Sala" area="65m²" beds={1} baths={1} revenue="R$ 5.500" profit="R$ 4.100" status="Alugado" photo={demoProp3} />
         </div>
       </div>
     </div>
