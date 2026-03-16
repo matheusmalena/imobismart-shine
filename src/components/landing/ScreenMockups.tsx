@@ -117,11 +117,12 @@ export function DashboardMockup() {
   );
 }
 
-const PropertyCard = ({ name, type, area, beds, baths, revenue, profit, status }: {
-  name: string; type: string; area: string; beds: number; baths: number; revenue: string; profit: string; status: string;
+const PropertyCard = ({ name, type, area, beds, baths, revenue, profit, status, photo }: {
+  name: string; type: string; area: string; beds: number; baths: number; revenue: string; profit: string; status: string; photo: string;
 }) => (
   <div className="bg-card rounded-lg border border-border/40 overflow-hidden">
-    <div className="h-20 bg-gradient-to-br from-muted to-muted/50 relative">
+    <div className="h-20 relative">
+      <img src={photo} alt={name} className="w-full h-full object-cover" />
       <span className="absolute top-1.5 left-1.5 text-[7px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded font-medium">{status}</span>
     </div>
     <div className="p-2.5">
