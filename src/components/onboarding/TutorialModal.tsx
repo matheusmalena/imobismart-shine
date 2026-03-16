@@ -70,7 +70,7 @@ const slides: TutorialSlide[] = [
       'Altere entre tema claro e escuro',
       'Veja seu plano atual e faça upgrade',
     ],
-    screenshot: '/images/tutorial-settings.jpg',
+    mockupKey: 'settings',
     highlightArea: 'settings',
   },
 ];
