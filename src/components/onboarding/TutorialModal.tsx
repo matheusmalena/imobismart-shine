@@ -37,6 +37,7 @@ const slides: TutorialSlide[] = [
       'Acompanhe a performance de cada imóvel',
     ],
     mockupKey: 'dashboard',
+    mobileImage: '/images/tutorial-dashboard.png',
     highlightArea: 'dashboard',
   },
   {
