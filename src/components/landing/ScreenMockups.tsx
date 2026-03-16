@@ -14,6 +14,7 @@ const Sidebar = ({ active }: { active: string }) => {
     { icon: <CreditCard className="h-3.5 w-3.5" />, label: 'Assinatura' },
     { icon: <ClipboardList className="h-3.5 w-3.5" />, label: 'Relatórios' },
     { icon: <Users className="h-3.5 w-3.5" />, label: 'Equipe' },
+    { icon: <Settings className="h-3.5 w-3.5" />, label: 'Configurações' },
   ];
   return (
     <div className="w-[140px] shrink-0 bg-[hsl(var(--sidebar-background,var(--card)))] border-r border-border/30 p-3 flex flex-col gap-1">
