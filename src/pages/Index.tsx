@@ -444,9 +444,9 @@ export default function Index() {
               </div>
             </div>
 
-            {/* Real screenshot with perspective */}
-            <div className="benefits-screenshot rounded-2xl overflow-hidden shadow-2xl border border-border/50 hero-glow">
-              <img src="/images/tutorial-properties.png" alt="Gestão de Imóveis ImobiSmart" className="w-full h-auto" loading="lazy" />
+            {/* CSS Mockup */}
+            <div className="rounded-2xl overflow-hidden shadow-2xl border border-border/50 hero-glow">
+              <PropertiesMockup />
             </div>
           </div>
         </div>
