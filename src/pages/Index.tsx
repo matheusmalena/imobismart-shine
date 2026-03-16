@@ -180,7 +180,7 @@ export default function Index() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border animate-fade-in">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="container mx-auto px-3 sm:px-4 h-16 flex items-center justify-between">
           <Link to="/">
             <LogoText size="md" />
           </Link>
@@ -197,7 +197,7 @@ export default function Index() {
       </header>
 
       {/* Hero - Split Layout */}
-      <section className="pt-28 pb-16 lg:pt-36 lg:pb-28 px-4 relative overflow-hidden">
+      <section className="pt-28 pb-16 lg:pt-36 lg:pb-28 px-3 sm:px-4 relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
           <div className="absolute bottom-10 right-10 w-96 h-96 bg-primary/3 rounded-full blur-3xl" />
@@ -208,15 +208,15 @@ export default function Index() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             {/* Left - Text */}
             <div className="animate-fade-in">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-6 border border-primary/20">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-semibold mb-6 border border-primary/20">
                 <Sparkles className="h-4 w-4" />
                 Plataforma #1 de gestão imobiliária
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-bold text-foreground leading-[1.08] mb-6">
+              <h1 className="text-[2.1rem] sm:text-4xl md:text-5xl lg:text-[3.5rem] font-bold text-foreground leading-[1.1] mb-5">
                 Gerencie seus imóveis de forma{" "}
                 <span className="gradient-text">inteligente</span>
               </h1>
-              <p className="text-lg text-muted-foreground max-w-xl mb-8 leading-relaxed">
+              <p className="text-base sm:text-lg text-muted-foreground max-w-xl mb-8 leading-relaxed">
                 Controle financeiro, documentos organizados e métricas em tempo real para investidores, imobiliárias e proprietários.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 mb-8">
@@ -265,7 +265,7 @@ export default function Index() {
       <TutorialModal ref={tutorialRef} autoShow={false} />
 
       {/* Social Proof Bar */}
-      <section className="py-14 px-4 border-y border-border/50 bg-card">
+      <section className="py-14 px-3 sm:px-4 border-y border-border/50 bg-card">
         <div className="container mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-4xl mx-auto">
             {[
@@ -292,7 +292,7 @@ export default function Index() {
       </section>
 
       {/* How it Works */}
-      <section className="py-20 px-4 scroll-reveal" ref={reveal}>
+      <section className="py-20 px-3 sm:px-4 scroll-reveal" ref={reveal}>
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
@@ -329,7 +329,7 @@ export default function Index() {
       </section>
 
       {/* Interactive Feature Tabs */}
-      <section className="py-20 px-4 bg-muted/30 scroll-reveal" ref={reveal}>
+      <section className="py-20 px-3 sm:px-4 bg-muted/30 scroll-reveal" ref={reveal}>
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
@@ -399,7 +399,7 @@ export default function Index() {
       </section>
 
       {/* Target Audience */}
-      <section className="py-20 px-4 scroll-reveal" ref={reveal}>
+      <section className="py-20 px-3 sm:px-4 scroll-reveal" ref={reveal}>
         <TargetAudienceSection />
       </section>
 
@@ -413,7 +413,7 @@ export default function Index() {
       <FAQSection />
 
       {/* Benefits with real screenshot */}
-      <section className="py-20 px-4 scroll-reveal" ref={reveal}>
+      <section className="py-20 px-3 sm:px-4 scroll-reveal" ref={reveal}>
         <div className="container mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
@@ -453,7 +453,7 @@ export default function Index() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 px-4 relative overflow-hidden bg-[hsl(175,50%,25%)] dark:bg-[hsl(200,30%,10%)]">
+      <section className="py-24 px-3 sm:px-4 relative overflow-hidden bg-[hsl(175,50%,25%)] dark:bg-[hsl(200,30%,10%)]">
         <div className="absolute inset-0 -z-0">
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
           <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
@@ -475,7 +475,7 @@ export default function Index() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 border-t border-border">
+      <footer className="py-12 px-3 sm:px-4 border-t border-border">
         <div className="container mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <Link to="/">
