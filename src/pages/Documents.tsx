@@ -78,7 +78,7 @@ export default function Documents() {
           <Skeleton className="h-64 w-full rounded-xl" />
         </div>
       ) : (
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
