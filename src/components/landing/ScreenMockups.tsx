@@ -16,7 +16,7 @@ const Sidebar = ({ active }: { active: string }) => {
     <div className="w-[140px] shrink-0 bg-[hsl(var(--sidebar-background,var(--card)))] border-r border-border/30 p-3 flex flex-col gap-1">
       <div className="flex items-center gap-1.5 mb-4 px-1">
         <img src={logoIcon} alt="ImobiSmart" className="w-5 h-5 object-contain" />
-        <span className="text-[10px] font-bold text-foreground">ImobiSmart</span>
+        <span className="text-[10px] font-bold text-sidebar-foreground">ImobiSmart</span>
       </div>
       {items.map((item) => (
         <div
