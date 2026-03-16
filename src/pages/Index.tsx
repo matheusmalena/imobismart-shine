@@ -399,7 +399,7 @@ export default function Index() {
       </section>
 
       {/* Target Audience */}
-      <section className="py-20 px-4 scroll-reveal" ref={reveal}>
+      <section className="py-20 px-3 sm:px-4 scroll-reveal" ref={reveal}>
         <TargetAudienceSection />
       </section>
 
