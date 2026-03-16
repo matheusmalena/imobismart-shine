@@ -169,7 +169,7 @@ export default function Settings() {
                   />
                 ) : (
                   <div className="px-3 py-2 bg-muted rounded-lg text-foreground">
-                    {mockProfile?.full_name || 'Não informado'}
+                    {displayProfile?.full_name || 'Não informado'}
                   </div>
                 )}
               </div>
