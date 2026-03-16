@@ -66,18 +66,18 @@ export function DashboardMockup() {
         <div className="grid grid-cols-5 gap-3">
           <div className="col-span-3 bg-card rounded-lg border border-border/40 p-3">
             <p className="text-[10px] font-semibold mb-2">Resumo Financeiro Mensal</p>
-            <div className="grid grid-cols-3 gap-2 mb-3">
-              <div className="bg-primary/5 rounded-md p-2">
-                <p className="text-[8px] text-muted-foreground">Receita Total</p>
-                <p className="text-xs font-bold text-primary">R$ 32.800</p>
+            <div className="grid grid-cols-3 gap-1.5 mb-3">
+              <div className="bg-primary/5 rounded-md p-1.5">
+                <p className="text-[7px] text-muted-foreground whitespace-nowrap">Receita Total</p>
+                <p className="text-[10px] font-bold text-primary whitespace-nowrap">R$ 32.800</p>
               </div>
-              <div className="bg-destructive/5 rounded-md p-2">
-                <p className="text-[8px] text-muted-foreground">Custos Totais</p>
-                <p className="text-xs font-bold text-destructive">R$ 7.900</p>
+              <div className="bg-destructive/5 rounded-md p-1.5">
+                <p className="text-[7px] text-muted-foreground whitespace-nowrap">Custos Totais</p>
+                <p className="text-[10px] font-bold text-destructive whitespace-nowrap">R$ 7.900</p>
               </div>
-              <div className="bg-primary/5 rounded-md p-2">
-                <p className="text-[8px] text-muted-foreground">Lucro Líquido</p>
-                <p className="text-xs font-bold text-primary">R$ 24.900</p>
+              <div className="bg-primary/5 rounded-md p-1.5">
+                <p className="text-[7px] text-muted-foreground whitespace-nowrap">Lucro Líquido</p>
+                <p className="text-[10px] font-bold text-primary whitespace-nowrap">R$ 24.900</p>
               </div>
             </div>
             {['Apartamento Jardins', 'Casa Alphaville', 'Sala Comercial'].map((name, i) => (

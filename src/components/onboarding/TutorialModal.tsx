@@ -11,6 +11,7 @@ import {
   Check,
   MousePointer,
 } from 'lucide-react';
+import { SCREEN_MOCKUPS } from '@/components/landing/ScreenMockups';
 
 const TUTORIAL_KEY = 'imobismart-tutorial-completed';
 
@@ -19,7 +20,7 @@ interface TutorialSlide {
   title: string;
   description: string;
   tips: string[];
-  screenshot: string;
+  mockupKey: string;
   highlightArea?: string;
 }
 
@@ -33,7 +34,7 @@ const slides: TutorialSlide[] = [
       'Visualize receitas, custos e ROI em tempo real',
       'Acompanhe a performance de cada imóvel',
     ],
-    screenshot: '/images/tutorial-dashboard.jpg',
+    mockupKey: 'dashboard',
     highlightArea: 'dashboard',
   },
   {
@@ -45,7 +46,7 @@ const slides: TutorialSlide[] = [
       'Clique no botão verde "Novo Imóvel"',
       'Preencha os dados: nome, endereço, valores',
     ],
-    screenshot: '/images/tutorial-properties.jpg',
+    mockupKey: 'properties',
     highlightArea: 'properties',
   },
   {
@@ -57,7 +58,7 @@ const slides: TutorialSlide[] = [
       'Clique em "Novo Documento" para fazer upload',
       'Escolha o imóvel e a categoria do documento',
     ],
-    screenshot: '/images/tutorial-documents.jpg',
+    mockupKey: 'documents',
     highlightArea: 'documents',
   },
   {
@@ -69,7 +70,7 @@ const slides: TutorialSlide[] = [
       'Altere entre tema claro e escuro',
       'Veja seu plano atual e faça upgrade',
     ],
-    screenshot: '/images/tutorial-settings.jpg',
+    mockupKey: 'settings',
     highlightArea: 'settings',
   },
 ];
@@ -154,12 +155,12 @@ export const TutorialModal = forwardRef<TutorialModalRef, TutorialModalProps>(
           
           {/* Screenshot Area */}
           <div className="relative">
-            <img 
-              key={currentSlide}
-              src={slide.screenshot}
-              alt={slide.title}
-              className="w-full h-56 object-cover"
-            />
+            <div key={currentSlide} className="w-full max-h-64 overflow-hidden">
+              {(() => {
+                const MockupComponent = SCREEN_MOCKUPS[slide.mockupKey];
+                return MockupComponent ? <MockupComponent /> : null;
+              })()}
+            </div>
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
             
             {/* Step indicator */}
