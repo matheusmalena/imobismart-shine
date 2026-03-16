@@ -272,9 +272,9 @@ export default function Index() {
       <TutorialModal ref={tutorialRef} autoShow={false} />
 
       {/* Social Proof Bar */}
-      <section className="py-10 px-4 border-y border-border/50 bg-muted/30 scroll-reveal" ref={reveal}>
+      <section className="py-12 px-4 border-y border-border/50 bg-card scroll-reveal" ref={reveal}>
         <div className="container mx-auto">
-          <div className="flex flex-wrap justify-center gap-6 md:gap-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             {[
               { value: 200, suffix: "+", label: "Proprietários ativos", icon: <Users className="h-5 w-5" /> },
               { value: 500, suffix: "+", label: "Imóveis gerenciados", icon: <Building2 className="h-5 w-5" /> },
@@ -283,16 +283,16 @@ export default function Index() {
             ].map((stat, i) => (
               <div
                 key={i}
-                className="flex items-center gap-3 px-5 py-3"
+                className="flex items-center gap-3 px-4 py-4 rounded-xl bg-muted/40 border border-border/30"
               >
-                <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                <div className="p-2.5 rounded-lg bg-primary/10 text-primary shrink-0">
                   {stat.icon}
                 </div>
                 <div>
                   <p className="text-xl md:text-2xl font-bold text-foreground tracking-tight leading-none">
                     <AnimatedCounter target={stat.value} suffix={stat.suffix} />
                   </p>
-                  <p className="text-xs text-muted-foreground font-medium">{stat.label}</p>
+                  <p className="text-xs text-muted-foreground font-medium mt-0.5">{stat.label}</p>
                 </div>
               </div>
             ))}
