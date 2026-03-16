@@ -329,7 +329,7 @@ export default function Index() {
       </section>
 
       {/* Interactive Feature Tabs */}
-      <section className="py-20 px-4 bg-muted/30 scroll-reveal" ref={reveal}>
+      <section className="py-20 px-3 sm:px-4 bg-muted/30 scroll-reveal" ref={reveal}>
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
