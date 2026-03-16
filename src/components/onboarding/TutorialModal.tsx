@@ -150,6 +150,7 @@ export const TutorialModal = forwardRef<TutorialModalRef, TutorialModalProps>(
     };
 
     const slide = slides[currentSlide];
+    const isMobile = useIsMobile();
 
     return (
       <Dialog open={open} onOpenChange={handleOpenChange}>
