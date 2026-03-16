@@ -165,13 +165,6 @@ export default function Index() {
     );
   }
 
-  const MOCKUP_IMAGES: Record<string, string> = {
-    dashboard: "/images/tutorial-dashboard.png",
-    properties: "/images/tutorial-properties.png",
-    documents: "/images/tutorial-documents.png",
-    settings: "/images/tutorial-settings.png",
-  };
-
   const benefits = [
     "Dashboard com métricas em tempo real",
     "Ranking de performance por imóvel",
