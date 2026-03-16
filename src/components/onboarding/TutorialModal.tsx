@@ -12,6 +12,7 @@ import {
   MousePointer,
 } from 'lucide-react';
 import { SCREEN_MOCKUPS } from '@/components/landing/ScreenMockups';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const TUTORIAL_KEY = 'imobismart-tutorial-completed';
 

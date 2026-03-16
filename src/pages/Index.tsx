@@ -174,6 +174,13 @@ export default function Index() {
     "Acesso de qualquer dispositivo",
   ];
 
+  const FEATURE_MOBILE_IMAGES: Record<string, string> = {
+    dashboard: "/images/tutorial-dashboard.png",
+    properties: "/images/tutorial-properties.png",
+    documents: "/images/tutorial-documents.png",
+    settings: "/images/tutorial-settings.png",
+  };
+
   const activeFeature = featureTabs.find((t) => t.id === activeTab)!;
 
   return (
