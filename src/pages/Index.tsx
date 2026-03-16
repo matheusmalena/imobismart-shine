@@ -458,7 +458,7 @@ export default function Index() {
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
           <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
         </div>
-        <div className="container mx-auto text-center max-w-3xl">
+        <div className="container mx-auto text-center max-w-3xl relative z-10">
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight">
             Comece agora e veja resultados em minutos
           </h2>
