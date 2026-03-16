@@ -9,7 +9,7 @@ import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { FAQSection } from "@/components/landing/FAQSection";
 import { TutorialModal, TutorialModalRef } from "@/components/onboarding/TutorialModal";
-import { DashboardMockup } from "@/components/landing/ScreenMockups";
+import { DashboardMockup, SCREEN_MOCKUPS } from "@/components/landing/ScreenMockups";
 
 import {
   Building2,
@@ -164,13 +164,6 @@ export default function Index() {
       </div>
     );
   }
-
-  const MOCKUP_IMAGES: Record<string, string> = {
-    dashboard: "/images/tutorial-dashboard.png",
-    properties: "/images/tutorial-properties.png",
-    documents: "/images/tutorial-documents.png",
-    settings: "/images/tutorial-settings.png",
-  };
 
   const benefits = [
     "Dashboard com métricas em tempo real",
@@ -371,13 +364,24 @@ export default function Index() {
 
           {/* Tab Content */}
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
-            {/* Screenshot - clean, no browser frame */}
-            <div className="lg:col-span-3 rounded-2xl overflow-hidden shadow-2xl border border-border/50 hero-glow">
-              <img src={MOCKUP_IMAGES[activeFeature.mockup]} alt={activeFeature.title} className="w-full h-auto" loading="lazy" />
+            {/* CSS Mockup */}
+            <div className="lg:col-span-3 rounded-2xl overflow-hidden shadow-2xl border border-border/50 hero-glow" key={`mockup-${activeFeature.id}`}>
+              <div className="bg-card border-b border-border/30 px-4 py-2 flex items-center gap-2">
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-destructive/60" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
+                  <div className="w-3 h-3 rounded-full bg-green-500/60" />
+                </div>
+                <span className="text-xs text-muted-foreground ml-2">ImobiSmart</span>
+              </div>
+              {(() => {
+                const MockupComponent = SCREEN_MOCKUPS[activeFeature.mockup];
+                return MockupComponent ? <MockupComponent /> : null;
+              })()}
             </div>
 
             {/* Description */}
-            <div className="lg:col-span-2 space-y-4" key={activeFeature.id}>
+            <div className="lg:col-span-2 space-y-4 animate-fade-in" key={`desc-${activeFeature.id}`}>
               <h3 className="text-2xl md:text-3xl font-bold text-foreground">
                 {activeFeature.title}
               </h3>
