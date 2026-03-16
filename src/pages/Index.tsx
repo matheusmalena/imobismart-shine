@@ -9,7 +9,7 @@ import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { FAQSection } from "@/components/landing/FAQSection";
 import { TutorialModal, TutorialModalRef } from "@/components/onboarding/TutorialModal";
-import { DashboardMockup, SCREEN_MOCKUPS } from "@/components/landing/ScreenMockups";
+import { DashboardMockup, PropertiesMockup, SCREEN_MOCKUPS } from "@/components/landing/ScreenMockups";
 
 import {
   Building2,
@@ -444,9 +444,9 @@ export default function Index() {
               </div>
             </div>
 
-            {/* Real screenshot with perspective */}
-            <div className="benefits-screenshot rounded-2xl overflow-hidden shadow-2xl border border-border/50 hero-glow">
-              <img src="/images/tutorial-properties.png" alt="Gestão de Imóveis ImobiSmart" className="w-full h-auto" loading="lazy" />
+            {/* CSS Mockup */}
+            <div className="rounded-2xl overflow-hidden shadow-2xl border border-border/50 hero-glow">
+              <PropertiesMockup />
             </div>
           </div>
         </div>
@@ -458,7 +458,7 @@ export default function Index() {
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
           <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
         </div>
-        <div className="container mx-auto text-center max-w-3xl">
+        <div className="container mx-auto text-center max-w-3xl relative z-10">
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight">
             Comece agora e veja resultados em minutos
           </h2>
