@@ -158,12 +158,14 @@ export default function Plans() {
 
   if (authLoading || subscriptionLoading || plansLoading) {
     return (
-      <div className="space-y-8">
-        <Skeleton className="h-32 max-w-xl mx-auto" />
-        <div className="flex justify-center items-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <DashboardLayout>
+        <div className="space-y-8">
+          <Skeleton className="h-32 max-w-xl mx-auto" />
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
