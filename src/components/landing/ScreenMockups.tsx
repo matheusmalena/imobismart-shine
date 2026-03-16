@@ -1,3 +1,4 @@
+import { useRef, useEffect, useState } from 'react';
 import { BarChart3, Building2, FileText, Shield, Search, Users, TrendingUp, Home, MessageSquare, CreditCard, ClipboardList, Settings, Camera, ChevronDown } from 'lucide-react';
 import logoIcon from '@/assets/logo-icon.png';
 import demoProp1 from '@/assets/demo-prop-1.jpg';
@@ -274,9 +275,58 @@ export function SettingsMockup() {
   );
 }
 
+function MockupScaler({ children }: { children: React.ReactNode }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  const MOCKUP_WIDTH = 760; // approximate natural width of the mockups
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const w = entry.contentRect.width;
+        setScale(Math.min(1, w / MOCKUP_WIDTH));
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={containerRef} className="w-full overflow-hidden">
+      <div
+        style={{
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
+          width: `${MOCKUP_WIDTH}px`,
+          height: `${320 * scale}px`,
+        }}
+      >
+        <div style={{ width: `${MOCKUP_WIDTH}px`, height: '320px' }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ScaledDashboard() {
+  return <MockupScaler><DashboardMockup /></MockupScaler>;
+}
+function ScaledProperties() {
+  return <MockupScaler><PropertiesMockup /></MockupScaler>;
+}
+function ScaledDocuments() {
+  return <MockupScaler><DocumentsMockup /></MockupScaler>;
+}
+function ScaledSettings() {
+  return <MockupScaler><SettingsMockup /></MockupScaler>;
+}
+
 export const SCREEN_MOCKUPS: Record<string, React.FC> = {
-  dashboard: DashboardMockup,
-  properties: PropertiesMockup,
-  documents: DocumentsMockup,
-  settings: SettingsMockup,
+  dashboard: ScaledDashboard,
+  properties: ScaledProperties,
+  documents: ScaledDocuments,
+  settings: ScaledSettings,
 };
