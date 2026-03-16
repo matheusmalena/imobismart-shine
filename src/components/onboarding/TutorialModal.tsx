@@ -22,6 +22,7 @@ interface TutorialSlide {
   description: string;
   tips: string[];
   mockupKey: string;
+  mobileImage: string;
   highlightArea?: string;
 }
 
