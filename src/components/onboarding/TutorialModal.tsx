@@ -58,7 +58,7 @@ const slides: TutorialSlide[] = [
       'Clique em "Novo Documento" para fazer upload',
       'Escolha o imóvel e a categoria do documento',
     ],
-    screenshot: '/images/tutorial-documents.jpg',
+    mockupKey: 'documents',
     highlightArea: 'documents',
   },
   {
