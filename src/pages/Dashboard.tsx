@@ -32,11 +32,6 @@ export default function Dashboard() {
   
   const firstName = profile?.full_name?.split(' ')[0] || 'Investidor';
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/auth');
-    }
-  }, [user, authLoading, navigate]);
 
   const handleExportData = () => {
     exportToCSV(activeProperties);
