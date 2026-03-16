@@ -9,7 +9,7 @@ import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { FAQSection } from "@/components/landing/FAQSection";
 import { TutorialModal, TutorialModalRef } from "@/components/onboarding/TutorialModal";
-import { DashboardMockup, PropertiesMockup, DocumentsMockup, SettingsMockup } from "@/components/landing/ScreenMockups";
+
 import {
   Building2,
   BarChart3,
@@ -164,11 +164,11 @@ export default function Index() {
     );
   }
 
-  const MOCKUP_COMPONENTS: Record<string, React.ReactNode> = {
-    dashboard: <DashboardMockup />,
-    properties: <PropertiesMockup />,
-    documents: <DocumentsMockup />,
-    settings: <SettingsMockup />,
+  const MOCKUP_IMAGES: Record<string, string> = {
+    dashboard: "/images/tutorial-dashboard.png",
+    properties: "/images/tutorial-properties.png",
+    documents: "/images/tutorial-documents.png",
+    settings: "/images/tutorial-settings.png",
   };
 
   const benefits = [
@@ -261,7 +261,7 @@ export default function Index() {
             {/* Right - Dashboard Screenshot with 3D */}
             <div className="relative animate-fade-in" style={{ animationDelay: '0.15s' }}>
               <div className="hero-screenshot-3d hero-glow rounded-2xl overflow-hidden border border-border/50">
-                <DashboardMockup />
+                <img src="/images/tutorial-dashboard.png" alt="Dashboard ImobiSmart" className="w-full h-auto" loading="eager" />
               </div>
             </div>
           </div>
@@ -374,7 +374,7 @@ export default function Index() {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
             {/* Screenshot - clean, no browser frame */}
             <div className="lg:col-span-3 rounded-2xl overflow-hidden shadow-2xl border border-border/50 hero-glow">
-              {MOCKUP_COMPONENTS[activeFeature.mockup]}
+              <img src={MOCKUP_IMAGES[activeFeature.mockup]} alt={activeFeature.title} className="w-full h-auto" loading="lazy" />
             </div>
 
             {/* Description */}
@@ -443,19 +443,15 @@ export default function Index() {
 
             {/* Real screenshot with perspective */}
             <div className="benefits-screenshot rounded-2xl overflow-hidden shadow-2xl border border-border/50 hero-glow">
-              <PropertiesMockup />
+              <img src="/images/tutorial-properties.png" alt="Gestão de Imóveis ImobiSmart" className="w-full h-auto" loading="lazy" />
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA with background screenshot */}
-      <section className="py-24 px-4 relative overflow-hidden">
-        {/* Background screenshot with overlay */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute inset-0 gradient-hero" />
-        </div>
-        <div className="absolute inset-0 -z-10">
+      {/* CTA */}
+      <section className="py-24 px-4 relative overflow-hidden bg-[hsl(175,50%,25%)] dark:bg-[hsl(200,30%,10%)]">
+        <div className="absolute inset-0 -z-0">
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
           <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
         </div>
