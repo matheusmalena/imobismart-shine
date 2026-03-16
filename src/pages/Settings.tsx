@@ -109,7 +109,7 @@ export default function Settings() {
           </div>
         </div>
       ) : (
-      <div className="space-y-6 max-w-4xl animate-fade-in">
+      <div className="space-y-6 max-w-4xl">
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-foreground">Configurações</h1>
