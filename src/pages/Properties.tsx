@@ -260,7 +260,7 @@ export default function Properties() {
 
           <div className="flex flex-wrap gap-3">
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-full sm:w-[140px]">
                 <SelectValue placeholder="Tipo" />
               </SelectTrigger>
               <SelectContent>
