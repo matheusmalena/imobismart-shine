@@ -261,7 +261,7 @@ export default function Index() {
             {/* Right - Dashboard Screenshot with 3D */}
             <div className="relative animate-fade-in" style={{ animationDelay: '0.15s' }}>
               <div className="hero-screenshot-3d hero-glow rounded-2xl overflow-hidden border border-border/50">
-                <DashboardMockup />
+                <img src="/images/tutorial-dashboard.png" alt="Dashboard ImobiSmart" className="w-full h-auto" loading="eager" />
               </div>
             </div>
           </div>
