@@ -1,4 +1,5 @@
 import { BarChart3, Building2, FileText, Shield, Search, Users, TrendingUp, Home, MessageSquare, CreditCard, ClipboardList, Settings, Camera, ChevronDown } from 'lucide-react';
+import logoIcon from '@/assets/logo-icon.png';
 
 const Sidebar = ({ active }: { active: string }) => {
   const items = [
