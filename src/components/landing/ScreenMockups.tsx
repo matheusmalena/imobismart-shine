@@ -1,5 +1,4 @@
 import { BarChart3, Building2, FileText, Shield, Search, Users, TrendingUp, Home, MessageSquare, CreditCard, ClipboardList, Settings, Camera, ChevronDown } from 'lucide-react';
-import { BarChart3, Building2, FileText, Shield, Search, Users, TrendingUp, Home, MessageSquare, CreditCard, ClipboardList, Settings, Camera, ChevronDown } from 'lucide-react';
 import logoIcon from '@/assets/logo-icon.png';
 import demoProp1 from '@/assets/demo-prop-1.jpg';
 import demoProp2 from '@/assets/demo-prop-2.jpg';
