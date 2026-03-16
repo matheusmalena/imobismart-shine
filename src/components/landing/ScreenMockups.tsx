@@ -37,11 +37,11 @@ const Sidebar = ({ active }: { active: string }) => {
 };
 
 const MetricCard = ({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) => (
-  <div className="bg-card rounded-lg border border-border/40 p-3 flex items-center gap-2">
-    <div className="p-1.5 rounded-lg bg-primary/10">{icon}</div>
-    <div>
-      <p className="text-[8px] text-muted-foreground uppercase tracking-wide">{label}</p>
-      <p className="text-sm font-bold text-foreground whitespace-nowrap">{value}</p>
+  <div className="bg-card rounded-lg border border-border/40 p-2.5 flex items-center gap-1.5 min-w-0 overflow-hidden">
+    <div className="p-1 rounded-lg bg-primary/10 shrink-0">{icon}</div>
+    <div className="min-w-0">
+      <p className="text-[7px] text-muted-foreground uppercase tracking-wide truncate">{label}</p>
+      <p className="text-[11px] font-bold text-foreground whitespace-nowrap">{value}</p>
     </div>
   </div>
 );
