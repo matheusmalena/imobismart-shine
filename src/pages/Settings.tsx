@@ -201,8 +201,8 @@ export default function Settings() {
                   Membro desde
                 </Label>
                 <div className="px-3 py-2 bg-muted rounded-lg text-foreground">
-                  {mockProfile?.created_at 
-                    ? format(new Date(mockProfile.created_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })
+                  {displayProfile?.created_at 
+                    ? format(new Date(displayProfile.created_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })
                     : 'Não disponível'}
                 </div>
               </div>
