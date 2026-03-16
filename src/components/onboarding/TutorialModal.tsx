@@ -63,6 +63,7 @@ const slides: TutorialSlide[] = [
       'Escolha o imóvel e a categoria do documento',
     ],
     mockupKey: 'documents',
+    mobileImage: '/images/tutorial-documents.png',
     highlightArea: 'documents',
   },
   {
