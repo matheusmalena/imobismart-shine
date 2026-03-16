@@ -94,11 +94,6 @@ export default function Subscription() {
 
   const isLoading = authLoading || subscriptionLoading;
 
-  // Redirect if not authenticated
-  if (!authLoading && !user) {
-    navigate('/auth');
-    return null;
-  }
 
   const handleCancelSubscription = async () => {
     setIsCancelling(true);
