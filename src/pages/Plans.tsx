@@ -9,7 +9,7 @@ import { usePlans } from '@/hooks/usePlans';
 import { useOrganization } from '@/hooks/useOrganization';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import { PageTransition } from '@/components/PageTransition';
 import { LockedPagePlaceholder } from '@/components/common/LockedPagePlaceholder';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -152,22 +152,15 @@ export default function Plans() {
     );
   }
 
-  // Redirect if not authenticated
-  if (!authLoading && !user) {
-    navigate('/auth');
-    return null;
-  }
 
   if (authLoading || subscriptionLoading || plansLoading) {
     return (
-      <DashboardLayout>
-        <div className="space-y-8">
-          <Skeleton className="h-32 max-w-xl mx-auto" />
-          <div className="flex justify-center items-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
+      <div className="space-y-8">
+        <Skeleton className="h-32 max-w-xl mx-auto" />
+        <div className="flex justify-center items-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
@@ -251,7 +244,7 @@ export default function Plans() {
   };
 
   return (
-    <DashboardLayout>
+    <PageTransition>
       <div className="space-y-8 pb-8">
         {/* Navigation Buttons */}
         <div className="flex items-center gap-3">
@@ -579,6 +572,6 @@ export default function Plans() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </DashboardLayout>
+    </PageTransition>
   );
 }

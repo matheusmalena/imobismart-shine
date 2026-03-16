@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProperties } from '@/hooks/useProperties';
@@ -33,12 +33,6 @@ export default function Documents() {
   const [viewDocumentData, setViewDocumentData] = useState<PropertyDocument | null>(null);
   const [deleteDoc, setDeleteDoc] = useState<PropertyDocument | null>(null);
 
-  // TEMPORÁRIO: Desabilitado para screenshots
-  // useEffect(() => {
-  //   if (!authLoading && !user) {
-  //     navigate('/auth');
-  //   }
-  // }, [user, authLoading, navigate]);
 
   const filteredDocuments = useMemo(() => {
     return documents.filter((doc) => {
@@ -84,7 +78,7 @@ export default function Documents() {
           <Skeleton className="h-64 w-full rounded-xl" />
         </div>
       ) : (
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -118,7 +112,7 @@ export default function Documents() {
               />
             </div>
             <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-full sm:w-[200px]">
                 <Building2 className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Filtrar por imóvel" />
               </SelectTrigger>
@@ -132,7 +126,7 @@ export default function Documents() {
               </SelectContent>
             </Select>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
               <SelectContent>

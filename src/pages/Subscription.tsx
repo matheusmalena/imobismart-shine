@@ -8,6 +8,7 @@ import { usePropertyLimit } from '@/hooks/usePropertyLimit';
 import { useOrganization } from '@/hooks/useOrganization';
 import { supabase } from '@/integrations/supabase/client';
 import { LockedPagePlaceholder } from '@/components/common/LockedPagePlaceholder';
+import { PageTransition } from '@/components/PageTransition';
 
 import { PaymentHistory } from '@/components/subscription/PaymentHistory';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,7 +28,6 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
-  
   CreditCard,
   Calendar,
   Crown,
@@ -95,11 +95,6 @@ export default function Subscription() {
 
   const isLoading = authLoading || subscriptionLoading;
 
-  // Redirect if not authenticated
-  if (!authLoading && !user) {
-    navigate('/auth');
-    return null;
-  }
 
   const handleCancelSubscription = async () => {
     setIsCancelling(true);
@@ -136,7 +131,7 @@ export default function Subscription() {
   const isPaid = currentPlan === 'starter' || currentPlan === 'pro' || currentPlan === 'plus' || currentPlan === 'enterprise';
 
   return (
-    <>
+    <PageTransition>
       {isLoading ? (
         <div className="space-y-6">
           <Skeleton className="h-8 w-48" />
@@ -416,6 +411,6 @@ export default function Subscription() {
         </motion.div>
       </motion.div>
       )}
-    </>
+    </PageTransition>
   );
 }

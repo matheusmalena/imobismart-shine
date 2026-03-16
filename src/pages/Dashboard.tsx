@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProperties } from '@/hooks/useProperties';
@@ -32,11 +31,6 @@ export default function Dashboard() {
   
   const firstName = profile?.full_name?.split(' ')[0] || 'Investidor';
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/auth');
-    }
-  }, [user, authLoading, navigate]);
 
   const handleExportData = () => {
     exportToCSV(activeProperties);
@@ -69,7 +63,7 @@ export default function Dashboard() {
   return (
     <PageTransition>
       {(authLoading || isLoading || userDataLoading) ? <LoadingSkeleton /> : (
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1">
