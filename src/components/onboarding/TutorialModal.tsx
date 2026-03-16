@@ -163,7 +163,9 @@ export const TutorialModal = forwardRef<TutorialModalRef, TutorialModalProps>(
           {/* Screenshot Area */}
           <div className="relative">
             <div key={currentSlide} className="w-full max-h-64 overflow-hidden">
-              {(() => {
+              {isMobile ? (
+                <img src={slide.mobileImage} alt={slide.title} className="w-full h-56 object-cover" loading="eager" />
+              ) : (() => {
                 const MockupComponent = SCREEN_MOCKUPS[slide.mockupKey];
                 return MockupComponent ? <MockupComponent /> : null;
               })()}

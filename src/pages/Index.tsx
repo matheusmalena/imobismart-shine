@@ -462,9 +462,12 @@ export default function Index() {
               </div>
             </div>
 
-            {/* CSS Mockup */}
+            {/* Properties Preview */}
             <div className="rounded-2xl overflow-hidden shadow-2xl border border-border/50 hero-glow">
-              <PropertiesMockup />
+              <img src="/images/tutorial-properties.png" alt="Gestão de Imóveis ImobiSmart" className="block md:hidden w-full h-auto" loading="lazy" />
+              <div className="hidden md:block">
+                <PropertiesMockup />
+              </div>
             </div>
           </div>
         </div>
