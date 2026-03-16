@@ -152,7 +152,7 @@ export default function Settings() {
                   Email
                 </Label>
                 <div className="px-3 py-2 bg-muted rounded-lg text-foreground">
-                  {mockUser.email}
+                  {displayUser?.email || 'Não disponível'}
                 </div>
               </div>
               
