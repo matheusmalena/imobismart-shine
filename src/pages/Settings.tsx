@@ -56,7 +56,7 @@ export default function Settings() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { profile, isLoading: profileLoading, updateProfile } = useProfile();
-  const { subscription, isLoading: subscriptionLoading, cancelSubscription } = useSubscription();
+  const { subscription, isLoading: subscriptionLoading } = useSubscription();
   const { role, isAdmin, isLoading: roleLoading } = useUserRole();
   const { organization, userRole: orgRole } = useOrganization();
   const isOrgMemberNotOwner = !!organization && orgRole !== 'owner';
