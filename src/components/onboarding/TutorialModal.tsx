@@ -76,6 +76,7 @@ const slides: TutorialSlide[] = [
       'Veja seu plano atual e faça upgrade',
     ],
     mockupKey: 'settings',
+    mobileImage: '/images/tutorial-settings.png',
     highlightArea: 'settings',
   },
 ];
