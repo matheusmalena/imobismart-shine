@@ -292,7 +292,7 @@ export default function Index() {
       </section>
 
       {/* How it Works */}
-      <section className="py-20 px-4 scroll-reveal" ref={reveal}>
+      <section className="py-20 px-3 sm:px-4 scroll-reveal" ref={reveal}>
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
