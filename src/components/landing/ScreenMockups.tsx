@@ -1,4 +1,5 @@
 import { BarChart3, Building2, FileText, Shield, Search, Users, TrendingUp, Home, MessageSquare, CreditCard, ClipboardList, Settings, Camera, ChevronDown } from 'lucide-react';
+import logoIcon from '@/assets/logo-icon.png';
 
 const Sidebar = ({ active }: { active: string }) => {
   const items = [
@@ -14,9 +15,7 @@ const Sidebar = ({ active }: { active: string }) => {
   return (
     <div className="w-[140px] shrink-0 bg-[hsl(var(--sidebar-background,var(--card)))] border-r border-border/30 p-3 flex flex-col gap-1">
       <div className="flex items-center gap-1.5 mb-4 px-1">
-        <div className="w-5 h-5 rounded-lg bg-primary flex items-center justify-center">
-          <Building2 className="h-3 w-3 text-primary-foreground" />
-        </div>
+        <img src={logoIcon} alt="ImobiSmart" className="w-5 h-5 object-contain" />
         <span className="text-[10px] font-bold text-foreground">ImobiSmart</span>
       </div>
       {items.map((item) => (
