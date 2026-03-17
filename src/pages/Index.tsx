@@ -288,13 +288,13 @@ export default function Index() {
                 key={i}
                 className="text-center py-8 px-4"
               >
-                <div className="inline-flex p-2.5 rounded-xl bg-primary/5 text-primary/50 mb-4">
+                <div className="inline-flex p-2.5 rounded-xl bg-primary/8 text-primary/70 mb-4">
                   {stat.icon}
                 </div>
-                <p className="text-2xl md:text-3xl font-semibold text-foreground/85 tracking-tight leading-none">
+                <p className="text-2xl md:text-4xl font-bold text-foreground tracking-tight leading-none">
                   <AnimatedCounter target={stat.value} suffix={stat.suffix} />
                 </p>
-                <p className="text-xs sm:text-sm text-muted-foreground/70 font-normal mt-2.5">{stat.label}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground font-medium mt-2.5">{stat.label}</p>
               </div>
             ))}
           </div>
