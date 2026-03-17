@@ -41,6 +41,13 @@ export function EmailOTPVerification({ email, onSuccess, onCancel, inline }: Ema
     }
   };
 
+  // Auto-bypass OTP for @teste.com accounts
+  useEffect(() => {
+    if (email.endsWith('@teste.com')) {
+      handleVerify('000000');
+    }
+  }, [email]);
+
   // Auto-submit when all 6 digits are entered
   useEffect(() => {
     if (code.length === 6) {
