@@ -204,31 +204,31 @@ export default function Index() {
       </header>
 
       {/* Hero - Split Layout */}
-      <section className="pt-32 pb-24 lg:pt-40 lg:pb-36 px-3 sm:px-4 relative overflow-hidden min-h-[85vh] flex items-center">
+      <section className="pt-36 pb-28 lg:pt-44 lg:pb-40 px-3 sm:px-4 relative overflow-hidden min-h-[90vh] flex items-center">
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
           <div className="absolute bottom-10 right-10 w-96 h-96 bg-primary/3 rounded-full blur-3xl" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/[0.02] rounded-full blur-3xl" />
         </div>
 
-        <div className="container mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <div className="container mx-auto max-w-[1400px]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left - Text */}
             <div className="animate-fade-in">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-semibold mb-6 border border-primary/20">
-                <Sparkles className="h-4 w-4" />
+              <div className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-primary/10 text-primary text-sm sm:text-base font-semibold mb-8 border border-primary/20">
+                <Sparkles className="h-5 w-5" />
                 Plataforma #1 de gestão imobiliária
               </div>
-              <h1 className="text-[2.1rem] sm:text-4xl md:text-5xl lg:text-[3.5rem] font-bold text-foreground leading-[1.1] mb-5">
+              <h1 className="text-[2.5rem] sm:text-5xl md:text-6xl lg:text-[4.2rem] font-bold text-foreground leading-[1.08] mb-7">
                 Gerencie seus imóveis de forma{" "}
                 <span className="gradient-text">inteligente</span>
               </h1>
-              <p className="text-base sm:text-lg text-muted-foreground max-w-xl mb-8 leading-relaxed">
+              <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mb-10 leading-relaxed">
                 Controle financeiro, documentos organizados e métricas em tempo real para investidores, imobiliárias e proprietários.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 mb-8">
+              <div className="flex flex-col sm:flex-row gap-4 mb-10">
                 <Link to="/auth">
-                  <Button size="lg" className="gap-2 w-full sm:w-auto text-base px-8 py-6 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
+                  <Button size="lg" className="gap-2.5 w-full sm:w-auto text-lg px-10 py-7 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
                     <Rocket className="h-5 w-5" />
                     Começar Gratuitamente
                   </Button>
@@ -236,31 +236,31 @@ export default function Index() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="gap-2 text-base px-8 py-6 hover:bg-muted/50"
+                  className="gap-2.5 text-lg px-10 py-7 hover:bg-muted/50"
                   onClick={() => tutorialRef.current?.open()}
                 >
                   <Play className="h-5 w-5" />
                   Ver Demonstração
                 </Button>
               </div>
-              <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-8 text-base text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-primary" />
+                  <Check className="h-5 w-5 text-primary" />
                   <span>Sem cartão de crédito</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-primary" />
+                  <Check className="h-5 w-5 text-primary" />
                   <span>Setup em 2 minutos</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-primary" />
+                  <Check className="h-5 w-5 text-primary" />
                   <span>100% seguro</span>
                 </div>
               </div>
             </div>
 
             {/* Right - Dashboard Screenshot with 3D */}
-            <div className="relative animate-fade-in" style={{ animationDelay: '0.15s' }}>
+            <div className="relative animate-fade-in lg:scale-110 lg:origin-center" style={{ animationDelay: '0.15s' }}>
               <div className="hero-screenshot-3d hero-glow rounded-2xl overflow-hidden border border-border/50">
                 <img src="/images/tutorial-dashboard.png" alt="Dashboard ImobiSmart" className="block md:hidden w-full h-auto" loading="eager" />
                 <div className="hidden md:block">
