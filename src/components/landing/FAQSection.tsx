@@ -9,31 +9,31 @@ import { HelpCircle } from "lucide-react";
 const faqs = [
   {
     question: "O ImobiSmart é realmente gratuito para começar?",
-    answer: "Sim! Nosso plano Starter é completamente gratuito e permite gerenciar até 2 imóveis. Você pode usar todas as funcionalidades básicas sem nenhum custo e só faz upgrade quando precisar de mais recursos ou imóveis.",
+    answer: "Sim! O plano Free permite gerenciar até 2 imóveis com acesso ao dashboard básico, gestão de inquilinos e upload de documentos — tudo sem custo. Quando seu portfólio crescer, basta fazer upgrade para um plano com mais capacidade.",
   },
   {
     question: "Posso migrar de plano a qualquer momento?",
-    answer: "Claro! Você pode fazer upgrade ou downgrade do seu plano a qualquer momento. Se fizer upgrade, a diferença será cobrada proporcionalmente. Se fizer downgrade, o crédito será aplicado no próximo ciclo de faturamento.",
+    answer: "Sim. O upgrade pode ser feito diretamente pela página de Assinatura dentro do sistema. Para downgrade, basta entrar em contato com nosso suporte. Não há multa nem fidelidade — você só paga pelo plano ativo.",
   },
   {
     question: "Meus dados estão seguros na plataforma?",
-    answer: "Absolutamente. Utilizamos criptografia de ponta a ponta para todos os dados armazenados. Além disso, fazemos backups automáticos diários e oferecemos autenticação de dois fatores para proteger sua conta.",
+    answer: "Sim. O ImobiSmart utiliza autenticação com verificação de e-mail e suporte a autenticação de dois fatores (2FA). Todos os dados são armazenados com criptografia e backups automáticos diários na nuvem.",
   },
   {
     question: "Posso acessar de qualquer dispositivo?",
-    answer: "Sim! O ImobiSmart é uma plataforma web responsiva, ou seja, funciona perfeitamente em computadores, tablets e smartphones. Basta ter acesso à internet para gerenciar seus imóveis de qualquer lugar.",
+    answer: "Sim! O ImobiSmart é uma plataforma web 100% responsiva. Funciona em computadores, tablets e smartphones — basta ter acesso à internet para gerenciar seus imóveis de qualquer lugar.",
   },
   {
     question: "Como funciona o controle de documentos?",
-    answer: "Você pode fazer upload de qualquer documento relacionado aos seus imóveis: matrículas, contratos, laudos, comprovantes de IPTU, etc. Todos ficam organizados por imóvel e categoria, facilitando a busca e o acesso.",
+    answer: "Você pode fazer upload de documentos como matrículas, contratos, laudos e comprovantes de IPTU diretamente vinculados a cada imóvel. Tudo fica organizado por categoria na nuvem, com busca rápida e acesso seguro.",
   },
   {
     question: "Posso cancelar minha assinatura quando quiser?",
-    answer: "Com certeza. Não há fidelidade mínima. Você pode cancelar sua assinatura a qualquer momento e continuará tendo acesso até o final do período já pago. Seus dados ficam disponíveis para exportação.",
+    answer: "Com certeza. Não há fidelidade mínima nem taxas de cancelamento. Você pode cancelar a qualquer momento e continuará com acesso até o final do período já pago.",
   },
   {
     question: "O sistema calcula o ROI automaticamente?",
-    answer: "Sim! Ao cadastrar os dados financeiros do imóvel (valor de compra, receitas de aluguel, custos como IPTU, condomínio, etc.), o sistema calcula automaticamente o ROI, lucro líquido e outras métricas importantes.",
+    answer: "Sim. Ao cadastrar o valor do imóvel, receita de aluguel e custos (IPTU, condomínio, manutenção), o dashboard calcula automaticamente o ROI, lucro líquido mensal e outras métricas de performance do seu portfólio.",
   },
 ];
 

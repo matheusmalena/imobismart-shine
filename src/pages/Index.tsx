@@ -275,26 +275,26 @@ export default function Index() {
       <TutorialModal ref={tutorialRef} autoShow={false} />
 
       {/* Social Proof Bar */}
-      <section className="py-14 px-3 sm:px-4 border-y border-border/50 bg-card">
+      <section className="py-16 px-3 sm:px-4 border-y border-border/30 bg-gradient-to-b from-card to-background">
         <div className="container mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 max-w-5xl mx-auto">
             {[
-              { value: 100, suffix: "+", label: "Proprietários ativos", icon: <Users className="h-5 w-5" /> },
-              { value: 100, suffix: "+", label: "Imóveis gerenciados", icon: <Building2 className="h-5 w-5" /> },
-              { value: 50, suffix: "mil+", label: "Documentos organizados", icon: <FileText className="h-5 w-5" /> },
-              { value: 5, suffix: "★", label: "Avaliação média", icon: <Sparkles className="h-5 w-5" /> },
+              { value: 100, suffix: "+", label: "Proprietários ativos", icon: <Users className="h-6 w-6" /> },
+              { value: 1000, suffix: "+", label: "Imóveis gerenciados", icon: <Building2 className="h-6 w-6" /> },
+              { value: 50, suffix: "mil+", label: "Documentos organizados", icon: <FileText className="h-6 w-6" /> },
+              { value: 5, suffix: "★", label: "Avaliação média", icon: <Sparkles className="h-6 w-6" /> },
             ].map((stat, i) => (
               <div
                 key={i}
-                className="text-center py-6 px-4 rounded-2xl bg-muted/30 border border-border/20"
+                className="text-center py-7 px-5 rounded-2xl bg-card border border-border/40 shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-300"
               >
-                <div className="inline-flex p-2.5 rounded-xl bg-primary/10 text-primary mb-3">
+                <div className="inline-flex p-3 rounded-xl bg-primary/10 text-primary mb-4">
                   {stat.icon}
                 </div>
-                <p className="text-2xl md:text-3xl font-extrabold text-foreground tracking-tight leading-none">
+                <p className="text-2xl md:text-4xl font-extrabold text-foreground tracking-tight leading-none">
                   <AnimatedCounter target={stat.value} suffix={stat.suffix} />
                 </p>
-                <p className="text-xs text-muted-foreground font-medium mt-1">{stat.label}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground font-medium mt-2">{stat.label}</p>
               </div>
             ))}
           </div>
