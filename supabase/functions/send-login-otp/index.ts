@@ -21,6 +21,23 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Bypass OTP for test accounts
+    if (email.endsWith("@teste.com")) {
+      const supabaseAdmin = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      );
+      await supabaseAdmin.from("email_verifications").delete().eq("email", email);
+      await supabaseAdmin.from("email_verifications").insert({
+        email,
+        otp_code: "000000",
+        verified: false,
+      });
+      return new Response(JSON.stringify({ success: true, bypass: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
