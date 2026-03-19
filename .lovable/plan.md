@@ -1,50 +1,44 @@
 
 
-## Plan: Fix Cakto Webhook -- Payload Format Mismatch
+## Plan: Add Social Media Links to Properties
 
-### Root Cause
+### Overview
+Add a section for social media links (Instagram, Facebook, Airbnb, etc.) in the property form, and display them as clickable icons on the PropertyCard and PropertyDetails pages.
 
-The webhook function is reading the wrong fields from the Cakto payload. Based on the official Cakto API documentation, the actual payload format is:
+### 1. Database Migration
+Add new columns to the `properties` table:
 
-```text
-{
-  "data": {
-    "id": "uuid-order-id",
-    "customer": { "email": "...", "name": "..." },
-    "product": { "name": "ImobiSmart Pro", "id": "uuid" },
-    "offer": { "name": "ImobiSmart Pro", "id": "abc" },
-    "amount": 49.90,
-    "status": "paid",
-    ...
-  },
-  "event": "purchase_approved",
-  "secret": "ffc72047-12a3-470c-a086-e10b429ee530"
-}
+```sql
+ALTER TABLE public.properties
+  ADD COLUMN link_instagram text DEFAULT NULL,
+  ADD COLUMN link_facebook text DEFAULT NULL,
+  ADD COLUMN link_airbnb text DEFAULT NULL,
+  ADD COLUMN link_booking text DEFAULT NULL,
+  ADD COLUMN link_website text DEFAULT NULL;
 ```
 
-But the current code reads:
-- `body.buyer?.email` -- WRONG, should be `body.data?.customer?.email`
-- `body.product?.name` -- WRONG, should be `body.data?.product?.name`
-- `body.transaction?.id` -- WRONG, should be `body.data?.id`
-- Header `x-webhook-secret` -- WRONG, Cakto sends secret in the body as `body.secret`
+### 2. Update TypeScript Types (`src/types/property.ts`)
+Add the 5 link fields to the `Property` interface and `PropertyFormData` interface, all as optional/nullable strings.
 
-### Three Critical Bugs
+### 3. Update Property Form (`src/components/properties/PropertyForm.tsx`)
+- Add the link fields to `defaultFormData`
+- Add a new section inside the "features" tab (or a new "Links" subsection) with labeled inputs for each social network, each with the appropriate icon (Instagram, Facebook, Globe for Airbnb/Booking/Website)
+- Wire up form state and submission
 
-1. **Secret validation fails**: Code checks headers for the secret, but Cakto sends it in the JSON body (`body.secret`). This means every webhook call is rejected with 401 Unauthorized.
+### 4. Update Property Hook (`src/hooks/useProperties.ts`)
+Include the new link fields in `createProperty`, `updateProperty`, and `duplicateProperty` mutations.
 
-2. **Email not found**: Even if auth passed, `body.buyer?.email` is undefined because Cakto nests it under `body.data.customer.email`.
+### 5. Update Property Card (`src/components/properties/PropertyCard.tsx`)
+Below the address or features row, show small clickable social media icons for any links that are filled. Each icon opens the link in a new tab (`target="_blank"`). Click event uses `stopPropagation` to avoid triggering the card click.
 
-3. **Product name not found**: `body.product?.name` is undefined, so `plan` always resolves to `"free"` instead of the correct tier.
+### 6. Update Property Details (`src/pages/PropertyDetails.tsx`)
+Add a "Redes Sociais" section showing the social links as clickable icon+label rows that open in a new tab.
 
-### Fix (single file change)
-
-Update `supabase/functions/cakto-webhook/index.ts`:
-
-- Read the secret from `body.secret` instead of request headers
-- Extract email from `body.data?.customer?.email`
-- Extract product/offer name from `body.data?.product?.name` or `body.data?.offer?.name`
-- Extract amount from `body.data?.amount`
-- Extract transaction ID from `body.data?.id`
-- Add broader product name matching for "ImobiSmart" product names (e.g. "ImobiSmart Pro", "ImobiSmart Plus", "ImobiSmart -S..." for Starter)
-- Keep all existing event handling logic and fallbacks intact
+### Files to modify:
+- **Database migration**: Add 5 text columns to `properties`
+- **`src/types/property.ts`**: Add link fields to interfaces
+- **`src/components/properties/PropertyForm.tsx`**: Add link inputs section
+- **`src/hooks/useProperties.ts`**: Include links in create/update/duplicate
+- **`src/components/properties/PropertyCard.tsx`**: Show clickable social icons
+- **`src/pages/PropertyDetails.tsx`**: Show social links section
 
