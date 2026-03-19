@@ -35,6 +35,10 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Instagram,
+  Facebook,
+  Globe,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageTransition } from "@/components/PageTransition";

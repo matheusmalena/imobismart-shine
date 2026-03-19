@@ -191,6 +191,37 @@ export function PropertyCard({ property, onClick, onEdit, onDuplicate, onArchive
           )}
         </div>
 
+        {/* Social Links */}
+        {(property.link_instagram || property.link_facebook || property.link_airbnb || property.link_booking || property.link_website) && (
+          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+            {property.link_instagram && (
+              <a href={property.link_instagram} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground" title="Instagram">
+                <Instagram className="h-4 w-4" />
+              </a>
+            )}
+            {property.link_facebook && (
+              <a href={property.link_facebook} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground" title="Facebook">
+                <Facebook className="h-4 w-4" />
+              </a>
+            )}
+            {property.link_airbnb && (
+              <a href={property.link_airbnb} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground" title="Airbnb">
+                <Globe className="h-4 w-4" />
+              </a>
+            )}
+            {property.link_booking && (
+              <a href={property.link_booking} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground" title="Booking">
+                <Globe className="h-4 w-4" />
+              </a>
+            )}
+            {property.link_website && (
+              <a href={property.link_website} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground" title="Website">
+                <Globe className="h-4 w-4" />
+              </a>
+            )}
+          </div>
+        )}
+
         {/* Financial */}
         <div className="pt-3 border-t border-border/50 grid grid-cols-3 gap-2 text-center">
           <div>
