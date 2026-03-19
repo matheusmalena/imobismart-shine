@@ -20,6 +20,9 @@ import {
   Car,
   Maximize,
   Building2,
+  Instagram,
+  Facebook,
+  Globe,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
