@@ -345,6 +345,38 @@ export function PropertyDetails({ property, onEdit, onClose }: PropertyDetailsPr
                   )}
                 </CardContent>
               </Card>
+
+              {/* Social Links */}
+              {(property.link_instagram || property.link_facebook || property.link_airbnb || property.link_booking || property.link_website) && (
+                <Card className="md:col-span-2">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Redes Sociais & Links</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-3">
+                      {[
+                        { url: property.link_instagram, label: 'Instagram', icon: Instagram },
+                        { url: property.link_facebook, label: 'Facebook', icon: Facebook },
+                        { url: property.link_airbnb, label: 'Airbnb', icon: Globe },
+                        { url: property.link_booking, label: 'Booking', icon: Globe },
+                        { url: property.link_website, label: 'Website', icon: Globe },
+                      ].filter(item => item.url).map((item) => (
+                        <a
+                          key={item.label}
+                          href={item.url!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-muted hover:bg-muted/80 text-foreground transition-colors"
+                        >
+                          <item.icon className="h-4 w-4" />
+                          <span className="text-sm font-medium">{item.label}</span>
+                          <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                        </a>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </TabsContent>
 
