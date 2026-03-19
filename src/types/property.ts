@@ -50,6 +50,13 @@ export interface Property {
   // Photo
   photo_url: string | null;
   
+  // Social links
+  link_instagram: string | null;
+  link_facebook: string | null;
+  link_airbnb: string | null;
+  link_booking: string | null;
+  link_website: string | null;
+  
   // Metadata
   is_archived: boolean;
   created_at: string;
@@ -104,6 +111,11 @@ export interface PropertyFormData {
   description: string;
   other_amenities: string;
   photo_url?: string | null;
+  link_instagram?: string;
+  link_facebook?: string;
+  link_airbnb?: string;
+  link_booking?: string;
+  link_website?: string;
 }
 
 export const PROPERTY_TYPE_LABELS: Record<PropertyType, string> = {

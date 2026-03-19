@@ -546,6 +546,11 @@ export type Database = {
           iptu_fee: number | null
           is_archived: boolean | null
           is_furnished: boolean | null
+          link_airbnb: string | null
+          link_booking: string | null
+          link_facebook: string | null
+          link_instagram: string | null
+          link_website: string | null
           maintenance_fee: number | null
           monthly_revenue: number | null
           name: string
@@ -591,6 +596,11 @@ export type Database = {
           iptu_fee?: number | null
           is_archived?: boolean | null
           is_furnished?: boolean | null
+          link_airbnb?: string | null
+          link_booking?: string | null
+          link_facebook?: string | null
+          link_instagram?: string | null
+          link_website?: string | null
           maintenance_fee?: number | null
           monthly_revenue?: number | null
           name: string
@@ -636,6 +646,11 @@ export type Database = {
           iptu_fee?: number | null
           is_archived?: boolean | null
           is_furnished?: boolean | null
+          link_airbnb?: string | null
+          link_booking?: string | null
+          link_facebook?: string | null
+          link_instagram?: string | null
+          link_website?: string | null
           maintenance_fee?: number | null
           monthly_revenue?: number | null
           name?: string

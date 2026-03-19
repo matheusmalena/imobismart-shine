@@ -1,0 +1,6 @@
+ALTER TABLE public.properties
+  ADD COLUMN IF NOT EXISTS link_instagram text DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS link_facebook text DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS link_airbnb text DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS link_booking text DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS link_website text DEFAULT NULL;

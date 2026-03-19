@@ -59,6 +59,11 @@ const defaultFormData: PropertyFormData = {
   description: '',
   other_amenities: '',
   photo_url: null,
+  link_instagram: '',
+  link_facebook: '',
+  link_airbnb: '',
+  link_booking: '',
+  link_website: '',
 };
 
 export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading }: PropertyFormProps) {
@@ -122,6 +127,11 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
         description: property.description || '',
         other_amenities: property.other_amenities || '',
         photo_url: property.photo_url || null,
+        link_instagram: property.link_instagram || '',
+        link_facebook: property.link_facebook || '',
+        link_airbnb: property.link_airbnb || '',
+        link_booking: property.link_booking || '',
+        link_website: property.link_website || '',
       });
       // Set currency display values
       setCurrencyDisplay({
@@ -749,6 +759,58 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Social Links Section */}
+              <div className="border-t border-border pt-4">
+                <h4 className="font-medium text-card-foreground mb-4">Redes Sociais & Links</h4>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="link_instagram">Instagram</Label>
+                    <Input
+                      id="link_instagram"
+                      value={formData.link_instagram || ''}
+                      onChange={(e) => updateField('link_instagram', e.target.value)}
+                      placeholder="https://instagram.com/..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="link_facebook">Facebook</Label>
+                    <Input
+                      id="link_facebook"
+                      value={formData.link_facebook || ''}
+                      onChange={(e) => updateField('link_facebook', e.target.value)}
+                      placeholder="https://facebook.com/..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="link_airbnb">Airbnb</Label>
+                    <Input
+                      id="link_airbnb"
+                      value={formData.link_airbnb || ''}
+                      onChange={(e) => updateField('link_airbnb', e.target.value)}
+                      placeholder="https://airbnb.com/..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="link_booking">Booking</Label>
+                    <Input
+                      id="link_booking"
+                      value={formData.link_booking || ''}
+                      onChange={(e) => updateField('link_booking', e.target.value)}
+                      placeholder="https://booking.com/..."
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="link_website">Website</Label>
+                    <Input
+                      id="link_website"
+                      value={formData.link_website || ''}
+                      onChange={(e) => updateField('link_website', e.target.value)}
+                      placeholder="https://..."
+                    />
                   </div>
                 </div>
               </div>

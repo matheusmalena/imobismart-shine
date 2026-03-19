@@ -110,6 +110,11 @@ export function useProperties() {
           description: normalized.description || null,
           other_amenities: normalized.other_amenities || null,
           photo_url: normalized.photo_url || null,
+          link_instagram: normalized.link_instagram || null,
+          link_facebook: normalized.link_facebook || null,
+          link_airbnb: normalized.link_airbnb || null,
+          link_booking: normalized.link_booking || null,
+          link_website: normalized.link_website || null,
         })
         .select()
         .single();
@@ -177,6 +182,11 @@ export function useProperties() {
           description: normalized.description || null,
           other_amenities: normalized.other_amenities || null,
           photo_url: normalized.photo_url || null,
+          link_instagram: normalized.link_instagram || null,
+          link_facebook: normalized.link_facebook || null,
+          link_airbnb: normalized.link_airbnb || null,
+          link_booking: normalized.link_booking || null,
+          link_website: normalized.link_website || null,
         })
         .eq('id', id)
         .select()
@@ -289,6 +299,11 @@ export function useProperties() {
           description: property.description,
           other_amenities: property.other_amenities,
           photo_url: property.photo_url,
+          link_instagram: property.link_instagram,
+          link_facebook: property.link_facebook,
+          link_airbnb: property.link_airbnb,
+          link_booking: property.link_booking,
+          link_website: property.link_website,
         })
         .select()
         .single();
