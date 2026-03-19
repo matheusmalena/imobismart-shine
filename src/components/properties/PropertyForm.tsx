@@ -762,6 +762,58 @@ export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading
                   </div>
                 </div>
               </div>
+
+              {/* Social Links Section */}
+              <div className="border-t border-border pt-4">
+                <h4 className="font-medium text-card-foreground mb-4">Redes Sociais & Links</h4>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="link_instagram">Instagram</Label>
+                    <Input
+                      id="link_instagram"
+                      value={formData.link_instagram || ''}
+                      onChange={(e) => updateField('link_instagram', e.target.value)}
+                      placeholder="https://instagram.com/..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="link_facebook">Facebook</Label>
+                    <Input
+                      id="link_facebook"
+                      value={formData.link_facebook || ''}
+                      onChange={(e) => updateField('link_facebook', e.target.value)}
+                      placeholder="https://facebook.com/..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="link_airbnb">Airbnb</Label>
+                    <Input
+                      id="link_airbnb"
+                      value={formData.link_airbnb || ''}
+                      onChange={(e) => updateField('link_airbnb', e.target.value)}
+                      placeholder="https://airbnb.com/..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="link_booking">Booking</Label>
+                    <Input
+                      id="link_booking"
+                      value={formData.link_booking || ''}
+                      onChange={(e) => updateField('link_booking', e.target.value)}
+                      placeholder="https://booking.com/..."
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="link_website">Website</Label>
+                    <Input
+                      id="link_website"
+                      value={formData.link_website || ''}
+                      onChange={(e) => updateField('link_website', e.target.value)}
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+              </div>
             </TabsContent>
 
             <TabsContent value="gallery" className="space-y-4 mt-4">

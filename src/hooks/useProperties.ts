@@ -299,6 +299,11 @@ export function useProperties() {
           description: property.description,
           other_amenities: property.other_amenities,
           photo_url: property.photo_url,
+          link_instagram: property.link_instagram,
+          link_facebook: property.link_facebook,
+          link_airbnb: property.link_airbnb,
+          link_booking: property.link_booking,
+          link_website: property.link_website,
         })
         .select()
         .single();

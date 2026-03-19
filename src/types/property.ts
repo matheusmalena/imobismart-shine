@@ -111,6 +111,11 @@ export interface PropertyFormData {
   description: string;
   other_amenities: string;
   photo_url?: string | null;
+  link_instagram?: string;
+  link_facebook?: string;
+  link_airbnb?: string;
+  link_booking?: string;
+  link_website?: string;
 }
 
 export const PROPERTY_TYPE_LABELS: Record<PropertyType, string> = {
