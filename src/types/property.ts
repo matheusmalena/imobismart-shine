@@ -50,6 +50,13 @@ export interface Property {
   // Photo
   photo_url: string | null;
   
+  // Social links
+  link_instagram: string | null;
+  link_facebook: string | null;
+  link_airbnb: string | null;
+  link_booking: string | null;
+  link_website: string | null;
+  
   // Metadata
   is_archived: boolean;
   created_at: string;
