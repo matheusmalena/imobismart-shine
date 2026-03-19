@@ -59,6 +59,11 @@ const defaultFormData: PropertyFormData = {
   description: '',
   other_amenities: '',
   photo_url: null,
+  link_instagram: '',
+  link_facebook: '',
+  link_airbnb: '',
+  link_booking: '',
+  link_website: '',
 };
 
 export function PropertyForm({ open, onOpenChange, property, onSubmit, isLoading }: PropertyFormProps) {
